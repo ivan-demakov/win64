@@ -1,0 +1,91 @@
+#! /usr/local/bin/ksi -b
+
+(import (ksi core syntax)
+        (ksi core base)
+        (ksi core number)
+        (ksi core string)
+        (ksi core list)
+        (ksi core eval)
+        (ksi core io)
+        (prefix (ksi core system) ksi:)
+        (prefix (ksi core build) ksi:))
+
+(define program-name "ksi-config")
+
+(define (display-info . args)
+  (for-each display args)
+  (newline))
+
+(define (usage . args)
+  (if (pair? args)
+      (apply display-info args))
+
+  (display-info "
+Usage: " program-name " option
+  Options:
+    --help		print usage info (this message)
+    --version		print installed ksi version
+    --compile		print C compiler flags to compile with
+    --link		print libraries to link with
+    --libtool		print to libtool with
+    --bindir		print dir where ksi executable installed
+    --libdir		print dir where ksi libraries installed
+    --includedir	print dir where ksi C include files installed
+    --infodir		print dir where ksi info files installed
+    --mandir		print dir where ksi man pages installed
+    --datadir		print dir where ksi scheme and other data files installed"))
+
+
+(define (main args)
+  (set! program-name (car (last-pair (ksi:split-file-name (car args)))))
+  (if (not (= (length args) 2))
+      (begin (usage "Illegal number of arguments")
+	     (exit #f)))
+
+  (cond ((string=? (cadr args) "--help")
+	 (usage))
+
+	((string=? (cadr args) "--version")
+	 (display-info (ksi:version)))
+
+	((string=? (cadr args) "--compile")
+	 (display-info "-I" (ksi:install-include-dir)))
+
+	((string=? (cadr args) "--link")
+	 (display-info "-L" (ksi:install-lib-dir)
+		       " -lksi "
+		       (ksi:build-libs)))
+
+	((string=? (cadr args) "--libtool")
+	 (display-info "-I" (ksi:install-include-dir) " "
+                       (ksi:install-lib-dir) "/libksi.la"))
+
+	((string=? (cadr args) "--bindir")
+	 (display-info (ksi:install-bin-dir)))
+
+	((string=? (cadr args) "--libdir")
+	 (display-info (ksi:install-lib-dir)))
+
+	((string=? (cadr args) "--includedir")
+	 (display-info (ksi:install-include-dir)))
+
+	((string=? (cadr args) "--infodir")
+	 (display-info (ksi:install-info-dir)))
+
+	((string=? (cadr args) "--mandir")
+	 (display-info (ksi:install-man-dir)))
+
+	((string=? (cadr args) "--datadir")
+	 (display-info (ksi:lib-path)))
+
+	(else
+	 (usage "Illegal option: " (cadr args))
+	 (exit #f))))
+
+(main (cddr ksi:argv))
+(exit)
+
+
+;;; Local Variables:
+;;; mode:scheme
+;;; End:

@@ -1,1 +1,17 @@
 /ksi
+*~
+*.dll
+*.err
+*.exe
+*.exp
+*.lib
+*.lnk
+*.map
+*.obj
+*.pch
+*.pdb
+*.o
+*.lo
+*.la
+*.so
+*.so.*
