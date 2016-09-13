@@ -1,0 +1,816 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: mole - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\Users\avt\AppData\Local\Temp\RSP2F5F.tmp" with contents
+[
+/nologo /MD /W3 /GX /O2 /I "..\inc3.5" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_CLIENT_APP" /D "_AFXDLL" /D "_WIDE_SERVER_FORMAT" /Fp"Release/mole.pch" /YX /Fo"Release/" /Fd"Release/" /FD /c 
+"G:\MapAdmin\SRC\ABSTRDLG.CPP"
+"G:\MapAdmin\SRC\APPMODE.CPP"
+"G:\MapAdmin\SRC\BARDLG.CPP"
+"G:\MapAdmin\SRC\BLDMODE.CPP"
+"G:\MapAdmin\SRC\BMPDEF.CPP"
+"G:\MapAdmin\SRC\CBOX.CPP"
+"G:\MapAdmin\SRC\CNCTMODE.CPP"
+"G:\MapAdmin\SRC\CONDUCT.CPP"
+"G:\MapAdmin\SRC\CONVDLG.CPP"
+"G:\MapAdmin\SRC\CSPOT.CPP"
+"G:\MapAdmin\SRC\Diagitem.cpp"
+"G:\MapAdmin\SRC\DLG0.CPP"
+"G:\MapAdmin\SRC\DRAWITEM.CPP"
+"G:\MapAdmin\SRC\DRAWOBJ.CPP"
+"G:\MapAdmin\SRC\DRAWPRIM.CPP"
+"G:\MapAdmin\SRC\DVEIWIDS.CPP"
+"G:\MapAdmin\SRC\DVIEW0.CPP"
+"G:\MapAdmin\SRC\DVIEW1.CPP"
+"G:\MapAdmin\SRC\DVIEW2.CPP"
+"G:\MapAdmin\SRC\DVIEW3.CPP"
+"G:\MapAdmin\SRC\DVPRINT.CPP"
+"G:\MapAdmin\SRC\DWIN.CPP"
+"G:\MapAdmin\SRC\fulink.cpp"
+"G:\MapAdmin\SRC\GRAPHDOC.CPP"
+"G:\MapAdmin\SRC\gSpace.cpp"
+"G:\MapAdmin\SRC\KSIUTIL.CPP"
+"G:\MapAdmin\SRC\LAWDLG.CPP"
+"G:\MapAdmin\SRC\LINETMPL.CPP"
+"G:\MapAdmin\SRC\MAPMOLE.CPP"
+"G:\MapAdmin\SRC\MAPSTORE.CPP"
+"G:\MapAdmin\SRC\MAPUPDTR.CPP"
+"G:\MapAdmin\SRC\MATHUTIL.CPP"
+"G:\MapAdmin\SRC\MDOC.CPP"
+"G:\MapAdmin\SRC\MEASMODE.CPP"
+"G:\MapAdmin\SRC\merkator.cpp"
+"G:\MapAdmin\SRC\MISCMODE.CPP"
+"G:\MapAdmin\SRC\MOVEMODE.CPP"
+"G:\MapAdmin\SRC\MSUTIL.CPP"
+"G:\MapAdmin\SRC\MVIEW.CPP"
+"G:\MapAdmin\SRC\MYBAR.CPP"
+"G:\MapAdmin\SRC\OBJTREE.CPP"
+"G:\MapAdmin\SRC\PFMODE.CPP"
+"G:\MapAdmin\SRC\PRNDLG.CPP"
+"G:\MapAdmin\SRC\PTRECT.CPP"
+"G:\MapAdmin\SRC\RECTMODE.CPP"
+"G:\MapAdmin\SRC\RSTRMODE.CPP"
+"G:\MapAdmin\SRC\SELMODE.CPP"
+"G:\MapAdmin\SRC\SHABDLG.CPP"
+"G:\MapAdmin\SRC\SLTRMODE.CPP"
+"G:\MapAdmin\SRC\SPINMODE.CPP"
+"G:\MapAdmin\SRC\SPLMODE.CPP"
+"G:\MapAdmin\SRC\SUBLDLG.CPP"
+"G:\MapAdmin\SRC\Undo.cpp"
+"G:\MapAdmin\SRC\UTIL.CPP"
+]
+Creating command line "cl.exe @C:\Users\avt\AppData\Local\Temp\RSP2F5F.tmp" 
+Creating temporary file "C:\Users\avt\AppData\Local\Temp\RSP2F60.tmp" with contents
+[
+gdiplus.lib /nologo /subsystem:windows /incremental:no /pdb:"Release/mole.pdb" /machine:I386 /out:"Release/mole.exe" 
+.\Release\ABSTRDLG.OBJ
+.\Release\APPMODE.OBJ
+.\Release\ASSOC.OBJ
+.\Release\BARDLG.OBJ
+.\Release\BLDMODE.OBJ
+.\Release\BMPDEF.OBJ
+.\Release\CBOX.OBJ
+.\Release\CNCTMODE.OBJ
+.\Release\CONDUCT.OBJ
+.\Release\CONVDLG.OBJ
+.\Release\CSPOT.OBJ
+.\Release\Diagitem.obj
+.\Release\DLG0.OBJ
+.\Release\DRAWITEM.OBJ
+.\Release\DRAWOBJ.OBJ
+.\Release\DRAWPRIM.OBJ
+.\Release\DVEIWIDS.OBJ
+.\Release\DVIEW0.OBJ
+.\Release\DVIEW1.OBJ
+.\Release\DVIEW2.OBJ
+.\Release\DVIEW3.OBJ
+.\Release\DVPRINT.OBJ
+.\Release\DWIN.OBJ
+.\Release\fulink.obj
+.\Release\GRAPHDOC.OBJ
+.\Release\gSpace.obj
+.\Release\IDNTREEB.OBJ
+.\Release\INSTRDLG.OBJ
+.\Release\KSIKEY.OBJ
+.\Release\KSIUTIL.OBJ
+.\Release\LAWDLG.OBJ
+.\Release\LINETMPL.OBJ
+.\Release\LOMEDIT.OBJ
+.\Release\MAPMOLE.OBJ
+.\Release\MAPSTORE.OBJ
+.\Release\MAPUPDTR.OBJ
+.\Release\MathConst.obj
+.\Release\MATHUTIL.OBJ
+.\Release\MDOC.OBJ
+.\Release\MEASMODE.OBJ
+.\Release\merkator.obj
+.\Release\MISCMODE.OBJ
+.\Release\MOVEMODE.OBJ
+.\Release\MSUTIL.OBJ
+.\Release\MVIEW.OBJ
+.\Release\MYBAR.OBJ
+.\Release\OBJDEF.OBJ
+.\Release\OBJTREE.OBJ
+.\Release\PFMODE.OBJ
+.\Release\Polar.obj
+.\Release\POSLIST.OBJ
+.\Release\PRNDLG.OBJ
+.\Release\PTRECT.OBJ
+.\Release\RECTMODE.OBJ
+.\Release\rgnspace.obj
+.\Release\RSTRMODE.OBJ
+.\Release\SELMODE.OBJ
+.\Release\SHABDLG.OBJ
+.\Release\SLTRMODE.OBJ
+.\Release\SPCTREE.OBJ
+.\Release\SPINMODE.OBJ
+.\Release\SPLMODE.OBJ
+.\Release\STDAFX.OBJ
+.\Release\SUBLDLG.OBJ
+.\Release\Undo.obj
+.\Release\UTIL.OBJ
+.\Release\mole.res
+..\lib\gc.lib
+"..\lib\joke-3.5.1.lib"
+"..\lib\ksi-3.5.1.lib"
+C:\SDK2002\Lib\ComDlg32.Lib
+]
+Creating command line "link.exe @C:\Users\avt\AppData\Local\Temp\RSP2F60.tmp"
+<h3>Output Window</h3>
+Compiling...
+ABSTRDLG.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\ABSTRDLG.CPP(266) : warning C4018: '==' : signed/unsigned mismatch
+G:\MapAdmin\SRC\ABSTRDLG.CPP(1770) : warning C4018: '==' : signed/unsigned mismatch
+G:\MapAdmin\SRC\ABSTRDLG.CPP(1870) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\ABSTRDLG.CPP(1902) : warning C4018: '==' : signed/unsigned mismatch
+G:\MapAdmin\SRC\ABSTRDLG.CPP(1946) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\ABSTRDLG.CPP(2031) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\ABSTRDLG.CPP(2262) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\ABSTRDLG.CPP(2264) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+APPMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+BARDLG.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+BLDMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+BMPDEF.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+CBOX.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\CBOX.CPP(133) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\CBOX.CPP(133) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\CBOX.CPP(134) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\CBOX.CPP(134) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\CBOX.CPP(160) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\CBOX.CPP(161) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\CBOX.CPP(161) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+CNCTMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+CONDUCT.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+CONVDLG.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\CONVDLG.CPP(993) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\CONVDLG.CPP(994) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+CSPOT.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+Diagitem.cpp
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\Diagitem.cpp(80) : warning C4244: '*=' : conversion from 'float' to 'int', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(81) : warning C4244: '*=' : conversion from 'float' to 'int', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(82) : warning C4244: '*=' : conversion from 'float' to 'int', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(96) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(96) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(137) : warning C4244: '=' : conversion from 'float' to 'int', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(139) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(139) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(146) : warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(220) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\Diagitem.cpp(239) : warning C4305: 'argument' : truncation from 'const double' to 'float'
+G:\MapAdmin\SRC\Diagitem.cpp(240) : warning C4305: 'argument' : truncation from 'const double' to 'float'
+G:\MapAdmin\SRC\Diagitem.cpp(298) : warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+DLG0.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\DLG0.CPP(103) : warning C4244: 'return' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DLG0.CPP(109) : warning C4244: 'return' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DLG0.CPP(185) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DLG0.CPP(186) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DLG0.CPP(251) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DLG0.CPP(252) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DLG0.CPP(363) : warning C4244: '/=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DLG0.CPP(1191) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DLG0.CPP(1210) : warning C4244: '*=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DLG0.CPP(1211) : warning C4244: '*=' : conversion from 'double' to 'long', possible loss of data
+DRAWITEM.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\DRAWITEM.CPP(185) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWITEM.CPP(319) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWITEM.CPP(320) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWITEM.CPP(376) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWITEM.CPP(377) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWITEM.CPP(483) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWITEM.CPP(484) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWITEM.CPP(588) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWITEM.CPP(589) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWITEM.CPP(716) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+DRAWOBJ.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\DRAWOBJ.CPP(630) : warning C4018: '<' : signed/unsigned mismatch
+G:\MapAdmin\SRC\DRAWOBJ.CPP(642) : warning C4018: '<' : signed/unsigned mismatch
+G:\MapAdmin\SRC\DRAWOBJ.CPP(663) : warning C4018: '<' : signed/unsigned mismatch
+DRAWPRIM.CPP
+G:\MapAdmin\SRC\DRAWOBJ.CPP(1215) : warning C4700: local variable 'bSuc' used without having been initialized
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\DRAWPRIM.CPP(183) : warning C4244: '*=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(184) : warning C4244: '*=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(191) : warning C4244: '*=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(192) : warning C4244: '*=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(611) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\DRAWPRIM.CPP(894) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1078) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1078) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1183) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1183) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1184) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1184) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1224) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1224) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1225) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1225) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1284) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1284) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1285) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1285) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1311) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1311) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1312) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1312) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1420) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1813) : warning C4244: '=' : conversion from 'long' to 'short', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1814) : warning C4244: '=' : conversion from 'long' to 'char', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1893) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DRAWPRIM.CPP(1894) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+DVEIWIDS.CPP
+G:\MapAdmin\SRC\DRAWPRIM.CPP(228) : warning C4715: 'CStrokRectPrim::Detected' : not all control paths return a value
+G:\MapAdmin\SRC\DRAWPRIM.CPP(251) : warning C4715: 'CFillRectPrim::Detected' : not all control paths return a value
+G:\MapAdmin\SRC\DRAWPRIM.CPP(269) : warning C4715: 'COutlinedRectPrim::Detected' : not all control paths return a value
+G:\MapAdmin\SRC\DRAWPRIM.CPP(447) : warning C4715: 'COutlinedBar::Detected' : not all control paths return a value
+G:\MapAdmin\SRC\DRAWPRIM.CPP(686) : warning C4715: 'CPolygon::Detected' : not all control paths return a value
+G:\MapAdmin\SRC\DRAWPRIM.CPP(845) : warning C4715: 'COutlinedPolygon::Detected' : not all control paths return a value
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+DVIEW0.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+DVIEW1.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\DVIEW1.CPP(266) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(269) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(274) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(275) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(283) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(285) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(462) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(792) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(1249) : warning C4018: '==' : signed/unsigned mismatch
+G:\MapAdmin\SRC\DVIEW1.CPP(1249) : warning C4018: '==' : signed/unsigned mismatch
+G:\MapAdmin\SRC\DVIEW1.CPP(1249) : warning C4018: '==' : signed/unsigned mismatch
+G:\MapAdmin\SRC\DVIEW1.CPP(1662) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(1663) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(1901) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW1.CPP(1902) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+DVIEW2.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\DVIEW2.CPP(274) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW2.CPP(278) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\DVIEW2.CPP(278) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\DVIEW2.CPP(491) : warning C4244: '=' : conversion from '__int64' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW2.CPP(746) : warning C4244: 'return' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW2.CPP(790) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW2.CPP(790) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW2.CPP(1287) : warning C4244: 'initializing' : conversion from '__int64' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVIEW2.CPP(1341) : warning C4244: '=' : conversion from '__int64' to 'long', possible loss of data
+G:\MapAdmin\SRC\DVIEW2.CPP(1942) : warning C4244: '=' : conversion from '__int64' to 'long', possible loss of data
+G:\MapAdmin\SRC\DVIEW2.CPP(2131) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\DVIEW2.CPP(2131) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+DVIEW3.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+DVPRINT.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\DVPRINT.CPP(79) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVPRINT.CPP(196) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVPRINT.CPP(276) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\DVPRINT.CPP(368) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\DVPRINT.CPP(368) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\DVPRINT.CPP(369) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\DVPRINT.CPP(370) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\DVPRINT.CPP(462) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\DVPRINT.CPP(720) : warning C4018: '<=' : signed/unsigned mismatch
+DWIN.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\DWIN.CPP(104) : warning C4018: '==' : signed/unsigned mismatch
+fulink.cpp
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\fulink.cpp(198) : warning C4244: '=' : conversion from 'float' to 'long', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(199) : warning C4244: '=' : conversion from 'float' to 'long', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(200) : warning C4244: '=' : conversion from 'float' to 'long', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(201) : warning C4244: '=' : conversion from 'float' to 'long', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(241) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(241) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(241) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(241) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(241) : warning C4244: 'initializing' : conversion from 'long' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(241) : warning C4244: 'initializing' : conversion from 'long' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(263) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(263) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(263) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(263) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(263) : warning C4244: 'initializing' : conversion from 'long' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(263) : warning C4244: 'initializing' : conversion from 'long' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(269) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(269) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(269) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(269) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(269) : warning C4244: 'initializing' : conversion from 'long' to 'float', possible loss of data
+G:\MapAdmin\SRC\fulink.cpp(269) : warning C4244: 'initializing' : conversion from 'long' to 'float', possible loss of data
+GRAPHDOC.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+gSpace.cpp
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+KSIUTIL.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\KSIUTIL.CPP(413) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(824) : warning C4244: 'return' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(851) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(851) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(886) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(886) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(888) : warning C4244: '*=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(890) : warning C4244: '+=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(922) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(922) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(962) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(962) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(963) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(963) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(1060) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(1088) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(1088) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\KSIUTIL.CPP(1098) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+LAWDLG.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\LAWDLG.CPP(67) : warning C4018: '==' : signed/unsigned mismatch
+LINETMPL.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\LINETMPL.CPP(85) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(101) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(134) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\LINETMPL.CPP(306) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(331) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\LINETMPL.CPP(333) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(333) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(360) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(372) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(372) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(386) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(386) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(391) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(391) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\LINETMPL.CPP(417) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+MAPMOLE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+MAPSTORE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\MAPSTORE.CPP(1174) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPSTORE.CPP(1175) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPSTORE.CPP(1176) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPSTORE.CPP(1177) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPSTORE.CPP(1178) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPSTORE.CPP(1179) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPSTORE.CPP(1180) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPSTORE.CPP(1181) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+MAPUPDTR.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\MAPUPDTR.CPP(55) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(56) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(59) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(59) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(69) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(69) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(79) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(80) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(94) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(94) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(104) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(105) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(274) : warning C4244: '=' : conversion from 'unsigned long' to 'short', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(712) : warning C4018: '==' : signed/unsigned mismatch
+G:\MapAdmin\SRC\MAPUPDTR.CPP(712) : warning C4018: '>=' : signed/unsigned mismatch
+G:\MapAdmin\SRC\MAPUPDTR.CPP(712) : warning C4018: '<' : signed/unsigned mismatch
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1151) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1151) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1184) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1184) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1187) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1188) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1274) : warning C4244: '=' : conversion from 'unsigned long' to 'short', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1340) : warning C4518: 'int ' : storage-class or type specifier(s) unexpected here; ignored
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1340) : warning C4228: nonstandard extension used : qualifiers after comma in declarator list are ignored
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1437) : warning C4244: '=' : conversion from 'unsigned long' to 'short', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1694) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1694) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1695) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1695) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1786) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1786) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1812) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1812) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1814) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(1815) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(2292) : warning C4244: 'argument' : conversion from 'long' to 'unsigned char', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(2292) : warning C4244: 'argument' : conversion from 'long' to 'unsigned short', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(2529) : warning C4091: 'static ' : ignored on left of 'struct SubParam' when no variable is declared
+G:\MapAdmin\SRC\MAPUPDTR.CPP(2561) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(2561) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(3365) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(3366) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(3367) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(3371) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(3372) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MAPUPDTR.CPP(3373) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+MATHUTIL.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\MATHUTIL.CPP(101) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\MATHUTIL.CPP(1065) : warning C4101: 'j' : unreferenced local variable
+G:\MapAdmin\SRC\MATHUTIL.CPP(2648) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+MDOC.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+MEASMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\MEASMODE.CPP(260) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MEASMODE.CPP(271) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\MEASMODE.CPP(271) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\MEASMODE.CPP(271) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\MEASMODE.CPP(271) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\MEASMODE.CPP(271) : warning C4244: 'initializing' : conversion from 'long' to 'float', possible loss of data
+G:\MapAdmin\SRC\MEASMODE.CPP(271) : warning C4244: 'initializing' : conversion from 'long' to 'float', possible loss of data
+G:\MapAdmin\SRC\MEASMODE.CPP(353) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MEASMODE.CPP(835) : warning C4101: 'r' : unreferenced local variable
+G:\MapAdmin\SRC\MEASMODE.CPP(925) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MEASMODE.CPP(950) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+merkator.cpp
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\merkator.cpp(43) : warning C4244: 'return' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(49) : warning C4244: 'return' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(204) : warning C4244: 'return' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(268) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(269) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(353) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(354) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(357) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(358) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(368) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(369) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(371) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(372) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(379) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\merkator.cpp(380) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+MISCMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\MISCMODE.CPP(275) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(275) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(276) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(276) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(278) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(279) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(302) : warning C4244: '*=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(303) : warning C4244: '*=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(323) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(323) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(323) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(324) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(324) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(324) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(395) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MISCMODE.CPP(641) : warning C4018: '==' : signed/unsigned mismatch
+G:\MapAdmin\SRC\MISCMODE.CPP(659) : warning C4018: '==' : signed/unsigned mismatch
+MOVEMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+MSUTIL.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\MSUTIL.CPP(162) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(162) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(196) : warning C4244: '=' : conversion from 'long' to 'unsigned short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(203) : warning C4244: '=' : conversion from 'long' to 'unsigned short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(221) : warning C4244: '=' : conversion from 'long' to 'unsigned short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(222) : warning C4244: '=' : conversion from 'long' to 'unsigned short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(302) : warning C4244: '=' : conversion from 'long' to 'short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(398) : warning C4244: '=' : conversion from 'long' to 'short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(399) : warning C4244: '=' : conversion from 'long' to 'char', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(490) : warning C4244: '=' : conversion from 'long' to 'short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(515) : warning C4244: '=' : conversion from 'long' to 'short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(516) : warning C4244: '=' : conversion from 'long' to 'short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(887) : warning C4244: '=' : conversion from 'unsigned long' to 'short', possible loss of data
+G:\MapAdmin\SRC\MSUTIL.CPP(915) : warning C4244: '=' : conversion from 'unsigned long' to 'short', possible loss of data
+MVIEW.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\dmc.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\MVIEW.CPP(233) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\MVIEW.CPP(233) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\MVIEW.CPP(233) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\MVIEW.CPP(233) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\MVIEW.CPP(364) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MVIEW.CPP(458) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MVIEW.CPP(459) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\MVIEW.CPP(1163) : warning C4244: 'return' : conversion from 'double' to 'int', possible loss of data
+MYBAR.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+OBJTREE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\OBJTREE.CPP(187) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\OBJTREE.CPP(188) : warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+PFMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\PFMODE.CPP(120) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+PRNDLG.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+PTRECT.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\PTRECT.CPP(22) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\PTRECT.CPP(22) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\PTRECT.CPP(23) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\PTRECT.CPP(23) : warning C4244: 'argument' : conversion from 'double' to 'long', possible loss of data
+RECTMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+RSTRMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+SELMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\SELMODE.CPP(146) : warning C4018: '!=' : signed/unsigned mismatch
+G:\MapAdmin\SRC\SELMODE.CPP(175) : warning C4018: '==' : signed/unsigned mismatch
+G:\MapAdmin\SRC\SELMODE.CPP(611) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SELMODE.CPP(611) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+SHABDLG.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\SHABDLG.CPP(304) : warning C4554: '>>' : check operator precedence for possible error; use parentheses to clarify precedence
+G:\MapAdmin\SRC\SHABDLG.CPP(634) : warning C4018: '!=' : signed/unsigned mismatch
+G:\MapAdmin\SRC\SHABDLG.CPP(1079) : warning C4800: 'struct HICON__ *' : forcing value to bool 'true' or 'false' (performance warning)
+SLTRMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+SPINMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\SPINMODE.CPP(105) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\SPINMODE.CPP(105) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\SPINMODE.CPP(106) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+G:\MapAdmin\SRC\SPINMODE.CPP(107) : warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+SPLMODE.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\SPLMODE.CPP(488) : warning C4244: '/=' : conversion from 'double' to 'int', possible loss of data
+SUBLDLG.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\SUBLDLG.CPP(454) : warning C4244: 'initializing' : conversion from 'float' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(455) : warning C4244: 'initializing' : conversion from 'float' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(624) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1362) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1362) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1513) : warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1513) : warning C4244: 'argument' : conversion from 'float' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1514) : warning C4244: '=' : conversion from 'float' to 'long', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1515) : warning C4244: '=' : conversion from 'float' to 'long', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1516) : warning C4244: '=' : conversion from 'float' to 'long', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1517) : warning C4244: '=' : conversion from 'float' to 'long', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1520) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1521) : warning C4244: '=' : conversion from 'double' to 'long', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1804) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1805) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1807) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1808) : warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1834) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1834) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1835) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+G:\MapAdmin\SRC\SUBLDLG.CPP(1835) : warning C4244: 'argument' : conversion from 'double' to 'int', possible loss of data
+Undo.cpp
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+UTIL.CPP
+G:\MapAdmin\SRC\gpl.h(116) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(173) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(180) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\gpl.h(187) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+G:\MapAdmin\SRC\objtree.h(20) : warning C4200: nonstandard extension used : zero-sized array in struct/union
+Linking...
+
+
+
+<h3>Results</h3>
+mole.exe - 0 error(s), 608 warning(s)
+</pre>
+</body>
+</html>
