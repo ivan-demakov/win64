@@ -42,7 +42,7 @@ struct Ksi_Module
     unsigned itag;
     ksi_obj env;
     ksi_obj name;
-    ksi_obj export;
+    ksi_obj m_export;
     ksi_obj uses;
     ksi_obj opts;
 };
@@ -82,7 +82,7 @@ ksi_module_p (ksi_obj x);
 
 SI_API
 ksi_obj
-ksi_make_module (ksi_obj name, ksi_obj export, ksi_obj opts, ksi_obj env);
+ksi_make_module (ksi_obj name, ksi_obj xport, ksi_obj opts, ksi_obj env);
 
 SI_API
 ksi_obj

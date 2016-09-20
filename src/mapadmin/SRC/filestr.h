@@ -4,7 +4,7 @@
 #ifndef _FILESTR_H_
 #define _FILESTR_H_
 //=====================================================================
-#include <fstream.h>
+#include <fstream>
 #include <time.h>
 #include "t.h"
 #include "ptrect.h"

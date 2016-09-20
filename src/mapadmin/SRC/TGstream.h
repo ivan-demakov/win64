@@ -9,21 +9,21 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "strstrea.h"
+#include "strstream"
 
 #define MIN_BUF_SIZE 0x4000000
 
-class  TGstream : public iostream
+class  TGstream : public std::iostream
 {
-  strstreambuf buf;
+  std::strstreambuf buf;
 
 public:
-  TGstream() : buf( MIN_BUF_SIZE ), iostream((streambuf*)&buf){}
-  TGstream( long GrowBy ) : buf( GrowBy ), iostream(( streambuf*)&buf){}
+  TGstream() : buf( MIN_BUF_SIZE ), std::iostream((std::streambuf*)&buf){}
+  TGstream( long GrowBy ) : buf( GrowBy ), std::iostream(( std::streambuf*)&buf){}
   ~TGstream() { buf.freeze(0); }
 
   int pcount() const { return rdbuf()->out_waiting(); } // not in spec.
-  strstreambuf* rdbuf() const { return (strstreambuf*) ostream::rdbuf(); }
+  std::strstreambuf* rdbuf() const { return (std::strstreambuf*) std::ostream::rdbuf(); }
   char* str() { return rdbuf()->str(); }
 };
 

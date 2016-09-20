@@ -4,7 +4,7 @@
 class CDrawObject;
 struct Polar
 {
-  Create( double ltg, double ltm, double lts, double lng, double lnm, double lns );
+  void Create( double ltg, double ltm, double lts, double lng, double lnm, double lns );
   Polar( double lt = 0, double ln = 0 ) : lat( lt ), lon( ln ) {}   
   Polar( double ltg, double ltm, double lts, double lng, double lnm, double lns )
   {

@@ -260,7 +260,7 @@ Intersect( CRect const& r1, CRect const& r2 )
 inline int
 atan2( CSize s )
 {
-  return atan2( s.cx, -s.cy );
+  return (int)atan2( s.cx, -s.cy );
 }
 //=====================================================================
 inline double

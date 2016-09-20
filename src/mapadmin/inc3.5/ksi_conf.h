@@ -109,8 +109,12 @@
 #  define HAVE_RENAME		1
 #  define HAVE_LONG_LONG	1
 #  define LONG_LONG		__int64
-#  define LLONG_MAX		_I64_MAX
-#  define LLONG_MIN		_I64_MIN
+#  ifndef LLONG_MAX
+#    define LLONG_MAX		_I64_MAX
+#  endif
+#  ifndef LLONG_MIN
+#    define LLONG_MIN		_I64_MIN
+#  endif
 #  define SIZEOF_LONG_LONG	8
 #  ifndef __cplusplus
 #    define inline __inline

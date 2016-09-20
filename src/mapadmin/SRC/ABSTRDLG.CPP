@@ -979,7 +979,8 @@ CAbstractDialog::OnOK()
     if( bAbstract2concret )
     {
       CBmpDefArray* pBDA = pDocument->GetBmpDefArray( 1 );
-      for( int i = pBDA->GetSize() ; --i >= 0 && pBDA->GetAt( i )->GetBmpId() != ref ; );
+	  int i;
+      for( i = pBDA->GetSize() ; --i >= 0 && pBDA->GetAt( i )->GetBmpId() != ref ; );
       if( i >= 0 )
       {
         delete pBDA->GetAt( i );
@@ -996,7 +997,8 @@ CAbstractDialog::OnOK()
                                  CIconParamDialog::GetBmpName(),
                                  CIconParamDialog::GetScaleSingle());
 
-    for( int i = pBDA->GetSize() ; --i >= 0 && !( *pBDA->GetAt( i ) == *pBmp ) ; );
+	int i;
+	for( i = pBDA->GetSize() ; --i >= 0 && !( *pBDA->GetAt( i ) == *pBmp ) ; );
     if( i >= 0 )
     {
       pBmp->SetBmpId( ref = pBDA->GetAt( i )->GetBmpId());

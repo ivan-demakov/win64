@@ -2,7 +2,7 @@
 #define _MAPSTORE_H_
 //=====================================================================
 #include <stdlib.h>
-#include <fstream.h>
+#include <fstream>
 #include "TGstream.h"
 #include "filestr.h"
 #include "spctree.h"
