@@ -1,0 +1,18 @@
+; BIND data file
+;
+$TTL	3600
+@	IN	SOA	ns1.demakov.net. root.demakov.net. (
+			     22		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+@	IN	NS	ns1.demakov.net.
+;
+@	MX	10	mx1.demakov.net.
+;
+ns1	IN	A	192.168.2.10
+mx1	IN	A	192.168.2.10
+www	IN	A	192.168.2.10
+ws10	IN	A	192.168.2.10
