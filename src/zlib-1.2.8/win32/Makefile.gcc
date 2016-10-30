@@ -36,12 +36,12 @@ IMPLIB    = libz.dll.a
 #
 # Set to 1 if shared object needs to be installed
 #
-SHARED_MODE=0
+SHARED_MODE=1
 
 #LOC = -DASMV
 #LOC = -DDEBUG -g
 
-PREFIX =
+PREFIX =x86_64-w64-mingw32-
 CC = $(PREFIX)gcc
 CFLAGS = $(LOC) -O3 -Wall
 
