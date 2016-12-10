@@ -5,9 +5,13 @@ export PATH
 
 export CPPFLAGS="-I/home/win64/include"
 export LDFLAGS="-L/home/win64/bin -L/home/win64/lib"
-export libarchive_la_LDFLAGS="-Wl,--out-implib"
+
+make clean
+
 ./configure --prefix=/home/win64 --host=x86_64-w64-mingw32 \
-  --enable-shared --disable-static
+  --enable-shared --disable-static \
+  --disable-bsdtar --disable-bsdcat --disable-bsdcpio \
+  --disable-dependency-tracking
 
 make
 make install
