@@ -185,7 +185,7 @@ func_exec_program ()
 
   if test -f "$progdir/$program"; then
     # Add the dll search path components to the executable PATH
-    PATH=/home/win64/bin:/home/win64/src/libiconv-1.14/lib/.libs:/usr/local/lib:/usr/local/bin:$PATH
+    PATH=/home/win64/bin:/home/win64/src/libiconv-1.14/lib/.libs:/home/win64/lib:$PATH
 
     # Add our own library path to PATH
     PATH="/home/win64/src/libiconv-1.14/lib/.libs:$PATH"

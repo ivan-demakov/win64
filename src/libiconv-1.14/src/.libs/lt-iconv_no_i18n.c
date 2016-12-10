@@ -159,7 +159,7 @@ volatile const char * MAGIC_EXE = "%%%MAGIC EXE variable%%%";
 const char * LIB_PATH_VARNAME = "PATH";
 const char * LIB_PATH_VALUE   = "/home/win64/src/libiconv-1.14/lib/.libs;";
 const char * EXE_PATH_VARNAME = "PATH";
-const char * EXE_PATH_VALUE   = "/home/win64/bin;/home/win64/src/libiconv-1.14/lib/.libs;/usr/local/lib;/usr/local/bin;";
+const char * EXE_PATH_VALUE   = "/home/win64/bin;/home/win64/src/libiconv-1.14/lib/.libs;/home/win64/lib;";
 const char * TARGET_PROGRAM_NAME = "iconv_no_i18n.exe"; /* hopefully, no .exe */
 
 #define LTWRAPPER_OPTION_PREFIX         "--lt-"
@@ -1016,7 +1016,7 @@ void lt_dump_script (FILE* f)
   fputs ("\n", f);
   fputs ("  if test -f \"$progdir/$program\"; then\n", f);
   fputs ("    # Add the dll search path components to the executable PATH\n", f);
-  fputs ("    PATH=/home/win64/bin:/home/win64/src/libiconv-1.14/lib/.libs:/usr/local/lib:/usr/local/bin:$PATH\n", f);
+  fputs ("    PATH=/home/win64/bin:/home/win64/src/libiconv-1.14/lib/.libs:/home/win64/lib:$PATH\n", f);
   fputs ("\n", f);
   fputs ("    # Add our own library path to PATH\n", f);
   fputs ("    PATH=\"/home/win64/src/libiconv-1.14/lib/.libs:$PATH\"\n", f);

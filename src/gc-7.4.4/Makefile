@@ -784,7 +784,7 @@ ATOMIC_OPS_LIBS =
 AUTOCONF = ${SHELL} /home/win64/src/gc-7.4.4/missing autoconf
 AUTOHEADER = ${SHELL} /home/win64/src/gc-7.4.4/missing autoheader
 AUTOMAKE = ${SHELL} /home/win64/src/gc-7.4.4/missing automake-1.15
-AWK = gawk
+AWK = mawk
 CC = x86_64-w64-mingw32-gcc
 CCAS = x86_64-w64-mingw32-gcc
 CCASDEPMODE = depmode=gcc3

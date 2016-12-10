@@ -11811,17 +11811,17 @@ file_list_spec=""
 hardcode_action=immediate
 
 # The directories searched by this compiler when creating a shared library.
-compiler_lib_search_dirs="/usr/lib/gcc/x86_64-w64-mingw32/5.4-win32 /usr/lib/gcc/x86_64-w64-mingw32/5.4-win32/../../../../x86_64-w64-mingw32/lib"
+compiler_lib_search_dirs="/usr/lib/gcc/x86_64-w64-mingw32/6.2-win32 /usr/lib/gcc/x86_64-w64-mingw32/6.2-win32/../../../../x86_64-w64-mingw32/lib"
 
 # Dependencies to place before and after the objects being linked to
 # create a shared library.
-predep_objects="/usr/lib/gcc/x86_64-w64-mingw32/5.4-win32/../../../../x86_64-w64-mingw32/lib/dllcrt2.o /usr/lib/gcc/x86_64-w64-mingw32/5.4-win32/crtbegin.o"
-postdep_objects="/usr/lib/gcc/x86_64-w64-mingw32/5.4-win32/crtend.o"
+predep_objects="/usr/lib/gcc/x86_64-w64-mingw32/6.2-win32/../../../../x86_64-w64-mingw32/lib/dllcrt2.o /usr/lib/gcc/x86_64-w64-mingw32/6.2-win32/crtbegin.o"
+postdep_objects="/usr/lib/gcc/x86_64-w64-mingw32/6.2-win32/crtend.o"
 predeps=""
 postdeps="-lstdc++ -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmoldname -lmingwex -lmsvcrt"
 
 # The library search path used internally by the compiler when linking
 # a shared library.
-compiler_lib_search_path="-L/usr/lib/gcc/x86_64-w64-mingw32/5.4-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/5.4-win32/../../../../x86_64-w64-mingw32/lib"
+compiler_lib_search_path="-L/usr/lib/gcc/x86_64-w64-mingw32/6.2-win32 -L/usr/lib/gcc/x86_64-w64-mingw32/6.2-win32/../../../../x86_64-w64-mingw32/lib"
 
 # ### END LIBTOOL TAG CONFIG: CXX
