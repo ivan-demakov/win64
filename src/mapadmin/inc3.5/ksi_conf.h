@@ -486,8 +486,8 @@
 #endif
 
 #if defined(_MSC_VER)
-#  define ABS(x)		(abs((x)))
-#  define copysign(x,y)		_copysign((x), (y))
+//#  define ABS(x)		(abs((x)))
+//#  define copysign(x,y)		_copysign((x), (y))
 #else
 #  ifndef ABS
 #    define ABS(x)		((x) < 0 ? -(x) : (x))

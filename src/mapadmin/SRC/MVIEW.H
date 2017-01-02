@@ -491,7 +491,7 @@ private:
   void OnImprovePolyline();
   void OnTestReper();
   void OnTestAllRepers();
-  int  Test1Reper( CDrawObject* pRep, ofstream* pFile, int nMode );
+  int  Test1Reper( CDrawObject* pRep, std::ofstream* pFile, int nMode );
   void UnselObj();
   void OnRegionSave();
   void OnChangeClassMode();

@@ -5,7 +5,7 @@
 #define _IDNTREE_H_
 //=====================================================================
 #include <stdlib.h>
-#include <fstream.h>
+#include <fstream>
 #include "t.h"
 #include "rcode.h"
 #include "filestr.h"
@@ -119,19 +119,19 @@ public:
   class IdentItem
   {
   public:
-    void Set( CTabIdent const& id, streampos pos ) { m_Id = id; m_Pos = pos; }
+    void Set( CTabIdent const& id, std::streampos pos ) { m_Id = id; m_Pos = pos; }
     int Free() { return m_Pos == 0; }
     int Used() { return m_Pos > 0; }
     CTabIdent m_Id;
-    int       m_Pos;
+	long long       m_Pos;
   };
 
 public:
   IdentDirectHashTab();
   ~IdentDirectHashTab() { Clear(); }
   int RemoveObject( CTabIdent const& id );
-  int AddObject( CTabIdent const& id, streampos pos );
-  streampos SelectObject( CTabIdent const& id );
+  int AddObject( CTabIdent const& id, std::streampos pos );
+  std::streampos SelectObject( CTabIdent const& id );
   EntryType GetUniId(); 
   void Clear();
 
@@ -160,10 +160,10 @@ public:
   {
   public:
     CTabIdent  m_Id;
-    int        m_Pos;
+    int64_t        m_Pos;
     IdentItem* m_pNext;
 
-    IdentItem( CTabIdent const& id, streampos pos, IdentItem* next ):
+    IdentItem( CTabIdent const& id, std::streampos pos, IdentItem* next ):
       m_Id( id ), m_Pos( pos ), m_pNext( next )
       {}
 
@@ -174,9 +174,9 @@ public:
   IdentLinkedHashTab();
   ~IdentLinkedHashTab() { Clear(); }
   int RemoveObject( CTabIdent const& id );
-  int AddObject( CTabIdent const& id, streampos pos );
-  streampos LastReplaced() { return m_LastReplaced; }
-  streampos SelectObject( CTabIdent const& id );
+  int AddObject( CTabIdent const& id, std::streampos pos );
+  std::streampos LastReplaced() { return m_LastReplaced; }
+  std::streampos SelectObject( CTabIdent const& id );
   EntryType GetUniId( int t ); 
   void Clear();
 
@@ -190,7 +190,7 @@ private:
   int       m_nUsed;
   int       m_nLinks; 
   EntryType m_nLastUni; 
-  streampos m_LastReplaced;
+  std::streampos m_LastReplaced;
 };
 //=====================================================================
 #endif

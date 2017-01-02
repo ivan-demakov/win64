@@ -22,7 +22,12 @@ public:
   TGstream( long GrowBy ) : buf( GrowBy ), std::iostream(( std::streambuf*)&buf){}
   ~TGstream() { buf.freeze(0); }
 
+#ifndef ivan
+  int pcount() const { return 0; } // not in spec.
+#else
   int pcount() const { return rdbuf()->out_waiting(); } // not in spec.
+#endif // ivan
+
   std::strstreambuf* rdbuf() const { return (std::strstreambuf*) std::ostream::rdbuf(); }
   char* str() { return rdbuf()->str(); }
 };

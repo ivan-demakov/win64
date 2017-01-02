@@ -73,7 +73,8 @@ CSelectTraceMode::IsTraceClass( int t )
 int
 CSelectTraceMode::InTrace( CTabIdent id )
 {
-  for( int i = m_Trace.GetSize() ; --i >= 0 && m_Trace[i]->m_ObjId != id ; );
+	int i;
+  for( i = m_Trace.GetSize() ; --i >= 0 && m_Trace[i]->m_ObjId != id ; );
   return i;
 }
 //=====================================================================

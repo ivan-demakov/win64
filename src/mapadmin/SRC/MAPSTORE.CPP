@@ -66,7 +66,8 @@ ResultCode
 MapStore::SetValidNodeList( long* pNds )
 {
   delete pNodes;
-  for( long* p = pNds ; *p++ ; );
+  long* p;
+  for( p = pNds ; *p++ ; );
   int n = p - pNds;
   pNodes = new long[n];
   memcpy( pNodes, pNds, n * sizeof( long ));
@@ -164,7 +165,7 @@ MapStore::CreateEmpty( char const* iniPath )
     HR.FreePos = sizeof HR;
     HR.IndexValid = 1;
 
-    DataStream.open( DataPath, ios::out|ios::trunc|ios::binary, filebuf::sh_none );
+    DataStream.open( DataPath, std::ios::out| std::ios::trunc| std::ios::binary, std::filebuf::sh_none );
     r = DataStream.bad() ?
       TraceError( MapNumber, R_BADSTREAM, DataPath ) :
       WriteData( 0, &HR, sizeof HR, &DataStream );
@@ -250,7 +251,7 @@ MapStore::GetYSize( long* pResult )
 //=====================================================================
 //=====================================================================
 ResultCode
-MapStore::GetHeadRecord( streampos pos, istream* pSrc )
+MapStore::GetHeadRecord( std::streampos pos, std::istream* pSrc )
 {
   static int oldPos = 0;
   ResultCode r = ReadData( pos, pDrh->GetRecPtr(), pDrh->GetRecSize(), pSrc ? pSrc : &DataStream );
@@ -268,7 +269,7 @@ MapStore::GetHeadRecord( streampos pos, istream* pSrc )
 //=====================================================================
 //=====================================================================
 ResultCode
-MapStore::GetRecord( streampos pos, istream* pSrc )
+MapStore::GetRecord( std::streampos pos, std::istream* pSrc )
 {
   ResultCode r = GetHeadRecord( pos, pSrc );
   if( r != R_OK )
@@ -296,14 +297,14 @@ MapStore::GetRecord( streampos pos, istream* pSrc )
 }
 //=====================================================================
 ResultCode
-MapStore::PutHeadRecord( streampos pos, ostream* pDst )
+MapStore::PutHeadRecord( std::streampos pos, std::ostream* pDst )
 {
   ResultCode r = WriteData( pos, pDrh->GetRecPtr(), pDrh->GetRecSize(), pDst ? pDst : &DataStream );
   return TraceError( MapNumber, r, "PutHeadRecord", pos );
 }
 //=====================================================================
 ResultCode
-MapStore::PutRecord( streampos pos, ostream* pDst )
+MapStore::PutRecord( std::streampos pos, std::ostream* pDst )
 {
   ResultCode r = PutHeadRecord( pos, pDst );
   if( r == R_OK )
@@ -312,7 +313,7 @@ MapStore::PutRecord( streampos pos, ostream* pDst )
 }
 //=====================================================================
 ResultCode
-MapStore::AddIndex( streampos pos, Rect const& box, int node,
+MapStore::AddIndex( std::streampos pos, Rect const& box, int node,
                     int type, CTabIdent tabid, int bSort )
 {
   return
@@ -323,7 +324,7 @@ MapStore::AddIndex( streampos pos, Rect const& box, int node,
 }
 //=====================================================================
 void
-MapStore::RemoveIndex( streampos pos, Rect const& box, /*CIdent const& id,*/ CTabIdent tabid )
+MapStore::RemoveIndex( std::streampos pos, Rect const& box, /*CIdent const& id,*/ CTabIdent tabid )
 {
   TabIdentIndex.RemoveObject( tabid );
   SpaceIndex.RemoveObject( box, pos );
@@ -339,7 +340,7 @@ MapStore::SetModifiedFlag( int m )
 ResultCode
 MapStore::ChangeSize( long s )
 {
-  filedesc fd = DataStream.fd();
+  std::filedesc fd = DataStream.fd();
   long p = _filelength( fd );
   long d = s % HR.IncSize;
   if( d )
@@ -442,7 +443,7 @@ MapStore::Init( char const* iniPath )
     r = CreateEmpty( iniPath );
   if( r == R_OK )
   {
-    DataStream.open( DataPath, ios::in|ios::out|ios::binary, filebuf::sh_read || filebuf::sh_write );
+    DataStream.open( DataPath, std::ios::in| std::ios::out| std::ios::binary, std::filebuf::sh_read || std::filebuf::sh_write );
     if( !DataStream.good())
       r = TraceError( MapNumber, R_BADSTREAM, DataPath );
     else
@@ -496,9 +497,9 @@ MapStore::CreateIndexes( int bSpace )
 
   int rSize = 0;
 
-  DataStream.seekg( 0, ios::end );
+  DataStream.seekg( 0, std::ios::end );
   long limit = min( DataStream.tellg(), HR.FreePos );
-  streampos rPos;
+  std::streampos rPos;
 
   int bTabIndexGood = 1;
   int bSpcIndexGood = 1;
@@ -518,12 +519,12 @@ MapStore::CreateIndexes( int bSpace )
         char dmp[16];
         sprintf( dmp, "%08x%c", pDrh->GetMagic(), --n > 0 ? ' ' : '\n' );
         n > 0 || ( n = 8 );
-        cerr << dmp;
+		std::cerr << dmp;
         ++rSize;
       }
 
       if( n )
-        cerr << endl;
+		  std::cerr << std::endl;
 
       if( rSize < pDrh->GetRecSize())
         TraceError( MapNumber, R_BADFILESTRUCT, "Can not correct record", rPos );
@@ -550,7 +551,7 @@ MapStore::CreateIndexes( int bSpace )
                                                  ClsInf.GetMaxLimit( pDrh->GetClass()),
                                                  pDrh->GetNode(), 0 );
         bTabIndexGood &= TabIdentIndex.AddObject( pDrh->GetTabIdent(), rPos );
-        streampos dPos = TabIdentIndex.LastReplaced();
+        std::streampos dPos = TabIdentIndex.LastReplaced();
         if( dPos )
         {
           char m[256];
@@ -586,7 +587,7 @@ MapStore::AddObject( TGstream& src )
 {
   int bNew = -1;
   dword mg = 0;
-  streampos pos, currPos = sizeof mg, lastPos = src.pcount();
+  std::streampos pos, currPos = sizeof mg, lastPos = src.pcount();
   src.read((char*)&mg, sizeof mg );
   switch( mg )
   {
@@ -596,8 +597,8 @@ MapStore::AddObject( TGstream& src )
   }
 
   int size;
-
-  for( ResultCode r = R_OK ; r == R_OK && currPos < lastPos ; currPos += size )
+  ResultCode r;
+  for( r = R_OK ; r == R_OK && currPos < lastPos ; currPos += size )
   {
     r = GetRecord( currPos, &src );
     size = pDrh->GetSize();
@@ -646,7 +647,7 @@ MapStore::AddObject( TGstream& src )
 ResultCode
 MapStore::RemoveObject( CTabIdent id )
 {
-  streampos pos = TabIdentIndex.SelectObject( id );
+  std::streampos pos = TabIdentIndex.SelectObject( id );
   ResultCode r = pos ? PutRecordEmp( pos ) : R_NOIDENT;
   if( r == R_OK )
     r = FlushByTime();
@@ -655,7 +656,7 @@ MapStore::RemoveObject( CTabIdent id )
 }
 //=====================================================================
 ResultCode
-MapStore::AddObjectToStream( streampos pos, TGstream& dst, int* pCnt )
+MapStore::AddObjectTostream( std::streampos pos, TGstream& dst, int* pCnt )
 {
   ResultCode r = GetHeadRecord( pos );
   if( r != R_OK )
@@ -685,7 +686,7 @@ MapStore::AddObjectToStream( streampos pos, TGstream& dst, int* pCnt )
 }
 //=====================================================================
 ResultCode
-MapStore::AddObjectToStream( streampos pos, TGstream& dst, SelectInfo* pi0, SelectInfo* pi1, int* pCnt )
+MapStore::AddObjectTostream( std::streampos pos, TGstream& dst, SelectInfo* pi0, SelectInfo* pi1, int* pCnt )
 {
   ResultCode r = GetHeadRecord( pos );
   if( r != R_OK || !pDrh->IsObjRec())
@@ -745,7 +746,7 @@ MapStore::FindObject( CTabIdent id, TGstream& dst )
 ResultCode
 MapStore::FindObjects( CTabIdent const* pTid, int* pnId, TGstream& dst )
 {
-  streampos pos;
+  std::streampos pos;
   ResultCode r = R_OK;
   bClipping = 0;
   int nId = *pnId;
@@ -754,7 +755,7 @@ MapStore::FindObjects( CTabIdent const* pTid, int* pnId, TGstream& dst )
   if( nId == 1 )
   {
     if( pos = TabIdentIndex.SelectObject( *pTid ))
-      r = AddObjectToStream( pos, dst, pnId );
+      r = AddObjectTostream( pos, dst, pnId );
     return TraceError( MapNumber, pos ? r : R_NOIDENT, "FindObjects(1)", pTid->Table(), pTid->Entry());
   }
 
@@ -776,7 +777,7 @@ MapStore::FindObjects( CTabIdent const* pTid, int* pnId, TGstream& dst )
 
   while( r == R_OK && ( pos = pSelectInfo[0].poslist.GetCurr()))
   {
-    r = AddObjectToStream( pos, dst, pnId );
+    r = AddObjectTostream( pos, dst, pnId );
     if( r != R_REPEAT )
       pSelectInfo[0].poslist.SetNext();
   }
@@ -792,7 +793,7 @@ MapStore::FindObjectId( CTabIdent const* pTid, int nId, CIdent* pId )
 {
   for( ResultCode r = R_OK ; r == R_OK && --nId >= 0 ; )
   {
-    streampos pos = TabIdentIndex.SelectObject( pTid[nId] );
+    std::streampos pos = TabIdentIndex.SelectObject( pTid[nId] );
     r = pos ? R_OK : R_NOIDENT;
     if( r == R_OK )
     {
@@ -829,11 +830,11 @@ MapStore::SelectObjects( Rect const& rect0, Rect const& rect1, int limit01,
   {
     pi->poslist.SetFirst();
     Clip = pi->rect;
-    streampos rPos;
+    std::streampos rPos;
     while( r == R_OK && ( rPos = pi->poslist.GetCurr()))
     {
       int cnt = Cnt;
-      r = AddObjectToStream( rPos, dst, &pSelectInfo[2], pi == pSelectInfo ? 0 : pSelectInfo, &Cnt );
+      r = AddObjectTostream( rPos, dst, &pSelectInfo[2], pi == pSelectInfo ? 0 : pSelectInfo, &Cnt );
       if( r != R_REPEAT )
       {
         pi->poslist.SetNext();
@@ -864,13 +865,13 @@ MapStore::SelectByClass( Rect const& rect, long* pClass, long nClass,
   bClipping = 0;
   for( *pCnt = 0 ; --n >= 0 ; )
   {
-    streampos pos = PosList.GetNext();
+    std::streampos pos = PosList.GetNext();
     if( GetHeadRecord( pos ) == R_OK )
     {
-      int t = pDrh->GetClass();
-      for( int i = nClass ; --i >= 0 && t != pClass[i] ; );
+      int i, t = pDrh->GetClass();
+      for( i = nClass ; --i >= 0 && t != pClass[i] ; );
       if( i >= 0 )
-        AddObjectToStream( pos, dst, pCnt );
+        AddObjectTostream( pos, dst, pCnt );
     }
   }
   return R_OK;
@@ -880,13 +881,13 @@ ResultCode
 MapStore::RemoveAllObjects( ClassType type )
 {
   ResultCode r = R_OK;
-  for( streampos pos = sizeof HR ; r == R_OK && pos < HR.FreePos ; pos += pDrh->GetSize())
+  for( std::streampos pos = sizeof HR ; r == R_OK && pos < HR.FreePos ; pos += pDrh->GetSize())
     r = PutRecordEmp( pos, type );
   return R_OK;
 }
 //=====================================================================
 ResultCode
-MapStore::PutRecordEmp( streampos pos, ClassType type )
+MapStore::PutRecordEmp( std::streampos pos, ClassType type )
 {
   char buf[TagRecSize];
   memcpy( buf, pDrh->GetRecPtr(), pDrh->GetRecSize());
@@ -923,7 +924,8 @@ MapStore::NextClassScan()
   if( nClassScan < 0 )
     return R_EOFSTREAM;
 
-  for( ResultCode r = R_OK ; r == R_OK ; )
+  ResultCode r;
+  for( r = R_OK ; r == R_OK ; )
   {
     r = pPosScan < pMaxPosScan ? GetHeadRecord( pPosScan ) : R_OUTOFMEMORY;
     if( r == R_OK )
@@ -954,13 +956,13 @@ ResultCode
 MapStore::NextClassScan( TGstream& dst )
 {
   ResultCode r = NextClassScan();
-  return r == R_OK ? AddObjectToStream( pPosScan - pDrh->GetSize(), dst, 0 ) : r;
+  return r == R_OK ? AddObjectTostream( pPosScan - pDrh->GetSize(), dst, 0 ) : r;
 }
 //=====================================================================
 ResultCode
 MapStore::SelectObject( CTabIdent id, TGstream& dst, int* pCnt, int bRemoved )
 {
-  streampos pos;
+  std::streampos pos;
   bClipping = 0;
 
   if( pCnt )
@@ -973,12 +975,12 @@ MapStore::SelectObject( CTabIdent id, TGstream& dst, int* pCnt, int bRemoved )
     {
       rSize = GetRecord( pos ) == R_OK ? pDrh->GetSize() : 1;
       if( rSize > 1 && pDrh->IsEmpRec() && pDrh->GetTabIdent() == id )
-        AddObjectToStream( pos, dst, pCnt );
+        AddObjectTostream( pos, dst, pCnt );
     }
   }
   else
   if( pos = TabIdentIndex.SelectObject( id ))
-    AddObjectToStream( pos, dst, pCnt );
+    AddObjectTostream( pos, dst, pCnt );
 
   return R_OK;
 }
@@ -986,7 +988,7 @@ MapStore::SelectObject( CTabIdent id, TGstream& dst, int* pCnt, int bRemoved )
 ResultCode
 MapStore::GetObjectBox( CTabIdent id, Rect* rect )
 {
-  streampos pos = TabIdentIndex.SelectObject( id );
+  std::streampos pos = TabIdentIndex.SelectObject( id );
 
 	if( !pos )
 		return R_NOIDENT;
@@ -1010,9 +1012,8 @@ MapStore::IsPointInPolygon( Point c, Point const* plg, int n )
   static int const rm[2][2] = {{0,1},{3,2}};
   Point p0( plg[n-1] );
   Point pd( p0 - c );
-  int pt = rm[pd.y<0][pd.x<0];
-
-  for( int s = 0 ; --n >= 0 ; )
+  int s, pt = rm[pd.y<0][pd.x<0];
+  for( s = 0 ; --n >= 0 ; )
   {
     if( c == p0 )
       return 0;
@@ -1119,7 +1120,8 @@ MapStore::IsPolylineClipped( Point const* pPoints, int nPoints, int w, int bnd )
 
   Clip.Inflate( w );
   Point const* pp = pPoints;
-  for( Point p0 = *pp++, p1 ; --nPoints > 0 ; p0 = p1 )
+  Point p0;
+  for( p0 = *pp++, p1 ; --nPoints > 0 ; p0 = p1 )
   {
     p1 = ( HR.Version & 1 ) ? *pp++ : p0 + *pp++;
     if( IsLineClipped( p0, p1 ))
@@ -1355,7 +1357,7 @@ MapStore::ClipObjectsId( Point* pPnts, int nPnt, char classMap[],
   ResultCode r = R_OK;
   while( --n >= 0 && r == R_OK )
   {
-    streampos pos = PosList.GetNext();
+    std::streampos pos = PosList.GetNext();
     r = GetHeadRecord( pos );
     if( r == R_OK )
     {
@@ -1381,7 +1383,7 @@ MapStore::SelectByRect( Rect rect, long nClass, TGstream& dst, int* pCnt )
 
   if( rect.IsRectNull())
   {
-    streampos pos;
+    std::streampos pos;
     if( pSelectInfo[0].poslist.Empty())
     {
       int rSize = 0;
@@ -1398,7 +1400,7 @@ MapStore::SelectByRect( Rect rect, long nClass, TGstream& dst, int* pCnt )
 
     while( r == R_OK && ( pos = pSelectInfo[0].poslist.GetCurr()))
     {
-      r = AddObjectToStream( pos, dst, pCnt );
+      r = AddObjectTostream( pos, dst, pCnt );
       if( r != R_REPEAT )
         pSelectInfo[0].poslist.SetNext();
     }
@@ -1413,12 +1415,12 @@ MapStore::SelectByRect( Rect rect, long nClass, TGstream& dst, int* pCnt )
 
     bClipping = 0;
     Clip = rect;
-    streampos pos;
+    std::streampos pos;
     while( r == R_OK && ( pos = pSelectInfo[0].poslist.GetCurr()))
     {
       r = GetHeadRecord( pos );
       if( r == R_OK && ClsInf.IsDerivedFromEx( pDrh->GetClass(), nClass ))
-        r = AddObjectToStream( pos, dst, pCnt );
+        r = AddObjectTostream( pos, dst, pCnt );
       if( r != R_REPEAT )
         pSelectInfo[0].poslist.SetNext();
     }
@@ -1453,7 +1455,7 @@ MapStore::AcountAllObjects( long* pTabl, Point* pRgn, int nRgnSize )
 
   memset( pTabl, 0, FULL_RANGE * sizeof pTabl[0] );
 
-  streampos posScan = sizeof( DataFileHeadRec );
+  std::streampos posScan = sizeof( DataFileHeadRec );
 
   for( ResultCode r = R_OK ; r == R_OK && posScan < HR.FreePos ; )
   {
@@ -1499,7 +1501,7 @@ ResultCode
 MapStore::SetObjectNode( CTabIdent id, int node )
 {
   ResultCode r = R_NOIDENT;
-  streampos pos = TabIdentIndex.SelectObject( id );
+  std::streampos pos = TabIdentIndex.SelectObject( id );
   if( pos )
   {
     r = GetHeadRecord( pos );
@@ -1587,7 +1589,7 @@ MapStore::Backup()
 
     DataStream.close();
     bSucc = CopyFile( DataPath, BackupPath, 0 );
-    DataStream.open( DataPath, ios::in|ios::out|ios::binary, filebuf::sh_read || filebuf::sh_write );
+    DataStream.open( DataPath, std::ios::in| std::ios::out| std::ios::binary, std::filebuf::sh_read || std::filebuf::sh_write );
   }
 
   catch(...)

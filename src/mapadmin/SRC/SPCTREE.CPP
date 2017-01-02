@@ -28,8 +28,9 @@ SpcTree::IsValidNode( int Node, SelectParam* pSp )
 {
   if( !Node || !pSp->pNodes || !*pSp->pNodes )
     return 1;
-
-  for( long* p = pSp->pNodes ; *p && *p != Node ; ++p );
+  
+  long* p;
+  for(p = pSp->pNodes ; *p && *p != Node ; ++p );
   return *p != 0;
 }
 //=====================================================================	
@@ -44,7 +45,7 @@ SpcTree::SelectSide( SpcObj const* pObj )
 ResultCode
 SpcTree::Load( char const* path, BranchPtr* pRoot )
 {
-  ifstream In( path, ios::in|ios::nocreate|ios::binary, filebuf::sh_none );
+  std::ifstream In( path, std::ios::in| std::ios::nocreate| std::ios::binary, std::filebuf::sh_none );
   ResultCode r = pRoot->Load( In );
   In.close();
   return r;
@@ -53,14 +54,14 @@ SpcTree::Load( char const* path, BranchPtr* pRoot )
 ResultCode
 SpcTree::Save( char const* path, BranchPtr* pRoot )
 {
-  ofstream Ot( path, ios::out|ios::trunc|ios::binary, filebuf::sh_none );
+	std::ofstream Ot( path, std::ios::out| std::ios::trunc| std::ios::binary, std::filebuf::sh_none );
   ResultCode r = pRoot->Save( Ot );
   Ot.close();
   return r;
 }
 //=====================================================================
 ResultCode
-SpcTree::Load( SpcTree** pRoot, ifstream& In )
+SpcTree::Load( SpcTree** pRoot, std::ifstream& In )
 {
   *pRoot = 0;
 
@@ -80,7 +81,7 @@ SpcTree::Load( SpcTree** pRoot, ifstream& In )
 }
 //=====================================================================
 ResultCode
-SpcTree::Save( long magic, ofstream& Ot )
+SpcTree::Save( long magic, std::ofstream& Ot )
 {
   Ot.write((char*)&magic, sizeof magic );
   return Ot.good() ? R_OK : R_BADSTREAM;
@@ -146,8 +147,9 @@ Nest::RemoveObject( SpcObj const* pObj, SpcTree** ppRoot )
 {
   if( !IntersectRect( *pObj ))
     return 0;
-
-  for( BranchPtr* pb = Br + NB ; --pb >= Br && !pb->RemoveObject( pObj ) ; );
+  
+  BranchPtr* pb;
+  for( pb = Br + NB ; --pb >= Br && !pb->RemoveObject( pObj ) ; );
   if( pb < Br )
     return 0;
 
@@ -198,7 +200,7 @@ Nest::SelectObjects( SelectParam* pSp, int bInside )
 }
 //=====================================================================
 ResultCode
-Nest::Save( ofstream& Ot )
+Nest::Save(std::ofstream& Ot )
 {
   ResultCode r = SpcTree::Save( MAGICNEST, Ot );
   Ot.write((char*)&left, sizeof Rect );
@@ -207,7 +209,7 @@ Nest::Save( ofstream& Ot )
 }
 //=====================================================================
 ResultCode
-Nest::Load( ifstream& In )
+Nest::Load( std::ifstream& In )
 {
 #ifdef _DEBUG
 	nStackSz += 1;
@@ -247,7 +249,8 @@ Pool::ReplaceObject( SpcObj const* pObj )
   if( !IntersectRect( *pObj ))
     return 0;
 
-  for( SpcObj* pOb = pPool ; pOb && pOb->Offset != pObj->Offset ; pOb = pOb->pNext );
+  SpcObj* pOb;
+  for( pOb = pPool ; pOb && pOb->Offset != pObj->Offset ; pOb = pOb->pNext );
   if( !pOb )
     return 0;
 
@@ -263,7 +266,8 @@ Pool::RemoveObject( SpcObj const* pObj, SpcTree** ppRoot )
   if( !IntersectRect( *pObj ))
     return 0;
 
-  for( SpcObj** ppObj = &pPool ; *ppObj && (*ppObj)->Offset != pObj->Offset ;
+  SpcObj** ppObj;
+  for( ppObj = &pPool ; *ppObj && (*ppObj)->Offset != pObj->Offset ;
        ppObj = &(*ppObj)->pNext );
 
   if( !*ppObj )
@@ -338,7 +342,7 @@ Pool::SelectObjects( SelectParam* pSp, int bInside )
 }
 //=====================================================================
 ResultCode
-Pool::Load( ifstream& In )
+Pool::Load( std::ifstream& In )
 {
   In.read((char*)&PoolSize, sizeof PoolSize );
   if( PoolSize )
@@ -349,7 +353,7 @@ Pool::Load( ifstream& In )
     if( In.eof())
       return R_EOFSTREAM;
     Rect rct;
-    streampos off;
+    std::streampos off;
     int minLimit, maxLimit, node;
     In.read((char*)&rct.left, sizeof rct );
     In.read((char*)&off, sizeof off );
@@ -364,7 +368,7 @@ Pool::Load( ifstream& In )
 }
 //=====================================================================
 ResultCode
-Pool::Save( ofstream& Ot )
+Pool::Save(std::ofstream& Ot )
 {
   SpcTree::Save( MAGICPOOL, Ot );
   Ot.write((char*)&PoolSize, sizeof( long ));
@@ -374,7 +378,7 @@ Pool::Save( ofstream& Ot )
   for( SpcObj* pObj = pPool ; pObj ; pObj = pObj->pNext )
   {
     Ot.write((char*)&pObj->left,   sizeof Rect );
-    Ot.write((char*)&pObj->Offset, sizeof( streampos ));
+    Ot.write((char*)&pObj->Offset, sizeof( std::streampos ));
     Ot.write((char*)&pObj->MinLim, sizeof( int ));
     Ot.write((char*)&pObj->MaxLim, sizeof( int ));
     Ot.write((char*)&pObj->Node,   sizeof( int ));
@@ -416,14 +420,14 @@ SpaceTree::GetPath()
 }
 //=====================================================================
 int
-SpaceTree::RemoveObject( Rect const& box, streampos off )
+SpaceTree::RemoveObject( Rect const& box, std::streampos off )
 {
   SpcObj obj( box, off );
   return Root.RemoveObject( &obj );
 }
 //=====================================================================
 int
-SpaceTree::AddObject( Rect const& box, streampos off, 
+SpaceTree::AddObject( Rect const& box, std::streampos off, 
                       int minLimit, int maxLimit, int Node, int bSort )
 {
   SpcObj* pObj = new SpcObj( box, off, minLimit, maxLimit, Node );
@@ -431,7 +435,7 @@ SpaceTree::AddObject( Rect const& box, streampos off,
 }
 //=====================================================================
 int
-SpaceTree::ReplaceObject( Rect const& box, streampos off, 
+SpaceTree::ReplaceObject( Rect const& box, std::streampos off, 
                           int minLimit, int maxLimit, int Node )
 {
   SpcObj obj( box, off, minLimit, maxLimit, Node );

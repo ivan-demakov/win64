@@ -1083,7 +1083,7 @@ CMapView::OnLoadTrackPointsCmd( UINT nID )
     return;
   }
 
-  ifstream data;
+  std::ifstream data;
   data.open( fdlg->GetPathName(), ios::in, filebuf::sh_read );
   delete fdlg;
 

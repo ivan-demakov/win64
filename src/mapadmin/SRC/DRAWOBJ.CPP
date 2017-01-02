@@ -760,7 +760,7 @@ int
 CDrawObject::TranslateToMap( TGstream* pDst, int )
 {
   CBaseDataRec* pDrh = pView->GetDataRecHeadPtr();
-  streampos begPos = pDst->tellp();
+  std::streampos begPos = pDst->tellp();
   pDrh->SetMagic( OBJMAGIC );
   pDrh->SetIdent( Ident());
   pDrh->SetNode( m_Node );

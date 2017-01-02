@@ -4,8 +4,10 @@
 #ifndef _POSLIST_H_
 #define _POSLIST_H_
 //=====================================================================
-#include <iostream.h>
+#include <iostream>
 #include "t.h"
+
+
 //=====================================================================
 //#define _TREE_POSLIST_
 #define _HASH_POSLIST_
@@ -64,21 +66,21 @@ public:
   PositionList();
   ~PositionList();
   void RemoveAll();
-  int Insert( streampos pos );
-  int Remove( streampos pos );
-  int Find( streampos pos );
+  int Insert( std::streampos pos );
+  int Remove( std::streampos pos );
+  int Find( std::streampos pos );
   void SetFirst();
   void SetNext();
   int  Empty() { return !m_nUsed; }
-  streampos GetCurr();
-  streampos GetNext();
+  std::streampos GetCurr();
+  std::streampos GetNext();
 
 private:
-  streampos* FindPos( streampos pos );
+  std::streampos* FindPos( std::streampos pos );
 
 private:
-  streampos*  m_pTab;
-  streampos*  m_pSrt;
+  std::streampos*  m_pTab;
+  std::streampos*  m_pSrt;
   int         m_nCurr;
   int         m_nSize;
   int         m_nLimit;

@@ -3,7 +3,7 @@
 #include <crtdbg.h>
 #include <string.h>
 #include <stdlib.h>
-#include <fstream.h>
+#include <fstream>
 #include "filestr.h"
 #include "gpl.h"
 #include "msutil.h"
@@ -1043,7 +1043,7 @@ TraceError( int mapNum, ResultCode r, char const* opName, long p0, long p1 )
 }
 //=====================================================================
 ResultCode
-ReadData( void* pData, int size, istream* pSrc )
+ReadData( void* pData, int size, std::istream* pSrc )
 {
   pSrc->read((char*)pData, size );
   return pSrc->good() ? R_OK :
@@ -1054,7 +1054,7 @@ ReadData( void* pData, int size, istream* pSrc )
 }
 //=====================================================================
 ResultCode
-WriteData( void* pData, int size, ostream* pDst )
+WriteData( void* pData, int size, std::ostream* pDst )
 {
   pDst->write((char*)pData, size );
   return pDst->good() ? R_OK :
@@ -1065,14 +1065,14 @@ WriteData( void* pData, int size, ostream* pDst )
 }
 //=====================================================================
 ResultCode
-ReadData( streampos pos, void* pData, int size, istream* pSrc )
+ReadData( std::streampos pos, void* pData, int size, std::istream* pSrc )
 {
   pSrc->seekg( pos );
   return pSrc->tellg() == pos ? ReadData( pData, size, pSrc ) : R_FAILSTREAM;
 }
 //=====================================================================
 ResultCode
-WriteData( streampos pos, void* pData, int size, ostream* pDst )
+WriteData( std::streampos pos, void* pData, int size, std::ostream* pDst )
 {
   pDst->seekp( pos );
   return pDst->tellp() == pos ? WriteData( pData, size, pDst ) : R_FAILSTREAM;

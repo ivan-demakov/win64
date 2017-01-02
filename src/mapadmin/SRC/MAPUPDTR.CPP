@@ -183,7 +183,8 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
     case PF_CONTAINER:
     {
       *ppSrc = pPr->param.container.prims;
-      for( int n = pPr->param.container.length ;
+	  int n;
+      for(n = pPr->param.container.length ;
            --n >= 0 && UpdateObjectCoord( ppSrc, pcf, utm, Rgn ) ; );
       return n < 0;
     }
@@ -456,18 +457,18 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
 }
 //=====================================================================
 static int
-OutputKsiItem( ofstream& out, char const* p )
+OutputKsiItem( std::ofstream& out, char const* p )
 {
   out << p;
   return strlen( p );
 }
 //=====================================================================
 static int
-OutputKsiDlm( ofstream& out, int len )
+OutputKsiDlm( std::ofstream& out, int len )
 {
   if( len >= 72 )
   {
-    out << endl;
+    out << std::endl;
     len = 0;
   }
   else
@@ -479,7 +480,7 @@ OutputKsiDlm( ofstream& out, int len )
 }
 //=====================================================================
 static int
-OutputKsiPair( ofstream& out, int x, int y )
+OutputKsiPair( std::ofstream& out, int x, int y )
 {
   CString t;
   t.Format( "(%d . %d)", x, y );
@@ -487,7 +488,7 @@ OutputKsiPair( ofstream& out, int x, int y )
 }
 //=====================================================================
 static int
-OutputKsiCoord( ofstream& out, int x, int y )
+OutputKsiCoord( std::ofstream& out, int x, int y )
 {
   CString t;
   t.Format( "(#:%s . #(%d %d))", KSI_KEY_PTR( keyCoord ), x, y );
@@ -495,7 +496,7 @@ OutputKsiCoord( ofstream& out, int x, int y )
 }
 //=====================================================================
 static int
-OutputKsiSize( ofstream& out, int cx, int cy, int a )
+OutputKsiSize( std::ofstream& out, int cx, int cy, int a )
 {
   CString t;
   t.Format( "(#:%s . #(%d %d %d))", KSI_KEY_PTR( keySize ), cx, cy, a );
@@ -503,7 +504,7 @@ OutputKsiSize( ofstream& out, int cx, int cy, int a )
 }
 //=====================================================================
 static int
-OutputKsiKey( ofstream& out, ksi_obj ksi_key, int len )
+OutputKsiKey( std::ofstream& out, ksi_obj ksi_key, int len )
 {
   CString t;
   t.Format( "(#:%s", KSI_KEY_PTR( ksi_key ));
@@ -511,7 +512,7 @@ OutputKsiKey( ofstream& out, ksi_obj ksi_key, int len )
 }
 //=====================================================================
 static int
-OutputKsiKeyPair( ofstream& out, ksi_obj ksi_key, int i )
+OutputKsiKeyPair( std::ofstream& out, ksi_obj ksi_key, int i )
 {
   CString t;
   t.Format( "(#:%s . %d)", KSI_KEY_PTR( ksi_key ), i );
@@ -519,7 +520,7 @@ OutputKsiKeyPair( ofstream& out, ksi_obj ksi_key, int i )
 }
 //=====================================================================
 static int
-OutputKsiText( ofstream& out, int x, int y, int cx, int cy, int a, 
+OutputKsiText( std::ofstream& out, int x, int y, int cx, int cy, int a, 
                char const* s, int sln, int len )
 {
   ksi_obj ks = ksi_object2string( ksi_str2string( s, sln ));
@@ -531,7 +532,7 @@ OutputKsiText( ofstream& out, int x, int y, int cx, int cy, int a,
 }
 //=====================================================================
 static int
-OutputKsiObject( ofstream& out, int vers, void** ppSrc, int len = 0, int level = 0 )
+OutputKsiObject( std::ofstream& out, int vers, void** ppSrc, int len = 0, int level = 0 )
 { 
   PrimRecord* pPr = (PrimRecord*)*ppSrc;
   int bAbsPoly = vers & 1;
@@ -727,10 +728,10 @@ IsValidDate( int mode, CTime t0, CTime t1, CTime t2 )
 }
 //=====================================================================
 void
-MapUpdater::OutputObject( ofstream& out, void* pData )
+MapUpdater::OutputObject( std::ofstream& out, void* pData )
 {
   int t = pDrh->GetClass();
-  out << "; " << pDocument->GetObjDef()->GetName( t ) << endl
+  out << "; " << pDocument->GetObjDef()->GetName( t ) << std::endl
       << "((class . " << t
       << ") (status . " << int( pDrh->GetStatus()) 
       << ") (table . " << pDrh->GetTable() 
@@ -818,15 +819,15 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
 		return R_OK;
 	}
 
-	fstream TmpStream( TmpPath, ios::in|ios::binary, filebuf::sh_read );
+	std::fstream TmpStream( TmpPath, std::ios::in| std::ios::binary, std::filebuf::sh_read );
   if( TmpStream.bad())
     return TraceError( MapNumber, R_NOFILE, TmpPath );
 
-  ofstream err( errPath, ios::out | ios::trunc );
+  std::ofstream err( errPath, std::ios::out | std::ios::trunc );
   if( !err.good())
     return TraceError( MapNumber, R_NOFILE, errPath );
 
-  ofstream log;  
+  std::ofstream log;  
   ResultCode r = CreateLog( errPath, log );
   if( r != R_OK )
     return r;
@@ -853,7 +854,8 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
   RemoveAllIndex();
   SetModifiedFlag();
 
-  for( streampos rPos = sizeof HR, wPos = rPos, ePos = HR.FreePos ; 
+  std::streampos rPos, wPos, ePos;
+  for(rPos = sizeof HR, wPos = rPos, ePos = HR.FreePos;
        rPos < ePos ; rPos += rSize )
 	{
     pDlg->SetReport( nTotal, nObj, nErr );
@@ -1064,7 +1066,7 @@ MapUpdater::PntInRgn( Point const& Pt, Point* Rgn )
 }
 //=====================================================================
 static void
-OutputMifCoord( ofstream& out, double v )
+OutputMifCoord( std::ofstream& out, double v )
 {
   CString b;
   b.Format( "%1.2f ", v * SmInUnit * 1e-2 );
@@ -1072,12 +1074,12 @@ OutputMifCoord( ofstream& out, double v )
 }
 //=====================================================================
 static void
-OutputMifPair( ofstream& out, int x, int y, double cf[][3] )
+OutputMifPair( std::ofstream& out, int x, int y, double cf[][3] )
 {
   CPoint p( CMapView::Project2Grid( CPoint( x, y )));
   OutputMifCoord( out, cf ? p.x * cf[0][0] + p.y * cf[0][1] + cf[0][2] : p.x );
   OutputMifCoord( out, cf ? p.x * cf[1][0] + p.y * cf[1][1] + cf[1][2] : p.y );
-  out << endl;
+  out << std::endl;
 }
 //=====================================================================
 static int
@@ -1091,7 +1093,8 @@ CalcPlan2Merk( CPoint sp, double mvxy[][N_REP+2] )
   {
     MerkatorData.InitLocal( rt[0].pPt );
 
-    for( int i = N_REP ; --i >= 0 ; )
+	int i;
+    for(i = N_REP ; --i >= 0 ; )
 		{
 			Point tp( MerkatorData.Pol2Dec( rt[i].pPt ));
       rt[i].dPt.x = tp.x;
@@ -1122,11 +1125,11 @@ Plan2Merk( double p[2], double mvxy[][N_REP+2] )
 }
 //=====================================================================
 static void
-OutputMifPoly( ofstream& out, point const* p, int np, 
+OutputMifPoly( std::ofstream& out, point const* p, int np, 
                int bAbs, int bBound, int bWriteLen, double pcf[][3], int bGeo )
 {
   if( bWriteLen )
-    out << ( np + bBound ) << endl;
+    out << ( np + bBound ) << std::endl;
 
 	if( bGeo )
   {
@@ -1192,13 +1195,13 @@ OutputMifPoly( ofstream& out, point const* p, int np,
 			{
 				OutputMifCoord( out, t.x );
 				OutputMifCoord( out, t.y );
-        out << endl;
+        out << std::endl;
 			}
 			else
 			{
         CString b;
         b.Format( "%1.6f %1.6f", pc.lon / Deg, pc.lat / Deg );
-        out << b << endl;
+        out << b << std::endl;
 			}
     }
 		if( bRg )
@@ -1215,7 +1218,7 @@ OutputMifPoly( ofstream& out, point const* p, int np,
 }
 //=====================================================================
 static int
-OutputMifPoint( ofstream& out, int x, int y, double pcf[][3], int bGeo )
+OutputMifPoint( std::ofstream& out, int x, int y, double pcf[][3], int bGeo )
 {
   out << "Point ";
   point pm;
@@ -1226,25 +1229,25 @@ OutputMifPoint( ofstream& out, int x, int y, double pcf[][3], int bGeo )
 }
 //=====================================================================
 static int
-OutputMifPolyline( ofstream& out, point const* pp, int np, int bAbs, double pcf[][3], int bGeo )
+OutputMifPolyline( std::ofstream& out, point const* pp, int np, int bAbs, double pcf[][3], int bGeo )
 {
   if( np )
   {
-    out << "Pline " << np << endl;
+    out << "Pline " << np << std::endl;
     OutputMifPoly( out, pp, np, bAbs, 0, 0, pcf, bGeo );
-    out << endl;
+    out << std::endl;
   }
   return np;
 }
 //=====================================================================
 static int
-OutputMifRegion( ofstream& out, point const* pp, int np, int bAbs, double pcf[][3], int bGeo )
+OutputMifRegion( std::ofstream& out, point const* pp, int np, int bAbs, double pcf[][3], int bGeo )
 {
   if( np )
   {
-    out << "Region 1" << endl;
+    out << "Region 1" << std::endl;
     OutputMifPoly( out, pp, np, bAbs, 1, 1, pcf, bGeo );
-    out << endl;
+    out << std::endl;
   }
   return np;
 }
@@ -1252,7 +1255,8 @@ OutputMifRegion( ofstream& out, point const* pp, int np, int bAbs, double pcf[][
 static CString
 CalcMifText( char const* pStr, int len )
 {
-  for( CString r ; --len >= 0 ; ++pStr )
+	CString r;
+  for(r; --len >= 0 ; ++pStr )
     if( *pStr == '\"' )
       r += "\"\"";
     else
@@ -1264,7 +1268,7 @@ CalcMifText( char const* pStr, int len )
 }
 //=====================================================================
 static int
-OutputMifText( ofstream& mifOut, Text* pText, double pcf[][3], int version, int bGeo )
+OutputMifText( std::ofstream& mifOut, Text* pText, double pcf[][3], int version, int bGeo )
 {
   StringParam* pSP = &pText->param.full.string;
   FontParam1 FP;
@@ -1301,22 +1305,22 @@ OutputMifText( ofstream& mifOut, Text* pText, double pcf[][3], int version, int 
 	t0 = t1 + TurnPoint( t0, an );
 	t2 = t1 + TurnPoint( t2, an );
 
-  mifOut << "Text " << '\"' << CalcMifText( pSP->string, pSP->length ) << '\"' << endl;
+  mifOut << "Text " << '\"' << CalcMifText( pSP->string, pSP->length ) << '\"' << std::endl;
 
   point pm[] = {{ t0.x, t0.y }, { t2.x, t2.y }};
   OutputMifPoly( mifOut, pm, 2, 1, 0, 0, 0, bGeo );
-  mifOut << "Angle " << ( an / 10.0 ) << endl
-         << "Justify Left" << endl
+  mifOut << "Angle " << ( an / 10.0 ) << std::endl
+         << "Justify Left" << std::endl
          << "Font(\"" << pDocument->num2fontface( FP.number )
-         << "\"," << s << ",0," << FP.color << ")" << endl;
+         << "\"," << s << ",0," << FP.color << ")" << std::endl;
   if( memchr( pSP->string, '\n', pSP->length ))
-    mifOut << "Spacing 1" << endl;
-  mifOut << endl;
+    mifOut << "Spacing 1" << std::endl;
+  mifOut << std::endl;
   return 1;
 }
 //=====================================================================
 static int
-OutputMifObject( int pass, int level, ofstream* pMif, ofstream* pMid, double pcf[][3],
+OutputMifObject( int pass, int level, std::ofstream* pMif, std::ofstream* pMid, double pcf[][3],
                  int vers, void** ppSrc, int type, int bGeo, ksi_obj ksi_map )
 { 
   PrimRecord* pPr = (PrimRecord*)*ppSrc;
@@ -1337,7 +1341,8 @@ OutputMifObject( int pass, int level, ofstream* pMif, ofstream* pMid, double pcf
 
   int gt = pPr->type & PF_TYPE_MASK;
   
-  static int bDone = 0, int txtCnt = 0;
+  static int bDone = 0;
+  int txtCnt = 0;
 
   switch( gt )
   {
@@ -1488,46 +1493,46 @@ OutputMifObject( int pass, int level, ofstream* pMif, ofstream* pMid, double pcf
 }
 //=====================================================================
 static void
-OutputMifHeader( ofstream* pOut, double* box, ksi_obj ksi_map, int bGeo )
+OutputMifHeader( std::ofstream* pOut, double* box, ksi_obj ksi_map, int bGeo )
 {
   int nc = ksi_map ? 9 : 1;
 
-  *pOut << "Version 300" << endl
-        << "Charset \"WindowsCyrillic\"" << endl
-        << "Delimiter \";\"" << endl;
+  *pOut << "Version 300" << std::endl
+        << "Charset \"WindowsCyrillic\"" << std::endl
+        << "Delimiter \";\"" << std::endl;
 
 	if( bGeo & CM_OUTPUT_GEO_GRAD )
-    *pOut << "CoordSys Earth Projection 1, 104" <<endl;
+    *pOut << "CoordSys Earth Projection 1, 104" << std::endl;
 	else
 	if( bGeo & CM_OUTPUT_GEO_METR )
 	{
     CString bb;
     bb.Format( "(%1.2f,%1.2f) (%1.2f,%1.2f)", box[0], box[1], box[2], box[3] );
-    *pOut << "CoordSys Earth Projection 10, 157, \"m\", 0 Bounds " << bb << endl;
+    *pOut << "CoordSys Earth Projection 10, 157, \"m\", 0 Bounds " << bb << std::endl;
 	}
 	else
 	{
     CString bb;
     bb.Format( "(%1.2f,%1.2f) (%1.2f,%1.2f)", box[0], box[1], box[2], box[3] );
-    *pOut << "CoordSys NonEarth Units \"m\" Bounds " << bb << endl;
+    *pOut << "CoordSys NonEarth Units \"m\" Bounds " << bb << std::endl;
 	}
  
-  *pOut << "Columns " << nc << endl
-        << "GraphicsClassName Char(255)" << endl;
+  *pOut << "Columns " << nc << std::endl
+        << "GraphicsClassName Char(255)" << std::endl;
 
   if( ksi_map )
   {
-    *pOut << "GraphicsClass Integer"  << endl
-          << "GraphicsStatus Integer" << endl
-          << "TableNumber Integer"    << endl
-          << "TableObject Integer"    << endl
-          << "NodeNumber Integer"     << endl
-          << "CreationTime Char(31)"  << endl
-          << "Text1 Char(256)"        << endl
-          << "Text2 Char(256)"        << endl;
+    *pOut << "GraphicsClass Integer"  << std::endl
+          << "GraphicsStatus Integer" << std::endl
+          << "TableNumber Integer"    << std::endl
+          << "TableObject Integer"    << std::endl
+          << "NodeNumber Integer"     << std::endl
+          << "CreationTime Char(31)"  << std::endl
+          << "Text1 Char(256)"        << std::endl
+          << "Text2 Char(256)"        << std::endl;
   }
 
-  *pOut << "Data" << endl << endl;
+  *pOut << "Data" << std::endl << std::endl;
 }
 //=====================================================================
 ResultCode
@@ -1579,7 +1584,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
     if( pDlg->GetStop() == 2 )
       break;
 
-    streampos inPos = PosTab.m_pTab[i].m_Pos;
+    std::streampos inPos = PosTab.m_pTab[i].m_Pos;
     r = GetRecord( inPos );
     pDlg->SetReport( nTotal++, nObj, nErr );
 
@@ -1634,7 +1639,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
     int nfm0 = ( byAll ? bNewAll :  bNewMap[byTable?b:t] ) & 1;
     int nfm1 = ( byAll ? bNewAll :  bNewMap[byTable?b:t] ) & 2;
 
-    ofstream midFile1( mid1, ios::out | ( nfm0 ? ios::trunc : ios::app ));
+    std::ofstream midFile1( mid1, std::ios::out | ( nfm0 ? std::ios::trunc : std::ios::app ));
 	  if( !midFile1.good())
       return TraceError( MapNumber, R_NOFILE, mid1 );
 
@@ -1662,7 +1667,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
       name.Format( "%s_%c%d_1", miName, byTable ? 't' : 'c', byTable ? b : t );
     _makepath( mif2, miDrive, miDir, name, "mif" );
 
-    ofstream mifFile1( mif1, ios::out | ( nfm0 ? ios::trunc : ios::app ));
+    std::ofstream mifFile1( mif1, std::ios::out | ( nfm0 ? std::ios::trunc : std::ios::app ));
     if( !mifFile1.good())
       return TraceError( MapNumber, R_NOFILE, mif1 );
 
@@ -1732,15 +1737,15 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
     midFile1 << endl;
     midFile1.close();
    
-    ofstream mifFile2, midFile2;
+    std::ofstream mifFile2, midFile2;
 
     if( ngr > 1 )
     {
-      mifFile2.open( mif2, ios::out | ( nfm1 ? ios::trunc : ios::app ));
+      mifFile2.open( mif2, std::ios::out | ( nfm1 ? std::ios::trunc : std::ios::app ));
       if( !mifFile2.good())
         return TraceError( MapNumber, R_NOFILE, mif2 );
 
-      midFile2.open( mid2, ios::out | ( nfm1 ? ios::trunc : ios::app ));
+      midFile2.open( mid2, std::ios::out | ( nfm1 ? std::ios::trunc : std::ios::app ));
       if( !midFile2.good())
         return TraceError( MapNumber, R_NOFILE, mid2 );
       
@@ -1766,7 +1771,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
 }
 //=====================================================================
 static int
-OutputGeoCoord( ofstream& out, int nPnt, CPoint* pPnt,
+OutputGeoCoord( std::ofstream& out, int nPnt, CPoint* pPnt,
                 CIdent id, int bEnbound, int nMode ) 
 {
 	int bTm = MerkatorData.TrueMerkator();
@@ -1822,14 +1827,14 @@ OutputGeoCoord( ofstream& out, int nPnt, CPoint* pPnt,
   		char dpx[32], dpy[32];
       sprintf( dpx, "%1.2f", pt.x  * 1e-2 * SmInUnit  );
       sprintf( dpy, "%1.2f", pt.y  * 1e-2 * SmInUnit  );
-      out << dpx << ';' << dpy << endl;
+      out << dpx << ';' << dpy << std::endl;
 		}
 		else
 		{
   		char lat[32], lon[32];
       sprintf( lat, "%1.6f", pc.lat / Deg );
       sprintf( lon, "%1.6f", pc.lon / Deg );
-      out << lon << ';' << lat << endl;
+      out << lon << ';' << lat << std::endl;
 		}
   }
 	if( bRg )
@@ -1838,7 +1843,7 @@ OutputGeoCoord( ofstream& out, int nPnt, CPoint* pPnt,
 }
 //=====================================================================
 static void
-OutputObjectGeoCoord( ofstream& out, void* pData, CIdent id, int nMode ) 
+OutputObjectGeoCoord( std::ofstream& out, void* pData, CIdent id, int nMode ) 
 {
   CDrawContainer* pCont = 0;
   void* pSrc = pData;
@@ -1883,7 +1888,7 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
   long vers;
   ResultCode r = GetVersion( &vers );
 
-  ofstream out;
+  std::ofstream out;
   CString curTxt( "" );
 
   IdentDirectHashTab PosTab;
@@ -1895,7 +1900,7 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
     if( pDlg->GetStop() == 2 )
       break;
 
-    streampos inPos = PosTab.m_pTab[i].m_Pos;
+    std::streampos inPos = PosTab.m_pTab[i].m_Pos;
     r = GetRecord( inPos );
     if( r != R_OK )
       continue;
@@ -1946,7 +1951,7 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
       if( out.is_open())
         out.close();
       
-      out.open( txt, ios::out | ( bNew ? ios::trunc : ios::app ));
+      out.open( txt, std::ios::out | ( bNew ? std::ios::trunc : std::ios::app ));
 
       if( !out.good())
         return TraceError( MapNumber, R_NOFILE, txt );
@@ -1966,7 +1971,7 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
       if( bNew )
 				out << "CLASS_ID;TAB_ID;OBJ_ID;NUM;"   
 					  << (( nMode & CM_OUTPUT_GEO_METR ) ? "X;Y" : "LONGITUTE;LATITUDE" )
-					  << endl;
+					  << std::endl;
       OutputObjectGeoCoord( out, pData, pDrh->GetIdent(), nMode );
     }
     else
@@ -1990,7 +1995,7 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
 //=====================================================================
 int
 MapUpdater::ksi2gpl( int nMode, int nNode, ksi_obj ksi_val, CIdent Id,
-                     double pcf[2][3], double utm[4], ofstream& log, int oldEntry )
+                     double pcf[2][3], double utm[4], std::ofstream& log, int oldEntry )
 {
 //KsiCall( "tk-box", ksi_val, 0 );
   if( !KSI_LIST_P( ksi_val ))
@@ -2119,7 +2124,7 @@ MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
                              char* pClassMap,
 														 double pcf[2][3],
 														 double utm[4],
-                             ofstream& log )
+                             std::ofstream& log )
 {
 
 	CSize ps( pView->GetDocument()->GetSize());
@@ -2311,7 +2316,7 @@ MapUpdater::TXT2GPL( CConvDlg* pDlg,
 
   ksi_obj ksi_log;
 
-  ofstream tstStream( errPath, ios::out | ios::trunc );
+  std::ofstream tstStream( errPath, std::ios::out | std::ios::trunc );
   if( tstStream.good())
   {
     tstStream.close();
@@ -2320,7 +2325,7 @@ MapUpdater::TXT2GPL( CConvDlg* pDlg,
   else
     return TraceError( MapNumber, R_NOFILE, errPath );
 
-  ofstream log;  
+  std::ofstream log;  
   ResultCode r = CreateLog( errPath, log );
   if( r != R_OK )
     return r;
@@ -2468,7 +2473,7 @@ Keyword2num( CString const& s )
 }
 //=====================================================================
 static int
-FindKey( ifstream& Stream, char const* key, int bMess = 0 )
+FindKey( std::ifstream& Stream, char const* key, int bMess = 0 )
 {
   Stream.seekg( 0 );
   Stream.clear( 0 );
@@ -2614,11 +2619,11 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   _makepath( midPath, iv, ip, in, ".mid" );
   _makepath( mndPath, iv, ip, in, ".mnd" );
 
-  ifstream mifstr( mifPath, ios::in, filebuf::sh_read );
+  std::ifstream mifstr( mifPath, std::ios::in, std::filebuf::sh_read );
 
   ksi_obj ksi_log;
 
-  ofstream tstStream( errPath, ios::out | ios::trunc );
+  std::ofstream tstStream( errPath, std::ios::out | std::ios::trunc );
   if( tstStream.good())
   {
     tstStream.close();
@@ -2627,7 +2632,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   else
     return TraceError( MapNumber, R_NOFILE, errPath );
 
-  ofstream log;  
+  std::ofstream log;  
   r = CreateLog( errPath, log );
   if( r != R_OK )
     return r;
@@ -2670,8 +2675,8 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
     dlm = tst[1];
   }
 
-  ifstream midstr;
-  ofstream mndstr;
+  std::ifstream midstr;
+  std::ofstream mndstr;
 
   SubParam SN[8];
   int nSub = 0;
@@ -2715,8 +2720,8 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
 
   if( bHasMid )
   {
-    midstr.open( midPath, ios::in, filebuf::sh_read );
-    mndstr.open( mndPath, ios::out|ios::trunc );
+    midstr.open( midPath, std::ios::in, std::filebuf::sh_read );
+    mndstr.open( mndPath, std::ios::out| std::ios::trunc );
   }
 
   if( FindKey( mifstr, "columns" ))
@@ -2740,7 +2745,8 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
       Keys.Add( p );
   }
 
-  for( int i = nSub ; --i >= 0 ; )
+  int i;
+  for( i = nSub ; --i >= 0 ; )
   {
     CString a ("В MID-файле отсутствует поле " );
     CString b;
@@ -2783,7 +2789,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
     if( i )
       mndstr << dlm;
   }  
-  mndstr << endl;
+  mndstr << std::endl;
 
   if( !FindKey( mifstr, "data", 1 ))
     return R_OK;
@@ -2839,7 +2845,8 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
       if( bUseKey )
       {
         char* key = ExtractSubs( mid, dlm, keyNumber );
-        for( int i = Keys.GetSize() ;  --i >= 0 && Keys[i] != key ; );
+		int i;
+        for(i = Keys.GetSize() ;  --i >= 0 && Keys[i] != key ; );
         if( i < 0 )
           continue;
       }
@@ -2899,7 +2906,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
           if( npt == 1 )
           {
             mifstr >> tst;
-            if( stricmp( tst, "point" ))
+            if( _stricmp( tst, "point" ))
              {
                double x, y;
                x = atof( tst );
@@ -3068,7 +3075,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
               ksi_def_lst = ksi_cons( ksi_def, ksi_def_lst );
  
               if( --NPL && bHasMid )
-                mndstr << entryNumber++ << dlm << mid << endl;
+                mndstr << entryNumber++ << dlm << mid << std::endl;
             }
             delete rgnc;
           }
@@ -3163,7 +3170,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
           ksi_def_lst = ksi_cons( ksi_def, ksi_def_lst );
           if( nl && bHasMid )
           {
-            mndstr << entryNumber++ << dlm << mid << endl;
+            mndstr << entryNumber++ << dlm << mid << std::endl;
             mifstr >> npt;
           }
         }
@@ -3427,7 +3434,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
 			{
         nObj += cr;
 				if( bHasMid )
-          mndstr << entryNumber++ << dlm << mid << endl;
+          mndstr << entryNumber++ << dlm << mid << std::endl;
 			}
 
       pDlg->SetReport( nTotal, nObj, nErr );
@@ -3445,7 +3452,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
 }
 //=====================================================================
 ResultCode 
-MapUpdater::OutputLog( ofstream& out, int oldEntry, void* pSrc )
+MapUpdater::OutputLog( std::ofstream& out, int oldEntry, void* pSrc )
 {
   static char dlm[] = ";";
 
@@ -3484,13 +3491,13 @@ MapUpdater::OutputLog( ofstream& out, int oldEntry, void* pSrc )
       << "Конвертация" << dlm                                      //CmdName
       << "?" << dlm                                                //TableName
       << date << dlm                                               //CreationTime
-      << oldEntry << endl;                                         //TableObjectOld
+      << oldEntry << std::endl;                                         //TableObjectOld
 
   return R_OK;
 }
 //=====================================================================
 ResultCode 
-MapUpdater::CreateLog( char const* errPath, ofstream& out )
+MapUpdater::CreateLog( char const* errPath, std::ofstream& out )
 {
   static char hd[] = "tab_id;obj_id;cls_id;numobj;par1;par2;"
                      "datemodif;username;comm;prdel;uzel;cmdid;"
@@ -3499,10 +3506,10 @@ MapUpdater::CreateLog( char const* errPath, ofstream& out )
   char buf1[_MAX_PATH], buf2[_MAX_FNAME], buf3[_MAX_FNAME], buf4[_MAX_FNAME];
   _splitpath( errPath, buf1, buf2, buf3, buf4 );
   _makepath( logPath, buf1, buf2, buf3, ".log" );
-  out.open( logPath, ios::out|ios::trunc, filebuf::sh_read );
+  out.open( logPath, std::ios::out| std::ios::trunc, std::filebuf::sh_read );
   ResultCode r = out.bad() ? TraceError( MapNumber, R_NOFILE, logPath ) : R_OK;
   if( r == R_OK )
-    out << hd << endl;
+    out << hd << std::endl;
   return r;
 }
 //=====================================================================
@@ -3510,7 +3517,7 @@ int
 MapUpdater::CreatePosTab( IdentDirectHashTab * pIdTab, int bDelMode, int bIdentMode )
 {
   ResultCode r = R_OK;
-  for( streampos inPos = sizeof( DataFileHeadRec ) ;
+  for( std::streampos inPos = sizeof( DataFileHeadRec ) ;
        r == R_OK && inPos < HR.FreePos ; inPos += pDrh->GetSize())
   {
     r = GetRecord( inPos );

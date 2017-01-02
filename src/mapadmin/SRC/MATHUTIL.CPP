@@ -311,7 +311,8 @@ IsPolylineMatchPolyline( CPoint const* p0, int n0, CPoint const* p1, int n1, CPo
   for( int i = n0 ; --i >= 0 ; )
   {
     CPoint p( p0[i] );
-    for( int j = n1 ; --j >= 0 && p1[j] != p ; );
+	int j;
+    for( j = n1 ; --j >= 0 && p1[j] != p ; );
     if( j >= 0 )
     {
       if( pCrosPoint )
@@ -419,7 +420,8 @@ IsPointInTriangle( CPoint c, CPoint const* tgl )
     return 0;
 
   CPoint p0, p1( tgl[2] );
-  for( int s = 0, n = 3 ; --n >= 0 ; )
+  int s;
+  for(s = 0, n = 3 ; --n >= 0 ; )
   {
     p0 = p1;
     p1 = *tgl++;
@@ -844,7 +846,8 @@ TrueCrossPoint( CPoint const* pp0, CPoint const* pp1, CPoint* pCrosPoint )
 int
 IsSelfCrossPolyline( CPoint const* p, int n )
 {
-  for( int i = n ; --i > 0 && !IsLineCrossPolyline( p[i-1], p[i], p, n ) ; );
+	int i;
+  for(i = n ; --i > 0 && !IsLineCrossPolyline( p[i-1], p[i], p, n ) ; );
   return i > 0;
 }
 //=====================================================================
@@ -1125,7 +1128,7 @@ CalcLength( CPoint* pp, int pn )
   return s;
 }
 //=====================================================================
-Polar::Create( double ltg, double ltm, double lts, double lng, double lnm, double lns )
+void Polar::Create( double ltg, double ltm, double lts, double lng, double lnm, double lns )
 {
   double const d = 60.0;
   double ltsg = ltg >= 0 ? 1 : -1;
@@ -1191,9 +1194,9 @@ Djordan( double* sp, int n, int m )
   double Dt = 1.;
   for( int i = 0 ; i < n ; ++i, sp += m )
   {
-    int l;
+    int l, k;
     double mv = 0;
-    for( int k = n ; --k >= 0 ; )
+    for( k = n ; --k >= 0 ; )
       if( fabs( sp[k] ) > fabs( mv ))
         mv = sp[l=k];
 
@@ -1335,7 +1338,8 @@ FindNext( CPoint* p, int n, int h )
       continue;
 
     double l = hipo( s );
-    for( int i = 1 ; i <= k ; ++i )
+	int i;
+    for( i = 1 ; i <= k ; ++i )
     {
       CPoint tp( TurnPoint( p[i] - p[0], s.cx, s.cy, l ));
       if( abs( tp.y ) > h )
@@ -1776,7 +1780,8 @@ FindNearesRepers( CPoint dp, RepInf* pRI, int nRep )
     tt.pPt = pRep;
     tt.dis = dist( dp, *psp );
 
-    for( int i = n ; --i >= 0 && pRI[i].dis > tt.dis ; pRI[i+1] = pRI[i] );
+	int i;
+    for( i = n ; --i >= 0 && pRI[i].dis > tt.dis ; pRI[i+1] = pRI[i] );
     pRI[i+1] = tt;
     n += n < nRep;
   }
@@ -1803,7 +1808,8 @@ FindNearesRepers( Polar dp, RepInf* pRI, int nRep )
     double ang = ::acos(( p0.x * p1.x + p0.y * p1.y + p0.z * p1.z ) / R / R );
     tt.dis = R * ang;
 
-    for( int i = n ; --i >= 0 && pRI[i].dis > tt.dis ; pRI[i+1] = pRI[i] );
+	int i;
+    for(int i = n ; --i >= 0 && pRI[i].dis > tt.dis ; pRI[i+1] = pRI[i] );
     pRI[i+1] = tt;
     n += n < nRep;
   }

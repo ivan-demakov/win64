@@ -37,7 +37,7 @@ IdentDirectHashTab::FindPos( CTabIdent const& id, int bUsed )
 }
 //=====================================================================
 int
-IdentDirectHashTab::AddObject( CTabIdent const& id, streampos pos )
+IdentDirectHashTab::AddObject( CTabIdent const& id, std::streampos pos )
 {
   if( !m_pTab || m_nUsed >= m_nLimit )
   {
@@ -92,7 +92,7 @@ IdentDirectHashTab::RemoveObject( CTabIdent const& id )
   return 1;
 }
 //=====================================================================
-streampos
+std::streampos
 IdentDirectHashTab::SelectObject( CTabIdent const& id )
 {
   if( !m_pTab || !m_nUsed )
@@ -123,7 +123,7 @@ IdentDirectHashTab::Clear()
 //=====================================================================
 #ifdef _NEW_IDENT_TREE_
 //=====================================================================
-IdentTree::IdentTreeItem::IdentTreeItem( CTabIdent const& id, streampos pos, IdentTreeItem* pPrnt ) :
+IdentTree::IdentTreeItem::IdentTreeItem( CTabIdent const& id, std::streampos pos, IdentTreeItem* pPrnt ) :
   m_Id( id ),
   m_Pos( pos ),
   m_nBlnc( 0 ),
@@ -241,7 +241,7 @@ IdentTree::Clear()
 }
 //=====================================================================
 int
-IdentTree::AddObject( CTabIdent const& id, streampos pos )
+IdentTree::AddObject( CTabIdent const& id, std::streampos pos )
 { 
   IdentTreeItem* pPrnt = 0;
   IdentTreeItem* p = m_pRoot;
@@ -387,7 +387,7 @@ IdentTree::RemoveObject( CTabIdent const& id )
   return 1;
 } 
 //=====================================================================
-streampos 
+std::streampos 
 IdentTree::SelectObject( CTabIdent const& id )
 {
   for( IdentTreeItem* p = m_pRoot ; p && p->m_Id != id ;
@@ -400,7 +400,7 @@ IdentTree::SelectObject( CTabIdent const& id )
 #ifdef _OLD_IDENT_TREE_
 //=====================================================================
 //=====================================================================
-IdnNest::IdnNest( CTabIdent const& id, streampos pos, int blnc ) :
+IdnNest::IdnNest( CTabIdent const& id, std::streampos pos, int blnc ) :
   Id( id ),
   Pos( pos ),
   Blnc( blnc ),
@@ -415,7 +415,7 @@ IdnNest::~IdnNest()
 }
 //=====================================================================
 int
-IdnNest::AddObject( IdnNest** pRoot, CTabIdent const& id, streampos pos )
+IdnNest::AddObject( IdnNest** pRoot, CTabIdent const& id, std::streampos pos )
 {
   IdnNest* p = *pRoot;
 
@@ -600,7 +600,7 @@ IdnNest::RemoveObject( IdnNest** pRoot, CTabIdent const& id )
   return 1;
 }
 //=====================================================================
-streampos 
+std::streampos 
 IdnNest::SelectObject( IdnNest* p, CTabIdent const& id )
 {
   while( p && p->Id != id )
@@ -644,12 +644,12 @@ IdentTree::RemoveObject( CTabIdent const& id )
 }
 //=====================================================================
 int
-IdentTree::AddObject( CTabIdent const& id, streampos pos )
+IdentTree::AddObject( CTabIdent const& id, std::streampos pos )
 {
   return IdnNest::AddObject( &Root, id, pos ) >= 0;
 }
 //=====================================================================
-streampos
+std::streampos
 IdentTree::SelectObject( CTabIdent const& id  )
 {
   return IdnNest::SelectObject( Root, id );
@@ -708,7 +708,7 @@ IdentLinkedHashTab::RemoveObject( CTabIdent const& id )
 }
 //=====================================================================
 int
-IdentLinkedHashTab::AddObject( CTabIdent const& id, streampos pos )
+IdentLinkedHashTab::AddObject( CTabIdent const& id, std::streampos pos )
 {
   int mls = m_nLinks ? m_nUsed / m_nLinks : LINK_SIZE_LIMIT + 1;
   if( mls > LINK_SIZE_LIMIT )
@@ -761,7 +761,7 @@ IdentLinkedHashTab::AddObject( CTabIdent const& id, streampos pos )
   return 1;
 }
 //=====================================================================
-streampos
+std::streampos
 IdentLinkedHashTab::SelectObject( CTabIdent const& id )
 {
   if( !m_nUsed )

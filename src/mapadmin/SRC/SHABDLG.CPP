@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include <fstream.h>
+#include <fstream>
 #include <limits.h>
 
 #include <afxcmn.h>
@@ -354,7 +354,7 @@ CShabDlg::CShabDlg() :
   m_Period( 100 ),
   m_GridStep( 10 )
 {
-  ifstream is( App.GetProjectFilePath( CLineTmpl::TmplFileName ), ios::binary );
+  std::ifstream is( App.GetProjectFilePath( CLineTmpl::TmplFileName ), std::ios::binary );
 
   try
   {
@@ -481,7 +481,8 @@ CShabDlg::OnInitDialog()
     IDC_LTD_REDO_BUTTON,        IDB_CW_ARROW
   };
 
-  for( int i = CELEM( bb ) ; --i >= 0 ; )
+  int i;
+  for( i = CELEM( bb ) ; --i >= 0 ; )
   {
     HBITMAP hBmp = (HBITMAP)LoadImage( App.m_hInstance, LPCTSTR( bb[i][1] ), IMAGE_BITMAP, 0, 0, LR_LOADMAP3DCOLORS );
     if( hBmp )
@@ -538,7 +539,8 @@ CShabDlg::OnStyleChange()
 int
 CShabDlg::GetNewIndex()
 {
-  for( int n = MIN_TMPL_INDEX ; GetTmpl( n ) ; ++n );
+	int n;
+  for(n = MIN_TMPL_INDEX ; GetTmpl( n ) ; ++n );
   return n;
 }
 //=========================================================================
@@ -631,7 +633,8 @@ CShabDlg::OnSaveButtonClicked()
     m_nIndex = GetNewIndex();
   else
   {
-    for( int i = m_List.GetCount() ; --i >= 0 && m_List.GetItemData( i ) != m_nIndex ; );
+	  int i;
+    for(i = m_List.GetCount() ; --i >= 0 && m_List.GetItemData( i ) != m_nIndex ; );
     if( i >= 0 )
     {
       m_List.DeleteString( i );
@@ -717,7 +720,7 @@ CShabDlg::OnOK()
   if( m_bMod )
   {
     m_bMod = 0;
-    ofstream os( App.GetProjectFilePath( CLineTmpl::TmplFileName ), ios::binary | ios::trunc );
+	std::ofstream os( App.GetProjectFilePath( CLineTmpl::TmplFileName ), std::ios::binary | std::ios::trunc );
 
     int n = m_TmplLib.GetSize();
 
@@ -754,7 +757,8 @@ CShabDlg::OnOK()
 void
 CShabDlg::OnModeButtonClicked()
 {
-  for( int i = CELEM( md ) ; --i >= 0 && !IsDlgButtonChecked( md[i][0] ) ; );
+	int i;
+  for( i = CELEM( md ) ; --i >= 0 && !IsDlgButtonChecked( md[i][0] ) ; );
   if( i < 0 )
     return;
   m_nMode = SD_MODE( md[i][1] );
@@ -844,8 +848,8 @@ CShabDlg::FindPoint( CPoint pnt )
     return 0;
 
   int w = max( m_pCurPoly->width / 2, 3 );
-
-  for( SD_POINT** pp = &m_pCurPoly->pFirstPoint ;
+  SD_POINT** pp;
+  for( pp = &m_pCurPoly->pFirstPoint ;
        *pp && !PointDetected((*pp)->point, pnt, w ) ;
        pp = &(*pp)->pNextPoint );
 
@@ -1049,7 +1053,8 @@ CShabDlg::DrawAll()
 CShabDlg::Template*
 CShabDlg::GetTmpl( int nIndex )
 {
-  for( int i = m_TmplLib.GetSize() ; --i >= 0 && m_TmplLib[i]->m_nIndex != nIndex ; );
+	int i;
+  for(i = m_TmplLib.GetSize() ; --i >= 0 && m_TmplLib[i]->m_nIndex != nIndex ; );
   return i >= 0 ? m_TmplLib[i] : 0;
 }
 //=========================================================================

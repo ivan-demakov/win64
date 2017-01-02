@@ -27,7 +27,8 @@ static char OldRange[] = "Class Parent Priority MaxLimit Show Load Table MinScal
 static int
 ParamNum( char const* pn )
 {
-  for( int i = CELEM( pnm ) ; --i >= 0 && stricmp( pn, pnm[i] ) ; );
+	int i;
+  for(i = CELEM( pnm ) ; --i >= 0 && _stricmp( pn, pnm[i] ) ; );
   return i;
 }
 //=====================================================================
@@ -60,8 +61,8 @@ CObjDef::MakeRange()
   for( t = FULL_RANGE ; -- t > 0 ; )
     if( m_Oda[t].Name[0] )
     {
-      int p = GetRange( t );
-      for( int i = ts++ ; --i >= 0 && OdLt(  t, ct[i] ) ; ct[i+1] = ct[i] );
+      int i, p = GetRange( t );
+      for( i = ts++ ; --i >= 0 && OdLt(  t, ct[i] ) ; ct[i+1] = ct[i] );
       int q = i >= 0 ? GetRange( ct[i] ) : 0;
       m_bCollision |= q && q == p;
       ct[i+1] = t;
@@ -79,8 +80,8 @@ CObjDef::MakeRange()
   for( t = 0 ; t < FULL_RANGE ; ++t )
     if( IsClass( t ) && !GetDerived( t ))
 		{
-			int r = GetRange( t );
-      for( int i = m_nCls ; --i >= 0 && GetRange( m_Rng[i] ) > r ; m_Rng[i+1] = m_Rng[i] );
+		  int i, r = GetRange( t );
+	      for( i = m_nCls ; --i >= 0 && GetRange( m_Rng[i] ) > r ; m_Rng[i+1] = m_Rng[i] );
 			m_Rng[i+1] = t;
 			++m_nCls;
 		}
@@ -125,8 +126,8 @@ CObjDef::Init( char const* iniPath )
 
   for( char* name = entrs ; *name ; name += strlen( name ) + 1 )
   {
-    if( !stricmp( name, CurRange ) ||
-        !stricmp( name, NewRange ))
+    if( !_stricmp( name, CurRange ) ||
+        !_stricmp( name, NewRange ))
       continue;
 
     int k = 0;
@@ -201,7 +202,8 @@ CObjDef::Save() const
   if( kd[0] != 0 || kd[1] != 1 || kd[2] != 2 )
     return 0;
 
-  for( int n = 0, t = 1 ; t < FULL_RANGE ; ++t )
+  int n;
+  for( n = 0, t = 1 ; t < FULL_RANGE ; ++t )
   {
     CString const& name = m_Oda[t].Name;
     if( name.IsEmpty())
@@ -455,7 +457,8 @@ CObjDef::GetBottom( UINT t, int* dst ) const
 int 
 CObjDef::GetClass( LPCSTR name ) const
 {
-  for( int t = FULL_RANGE ; --t > 0 && strcmp( m_Oda[t].Name, name ) ; );
+  int t;
+  for(t = FULL_RANGE ; --t > 0 && strcmp( m_Oda[t].Name, name ) ; );
   return t;  
 }
 //=====================================================================

@@ -285,7 +285,8 @@ static int
 DupNum( CPoint* p, int n )
 {
   CPoint* pp = p++;
-  for( int i = 0 ; ++i < n && *pp != *p++ ; );
+  int i;
+  for(i = 0 ; ++i < n && *pp != *p++ ; );
   return i < n ? i : 0;
 }
 //=====================================================================
@@ -293,7 +294,8 @@ void
 CMeasureMode::DrawLoop( CDC* pDC, CPoint* pp, int pn )
 {
   int d1 = DupNum( pp, ++pn );
-  for( CPoint* ps = pp ; --pn > 0 ; )
+  CPoint* ps;
+  for( ps = pp ; --pn > 0 ; )
   {
     int d0 = d1 - 1;
     d1 = DupNum( ++pp, pn );
@@ -606,8 +608,8 @@ CMeasureMode::SaveRegion()
   if( rsm == IDCANCEL )
     return;
 
-  UINT fom = rsm == IDYES ? ios::app : ios::out | ios::trunc;
-  ofstream polyFile;
+  UINT fom = rsm == IDYES ? std::ios::app : std::ios::out | std::ios::trunc;
+  std::ofstream polyFile;
   polyFile.open( path, fom );
   if( !polyFile.good())
   {
@@ -617,20 +619,20 @@ CMeasureMode::SaveRegion()
 
   int bnc = m_pPoly[0] != m_pPoly[m_nPointNum-1];
 
-  polyFile << "Region 1" << endl
-           << ( m_nPointNum + bnc ) << endl;
+  polyFile << "Region 1" << std::endl
+           << ( m_nPointNum + bnc ) << std::endl;
 
   for( int i = 0 ; i < m_nPointNum ; ++i )
     polyFile << m2s( m_pPoly[i].x )
              << " " 
              << m2s( m_pPoly[i].y )
-             << endl;
+             << std::endl;
 
   if( bnc )
     polyFile << m2s( m_pPoly[0].x )
              << " " 
              << m2s( m_pPoly[0].y )
-             << endl;
+             << std::endl;
 
   polyFile.close();
 

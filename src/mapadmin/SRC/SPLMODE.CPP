@@ -134,8 +134,9 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
 
     if( bSel )
     {
-      for( int i = CELEM( kt ) ; 
-           --i >= 0 && stricmp( kt[i][0], KSI_KEY_PTR( type )) ; );
+		int i;
+      for(i = CELEM( kt ) ;
+           --i >= 0 && _stricmp( kt[i][0], KSI_KEY_PTR( type )) ; );
       if( i >= 0 )
       {
         ksi_set_car_x( prim, type = ksi_str02key( kt[i][1] ));
@@ -346,7 +347,8 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
                 {
                   ksi_obj p0 = KsiPoint( t0 );
                   ksi_obj p1 = KsiPoint( t1 - t0 );
-                  for( ksi_obj l = lns ; KSI_PLIST_P( l ) && !KSI_EQV_P( w, KSI_CAR( KSI_CAR( l ))) ; l = KSI_CDR( l ));
+				  ksi_obj l;
+                  for( l = lns ; KSI_PLIST_P( l ) && !KSI_EQV_P( w, KSI_CAR( KSI_CAR( l ))) ; l = KSI_CDR( l ));
                   if( KSI_NULL_P( l ))
                     lns = ksi_cons( KSI_LIST3( w, p0, p1 ), lns );
                   else
@@ -583,7 +585,7 @@ CStreetPlanMode::SavePlan( CPoint* pRgn, int nRgn )
 #else
     CString splPath( GetProjectWriteDir() + "plan.spl" );
 #endif;
-    ofstream splFile( splPath, ios::out | ios::trunc, filebuf::sh_read | filebuf::sh_write );
+	std::ofstream splFile( splPath, std::ios::out | std::ios::trunc, std::filebuf::sh_read | std::filebuf::sh_write );
     if( !splFile.good())
     {
       ErrBox( "Невозможно открыть файл\n"
@@ -724,7 +726,8 @@ CStreetPlanMode::SavePlan( int R )
   CList< CPoint*, CPoint*& > rgl;
 
   CObjList ptl, pll;
-  for( POSITION pos = pView->m_SelectList.GetHeadPosition() ; pos ; )
+  POSITION pos;
+  for(pos = pView->m_SelectList.GetHeadPosition() ; pos ; )
   {
     CDrawObject* pObj = pView->m_SelectList.GetNext( pos );
     int ntp = SH_NOTHING;
@@ -735,7 +738,8 @@ CStreetPlanMode::SavePlan( int R )
         pll.AddHead( pObj );
   }
 
-  for( POSITION pos0 = ptl.GetTailPosition() ; pos0 ; )
+  POSITION pos0;
+  for(pos0 = ptl.GetTailPosition() ; pos0 ; )
   {
     pos = pos0;
     CDrawObject* pOb0 = ptl.GetPrev( pos0 );

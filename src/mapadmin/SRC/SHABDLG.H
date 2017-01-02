@@ -1,7 +1,7 @@
 #ifndef _SHABDLG_H_
 #define _SHABDLG_H_
 
-#include <strstrea.h>
+#include <strstream>
 #include <afxtempl.h>
 #include "ids.h"
 #include "dlgids.h"

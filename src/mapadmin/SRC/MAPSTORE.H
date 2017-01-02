@@ -133,17 +133,17 @@ protected:
   ResultCode SetModifiedFlag( int m = 1 );
   ResultCode CreateIndexes( int bSpace );
   ResultCode ExtractDataPath( char const* iniPath );
-  ResultCode AddObjectToStream( streampos pos, TGstream& dst, int* pCnt );
-  ResultCode AddObjectToStream( streampos pos, TGstream& dst, SelectInfo* pi0, SelectInfo* pi1, int* pCnt );
-  ResultCode GetHeadRecord( streampos pos, istream* pSrc = 0 );
-  ResultCode PutHeadRecord( streampos pos, ostream* pDst = 0 );
-  ResultCode GetRecord( streampos pos, istream* pSrc = 0 );
-  ResultCode PutRecord( streampos pos, ostream* pDst = 0 );
-  ResultCode PutRecordEmp( streampos pos, ClassType type = 0 );
-  ResultCode AddIndex( streampos pos, Rect const& box, int node,
+  ResultCode AddObjectTostream( std::streampos pos, TGstream& dst, int* pCnt );
+  ResultCode AddObjectTostream( std::streampos pos, TGstream& dst, SelectInfo* pi0, SelectInfo* pi1, int* pCnt );
+  ResultCode GetHeadRecord( std::streampos pos, std::istream* pSrc = 0 );
+  ResultCode PutHeadRecord( std::streampos pos, std::ostream* pDst = 0 );
+  ResultCode GetRecord( std::streampos pos, std::istream* pSrc = 0 );
+  ResultCode PutRecord( std::streampos pos, std::ostream* pDst = 0 );
+  ResultCode PutRecordEmp( std::streampos pos, ClassType type = 0 );
+  ResultCode AddIndex( std::streampos pos, Rect const& box, int node,
                        int type, CTabIdent tabid, int bSort );
   ResultCode NextClassScan();
-  void       RemoveIndex( streampos pos, Rect const& box, CTabIdent tabid );
+  void       RemoveIndex( std::streampos pos, Rect const& box, CTabIdent tabid );
   void       RemoveAllIndex();
   void       RemoveAll();
 
@@ -171,7 +171,7 @@ protected:
   int       MapNumber;
   char      DataPath[_MAX_PATH];
   char      InitPath[_MAX_PATH];
-  fstream   DataStream;
+  std::fstream   DataStream;
 
   IdentLinkedHashTab TabIdentIndex;
   

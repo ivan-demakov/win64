@@ -120,10 +120,12 @@ RemoveSpaces( char* str, int bReplaceNewLines )
     for( char* t = str ; *t ; ++t )
       if( *t == '\n' )
         *t = ' ';
-  for( char* p = str ; *p ; ++p )
+  char* p;
+  for( p = str ; *p ; ++p )
     if( *p == ' ' )
     {
-      for( char* q = p + 1 ; *q == ' ' ; ++q );
+		char* q;
+      for(q = p + 1 ; *q == ' ' ; ++q );
       if( q - p > 1 )
         strcpy( p + 1, q );
     }

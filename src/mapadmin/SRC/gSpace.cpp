@@ -78,7 +78,7 @@ CIconMap::Init( char const* sectName, char const* initPath )
 }
 //=====================================================================
 static ResultCode
-AddDataToStream( void* pSrc, int nSrcLen, TGstream& dst )
+AddDataTostream( void* pSrc, int nSrcLen, TGstream& dst )
 {
   int pc = dst.pcount();
   dst.write((char const*)pSrc, nSrcLen );
@@ -227,7 +227,7 @@ MapStore::GetGlobalRect( int x0, int y0, int x1, int y1,
 
 	Scale = MerkatorData.CalcScale( ScaleFactor );
 
-  streampos pos;
+  std::streampos pos;
   ResultCode r = R_OK;
   bClipping = 1;
 
@@ -238,10 +238,10 @@ MapStore::GetGlobalRect( int x0, int y0, int x1, int y1,
   memset( cnt, 0, sizeof cnt );
 
   static char mnt[] = "TGMP";
-  AddDataToStream( mnt, sizeof mnt-1, dst );
-  AddDataToStream( &MapNumber, sizeof MapNumber, dst );
-  AddDataToStream( &w, sizeof w, dst );
-  AddDataToStream( &h, sizeof h, dst );
+  AddDataTostream( mnt, sizeof mnt-1, dst );
+  AddDataTostream( &MapNumber, sizeof MapNumber, dst );
+  AddDataTostream( &w, sizeof w, dst );
+  AddDataTostream( &h, sizeof h, dst );
 
   pSelectInfo[0].poslist.RemoveAll();
 	SpaceIndex.SelectObjects( Clip, Scale, pNodes, pSelectInfo[0].poslist );
@@ -295,10 +295,10 @@ MapStore::GetGlobalRect( int x0, int y0, int x1, int y1,
   {
     if( cnt[t] )
     {
-      AddDataToStream( lrt, sizeof lrt-1, dst );
-      AddDataToStream( &t, sizeof t, dst );
-      AddDataToStream( &cnt[t], sizeof cnt[t], dst );
-      AddDataToStream( pTmpStr[t]->str(), pTmpStr[t]->pcount(), dst );
+      AddDataTostream( lrt, sizeof lrt-1, dst );
+      AddDataTostream( &t, sizeof t, dst );
+      AddDataTostream( &cnt[t], sizeof cnt[t], dst );
+      AddDataTostream( pTmpStr[t]->str(), pTmpStr[t]->pcount(), dst );
     }
   }
 
@@ -343,7 +343,7 @@ MapStore::SelGlobalRect( int x0, int y0, int x1, int y1,
 	
 	Scale = MerkatorData.CalcScale( ScaleFactor );
 
-  streampos pos;
+  std::streampos pos;
   ResultCode r = R_OK;
   bClipping = 1;
 
@@ -354,10 +354,10 @@ MapStore::SelGlobalRect( int x0, int y0, int x1, int y1,
   memset( cnt, 0, sizeof cnt );
 
   static char mnt[] = "TGMP";
-  AddDataToStream( mnt, sizeof mnt-1, dst );
-  AddDataToStream( &MapNumber, sizeof MapNumber, dst );
-  AddDataToStream( &w, sizeof w, dst );
-  AddDataToStream( &h, sizeof h, dst );
+  AddDataTostream( mnt, sizeof mnt-1, dst );
+  AddDataTostream( &MapNumber, sizeof MapNumber, dst );
+  AddDataTostream( &w, sizeof w, dst );
+  AddDataTostream( &h, sizeof h, dst );
 
 	pSelectInfo[0].poslist.RemoveAll();
 	int count = SpaceIndex.SelectObjects( SRct, Scale, pNodes, pSelectInfo[0].poslist );
@@ -415,10 +415,10 @@ MapStore::SelGlobalRect( int x0, int y0, int x1, int y1,
   {
     if( cnt[t] )
     {
-      AddDataToStream( lrt, sizeof lrt-1, dst );
-      AddDataToStream( &t, sizeof t, dst );
-      AddDataToStream( &cnt[t], sizeof cnt[t], dst );
-      AddDataToStream( pTmpStr[t]->str(), pTmpStr[t]->pcount(), dst );
+      AddDataTostream( lrt, sizeof lrt-1, dst );
+      AddDataTostream( &t, sizeof t, dst );
+      AddDataTostream( &cnt[t], sizeof cnt[t], dst );
+      AddDataTostream( pTmpStr[t]->str(), pTmpStr[t]->pcount(), dst );
     }
   }
 
@@ -433,8 +433,8 @@ MapStore::TranslateObject( word mvb, CTabIdent id, TGstream& dst )
 {
   void* pSrc = pData;
   dword dm = OBJMAGIC;
-  ResultCode r = AddDataToStream( &dm, sizeof dm, dst );
-	r == R_OK && ( r = AddDataToStream( &id, sizeof id, dst ));
+  ResultCode r = AddDataTostream( &dm, sizeof dm, dst );
+	r == R_OK && ( r = AddDataTostream( &id, sizeof id, dst ));
   pSrc = pData;
 	point* tcp = 0;
   return r == R_OK ? TranslatePrim( &pSrc, mvb, tcp, dst) : r;
@@ -460,10 +460,10 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
 
   ResultCode r = R_OK;
 
-  streampos startPos = dst.tellp();
+  std::streampos startPos = dst.tellp();
 
   if( bVisible )
-    r = AddDataToStream( &pPr->type, sizeof pPr->type, dst );
+    r = AddDataTostream( &pPr->type, sizeof pPr->type, dst );
 
   if( bAnyVsbl )
   {
@@ -496,7 +496,7 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
       epp.style = ppp->style;
       epp.width = ppp->width * ClsScaleFactor * ScaleFactor;
       epp.color = ppp->color;
-      r = AddDataToStream( &epp, sizeof( epp ), dst );
+      r = AddDataTostream( &epp, sizeof( epp ), dst );
     }
     if( pbp )
     {
@@ -510,7 +510,7 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
       }
       else
        ebb.fore = ebb.back = 0;
-       r = AddDataToStream( &ebb, sizeof( ebb ), dst );
+       r = AddDataTostream( &ebb, sizeof( ebb ), dst );
     }
   }
 
@@ -523,7 +523,7 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
       while( r == R_OK && --n >= 0 )
         r = TranslatePrim( ppSrc, mvb, pPoint, dst );
       word t = 0;
-      r == R_OK && ( r = AddDataToStream( &t, sizeof t, dst ));
+      r == R_OK && ( r = AddDataTostream( &t, sizeof t, dst ));
       break;
     }
 
@@ -560,7 +560,7 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
 			xIcn.xSize = MulDiv( pItem->NativeXSize, sNgl, Scale ) * ClsScaleFactor;
 			xIcn.ySize = MulDiv( pItem->NativeYSize, sNgl, Scale ) * ClsScaleFactor;
 			
-			r == R_OK && ( r = AddDataToStream( &xIcn, sizeof xIcn, dst ));
+			r == R_OK && ( r = AddDataTostream( &xIcn, sizeof xIcn, dst ));
       break;
 		}
     case PF_TEXT:
@@ -603,9 +603,9 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
       }
       TranslatePoint( &pSP->offset );
 
-		  r == R_OK && ( r = AddDataToStream( pFp, sizeof( *pFp ), dst ));
-      r == R_OK && ( r = AddDataToStream( pSP, sizeof( *pSP ), dst ));
-      r == R_OK && ( r = AddDataToStream( pSP->string, pSP->length, dst ));
+		  r == R_OK && ( r = AddDataTostream( pFp, sizeof( *pFp ), dst ));
+      r == R_OK && ( r = AddDataTostream( pSP, sizeof( *pSP ), dst ));
+      r == R_OK && ( r = AddDataTostream( pSP->string, pSP->length, dst ));
       break;
     }
 
@@ -638,9 +638,9 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
       }
 
       for( int i = length ; --i >= 0 ; TranslatePoint( &pItem[i].org ));
-      r == R_OK && ( r = AddDataToStream( pFp, sizeof( *pFp ), dst ));
-      r == R_OK && ( r = AddDataToStream( &pPr->param.textbyline.length, sizeof( pPr->param.textbyline.length ), dst ));
-      r == R_OK && ( r = AddDataToStream( pItem, length * sizeof( *pItem ), dst ));
+      r == R_OK && ( r = AddDataTostream( pFp, sizeof( *pFp ), dst ));
+      r == R_OK && ( r = AddDataTostream( &pPr->param.textbyline.length, sizeof( pPr->param.textbyline.length ), dst ));
+      r == R_OK && ( r = AddDataTostream( pItem, length * sizeof( *pItem ), dst ));
       break;
     }
 
@@ -659,9 +659,9 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
       else
       {
         word n = TranslatePolypoint( pPoints, nPoints, pPoint );
-        r = AddDataToStream( &n, sizeof n, dst );
+        r = AddDataTostream( &n, sizeof n, dst );
         if( n >= 2 )
-          r = AddDataToStream( pPoints, n * sizeof( point ), dst );
+          r = AddDataTostream( pPoints, n * sizeof( point ), dst );
         else
           dst.seekp( startPos );
       }
@@ -695,7 +695,7 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
       rct.top    = ( rct.top    - Clip.top  ) * ScaleFactorY;
       rct.right  = ( rct.right  - Clip.left ) * ScaleFactorX;
       rct.bottom = ( rct.bottom - Clip.top  ) * ScaleFactorY;
-      r = AddDataToStream( &rct, sizeof rct, dst );
+      r = AddDataTostream( &rct, sizeof rct, dst );
       break;
     }
 
@@ -735,7 +735,7 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
       rct.top    = ( rct.top    - Clip.top  ) * ScaleFactorY;
       rct.right  = ( rct.right  - Clip.left ) * ScaleFactorX;
       rct.bottom = ( rct.bottom - Clip.top  ) * ScaleFactorY;
-      r = AddDataToStream( &rct, sizeof rct, dst );
+      r = AddDataTostream( &rct, sizeof rct, dst );
       break;
     }
 
@@ -768,7 +768,7 @@ MapStore::TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst )
       rct.top    = ( rct.top    - Clip.top  ) * ScaleFactorY;
       rct.right  = ( rct.right  - Clip.left ) * ScaleFactorX;
       rct.bottom = ( rct.bottom - Clip.top  ) * ScaleFactorY;
-      r = AddDataToStream( &rct, sizeof rct, dst );
+      r = AddDataTostream( &rct, sizeof rct, dst );
       break;
     }
   }
@@ -808,7 +808,7 @@ static void
 PutSpace( TGstream& dst, int lvl )
 {
   static char const sp[] = "                                                               ";
-  dst << endl;
+  dst << std::endl;
   dst.write( sp, min( lvl, sizeof sp - 1 ));
 }
 //=====================================================================
@@ -937,7 +937,7 @@ MapStore::TmplDef2XML( TGstream& dst, int lvl )
   ( p = TmplPath );
   strcpy( p == TmplPath ? p : p + 1, "linetmpl.bin" );
 
-  ifstream ts( TmplPath, ios::in | ios::binary );
+  std::ifstream ts( TmplPath, std::ios::in | std::ios::binary );
 
   if( ts.fail())
     return R_OK;
@@ -1040,8 +1040,8 @@ ResultCode
 MapStore::PRJ2XML( TGstream& dst )
 {
 	char const tag[] = "project";
-  dst << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
-	dst << "<" << tag << endl;
+  dst << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
+	dst << "<" << tag << std::endl;
 	dst << "  Name='" << ProjectName << "'\n";
 	dst << "  Id='" << MapNumber << "'\n";
 

@@ -481,7 +481,8 @@ CMagnitMode::Select( CPoint* pPt, int n )
 		return;
 
   int d = abs( DistPointToPolyline( m_CurPos, pPt, n ));
-  for( int i = nLine ; --i >= 0 && dl[i] > d ; dl[i+1] = dl[i], svl[i+1] = svl[i], snl[i+1] = snl[i] )
+  int i;
+  for( i = nLine ; --i >= 0 && dl[i] > d ; dl[i+1] = dl[i], svl[i+1] = svl[i], snl[i+1] = snl[i] )
   dl[i+1] = d;
   svl[i+1] = pPt;
   snl[i+1] = n;
@@ -501,7 +502,8 @@ CMagnitMode::Select( CRect const& r )
 	if( m_CurDist <= d )
 		return;
 
-  for( int i = nRect ; --i >= 0 && dr[i] > d ; dr[i+1] = dr[i], svr[i+1] = svr[i] );
+	int i;
+  for(i = nRect ; --i >= 0 && dr[i] > d ; dr[i+1] = dr[i], svr[i+1] = svr[i] );
   dr[i+1] = d;
 	svr[i+1] = r;
 	nRect = min( nRect + 1, 3 );

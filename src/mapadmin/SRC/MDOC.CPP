@@ -277,7 +277,8 @@ CMapDoc::SetDocType()
 			IDM_DEVORG
 		};
     CMenu* pMM = GetSubMenu( MapMenuName );
-		for( int i = CELEM( ns ) ; --i >= 0 ; )
+	int i;
+		for( i = CELEM( ns ) ; --i >= 0 ; )
 			pMM->DeleteMenu( ns[i], MF_BYCOMMAND );
 		int nc = pMM->GetMenuItemCount();
 		for( i = nc ; --i >= 0 ; )

@@ -10,6 +10,7 @@
 *.obj
 *.pch
 *.pdb
+*.idb
 *.o
 *.lo
 *.la
@@ -18,3 +19,5 @@
 *.log
 *.Po
 *.Plo
+*.log
+*.tlog

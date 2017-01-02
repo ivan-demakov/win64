@@ -1426,7 +1426,7 @@ RepRep( CDrawObject* pRpr )
 }
 //========================================================================
 int
-CMapView::Test1Reper( CDrawObject* pRep, ofstream* pFile, int nMode )
+CMapView::Test1Reper( CDrawObject* pRep, std::ofstream* pFile, int nMode )
 {
   static char* et[] =
   {
@@ -1519,11 +1519,11 @@ CMapView::OnTestAllRepers()
 
   int bWriteFile = !pfn.IsEmpty();
 
-  ofstream pFile;
+  std::ofstream pFile;
 
   if( bWriteFile )
   {
-    pFile.open( pfn, ios::out | ios::trunc, filebuf::sh_read );
+    pFile.open( pfn, std::ios::out | std::ios::trunc, std::filebuf::sh_read );
     if( !pFile.good())
     {
       ErrBox( "Невозможно открыть файл\n"
@@ -1541,7 +1541,7 @@ CMapView::OnTestAllRepers()
 		if( mode == 1 )
 		{
 			if( bWriteFile )
-        pFile << RepRep( pRep ) << endl;
+        pFile << RepRep( pRep ) << std::endl;
 			else
 			{
         CString rpt;
@@ -1635,7 +1635,7 @@ CMapView::OnMakeStatistics( UINT id )
   if( id == IDM_MAKE_RGN_STATISTICS )
   {
     CString path( App.GetProjectFilePath( "region.txt" ));
-    ifstream rin( path, ios::in|ios::nocreate );
+    std::ifstream rin( path, ios::in|ios::nocreate );
 
     if( rin.bad())
     {
@@ -1706,7 +1706,7 @@ CMapView::OnMakeStatistics( UINT id )
     c[j+1] = t1;
   }
 
-  ofstream os( fName, ios::out | ios::trunc, filebuf::sh_none );
+  std::ofstream os( fName, ios::out | ios::trunc, filebuf::sh_none );
 
   CTime tm = CTime::GetCurrentTime();
   char line[256];
@@ -1808,7 +1808,7 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
 
   bool bCommNum = ptn == btn && pen == ben;
 
-  ofstream os( fName, ios::out | ios::trunc, filebuf::sh_none );
+  std::ofstream os( fName, ios::out | ios::trunc, filebuf::sh_none );
 
   int sol = m_ScaleOnLoading;
   m_ScaleOnLoading = 0;
@@ -2571,7 +2571,7 @@ CMapView::OnDebug1()
 
 			if( DoModalDlg( fdlg, 0 ) == IDOK )
 			{
-			  ofstream os( fdlg->GetPathName(), ios::out | ios::binary | ios::trunc, filebuf::sh_read );
+			  std::ofstream os( fdlg->GetPathName(), ios::out | ios::binary | ios::trunc, filebuf::sh_read );
 			  os.write( dst.str(), dst.pcount());
 				os.close();
 			}
@@ -2591,7 +2591,7 @@ CMapView::OnDebug1()
 			  DoModalDlg( ifdlg, CE_PAR_DLG ) == IDOK	)
     {
 
-			ifstream Src;
+			std::ifstream Src;
 			Src.open( bfdlg->GetPathName(), ios::in | ios::binary );
 			if( Src.bad())
 				return;

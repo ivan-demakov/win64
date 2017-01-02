@@ -5,7 +5,7 @@
 #define KSI_MINOR_VERSION 5
 #define KSI_PATCH_LEVEL 1
 #define KSI_CPU "x86"
-#define KSI_OS "linux"
+#define KSI_OS "windows"
 #define KSI_SCM_LIB_DIR "/home/ksion/share/ksi"
 #define KSI_INSTAL_INCLUDE_DIR "/home/ksion/include/ksi"
 #define KSI_INSTAL_LIB_DIR "/home/ksion/lib/ksi"

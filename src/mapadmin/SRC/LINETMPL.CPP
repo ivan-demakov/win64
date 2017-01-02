@@ -3,7 +3,7 @@
 //=====================================================================
 #include "stdafx.h"
 
-#include <fstream.h>
+#include <fstream>
 #include <limits.h>
 #include "linetmpl.h"
 #ifndef _FULL_PROJECT
@@ -32,7 +32,7 @@ CLineTmpl::CreateTemplates()
 {
   LPCSTR TmplPath( App.GetProjectFilePath( TmplFileName ));
 
-  ifstream ts( TmplPath, ios::in | ios::binary, filebuf::sh_none );
+  std::ifstream ts( TmplPath, std::ios::in | std::ios::binary, std::filebuf::sh_none );
 
   if( ts.fail())
   {
@@ -149,7 +149,8 @@ CLineTmpl::~CLineTmpl()
 CLineTmpl*
 CLineTmpl::GetTemplate( int index )
 {
-  for( int i = m_TmplArr.GetSize() ; --i >= 0 && m_TmplArr[i]->m_Index != index ; );
+	int i;
+  for(i = m_TmplArr.GetSize() ; --i >= 0 && m_TmplArr[i]->m_Index != index ; );
   return i >= 0 ? m_TmplArr[i] : 0;
 }
 //=====================================================================
@@ -173,7 +174,8 @@ LeftOf( CPoint const& p0, CPoint const& p1, CPoint const& p2 )
 static int
 MakeCase( int* pv, int n )
 {
-  for( int c = 0 ; --n >= 0 ; c = c << 1 | *pv++ );
+	int c;
+  for(int c = 0 ; --n >= 0 ; c = c << 1 | *pv++ );
   return c;
 }
 //=====================================================================
@@ -211,7 +213,8 @@ CLineTmpl::DrawFull( CDC* pDC, int ntempl, CPoint* pPoints, int count,
     for( int cnt = count ; --cnt > 0 ; )
     {
       CPoint p3( p1 = p2 ), p4( p2 = org + Ratio( *pp++, num, den ));
-      for( int bd = 1, i = 2 ; --i >= 0 ; )
+	  int bd, i;
+      for( bd = 1, i = 2 ; --i >= 0 ; )
       {
         int v[] = { LeftOf( p3, ltop, lbtm ),
                      LeftOf( p4, ltop, lbtm ),
@@ -364,7 +367,8 @@ CLineTmpl::DrawTmpLine( CDC* pDC, COLORREF color, int num, int den,
       CPoint* pSg = segmen;
       CPoint* pp = (CPoint*)ptmpl, org( l2, 0 );
       int np = min( MaxSegmentLength, nPoints );
-      for( int count = np ; --count >= 0 ;
+	  int count;
+      for(count = np ; --count >= 0 ;
            *pSg++ = *pStart + TurnPoint( Ratio( *pp++, num, den ) + org, S.cx, -S.cy, L ));
 
       for( int n = mn, sh = 0 ; --n >= 0 ; sh += tmpLen )

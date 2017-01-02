@@ -63,7 +63,7 @@ CMapmoleApp::OpenDocumentFile( LPCSTR DocFileName )
     else
       return 0;
 
-  fstream DataStream;
+  std::fstream DataStream;
   DataStream.open( DocFileName, ios::in|ios::out|ios::binary, filebuf::sh_read );
   if( DataStream.good())
     DataStream.close();
@@ -326,7 +326,8 @@ int
 CMapmoleApp::GetProfileKeys( char const* pSection, char* buf, int size )
 {
   GetPrivateProfileString( pSection, 0, "", buf, size, m_ModulePath );
-  for( int n = 0 ; *buf ; buf += strlen( buf ) + 1, ++n );
+  int n;
+  for(int n = 0 ; *buf ; buf += strlen( buf ) + 1, ++n );
   return n;
 }
 //======================================================================

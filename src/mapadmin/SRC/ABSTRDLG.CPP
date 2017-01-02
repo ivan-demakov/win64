@@ -1500,7 +1500,7 @@ CIconParamDialog::OnInitDialog()
     MakePath( path, wild, "", fn );
     int ndx = m_IconListBox.AddString( wild );
     ASSERT( ndx >= 0 );
-    if( !stricmp( cref, fn ))
+    if( !_stricmp( cref, fn ))
       m_OldSel = ndx;
   }
 

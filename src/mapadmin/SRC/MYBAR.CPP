@@ -27,7 +27,8 @@ END_MESSAGE_MAP()
 void
 CMyBar::OnNeedTextA( UINT nID, NMHDR* pNotifyStruct, LRESULT* lResult )
 {
-  for( int i = m_BarSize ; --i >= 0 && m_pBarInf[i].CommandID != nID ; );
+	int i;
+  for(  i = m_BarSize ; --i >= 0 && m_pBarInf[i].CommandID != nID ; );
   CString t( i < 0 ? "?" : m_pBarInf[i].ToolTipText );
 
   LPTOOLTIPTEXT lpTTT = (LPTOOLTIPTEXT)pNotifyStruct;
@@ -93,7 +94,7 @@ CMyBar::CMyBar( CWnd* pWnd, LPCTSTR sectName, UINT baseID, UINT tbid ) :
     UINT id = ID_SEPARATOR;
     CString t;
 
-    if( stricmp( pb, "Separator" ))
+    if( _stricmp( pb, "Separator" ))
     {
       t = App.GetProfileString( sectName, pb );
       char const* buf = t.GetBuffer( 1024 ); 
@@ -191,7 +192,8 @@ CMyBar::IsSeparator( int i )
 int
 CMyBar::GetPosition( UINT id )
 {
-  for( int i = m_BarSize ; --i >= 0 && m_pBarInf[i].CommandID != id ; );
+  int i;
+  for(i = m_BarSize ; --i >= 0 && m_pBarInf[i].CommandID != id ; );
   return i;
 }
 //=====================================================================

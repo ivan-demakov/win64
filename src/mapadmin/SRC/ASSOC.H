@@ -16,7 +16,7 @@ public:
 
   UINT Translate( char const* key_name ) const;
   char const* Translate( UINT key ) const;
-  int operator !=( char const* name ) const { return stricmp( name, m_Str ); }
+  int operator !=( char const* name ) const { return _stricmp( name, m_Str ); }
 };
 //=====================================================================
 class CStrAssocMap

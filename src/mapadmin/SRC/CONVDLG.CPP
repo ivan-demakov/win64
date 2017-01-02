@@ -950,7 +950,7 @@ CConvDlg::OnOK()
       m_Rgn = step ? 0 : new Point[m_RgnSize+1];
       Point* pp = m_Rgn;
 
-      ifstream rin( path, ios::in|ios::nocreate );
+      std::ifstream rin( path, ios::in|ios::nocreate );
       if( rin.bad())
       {
         ErrBox( "Не удается открыть файл описания региона!" );

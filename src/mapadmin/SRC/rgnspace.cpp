@@ -141,7 +141,8 @@ RgnPool::Connect()
           prg1->IsCrossedByLine( p0, p1 ))
         continue;
 
-      for( RegionDef* tsp = pPool ; tsp ; tsp = tsp->pNext )
+	  RegionDef* tsp;
+      for(tsp = pPool ; tsp ; tsp = tsp->pNext )
         if( tsp->IsCrossedByLine( p0, p1 ))
           break;
 
@@ -163,7 +164,8 @@ RgnPool::Connect()
     }
     else
     {
-      for( RegionDef** ppr = &pPool ; *ppr ; ppr = &(*ppr)->pNext );
+		RegionDef** ppr;
+      for(ppr = &pPool ; *ppr ; ppr = &(*ppr)->pNext );
       (*ppr) = prg1;
       ++PoolSize;
 

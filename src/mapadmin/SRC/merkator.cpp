@@ -99,7 +99,7 @@ Merkator::Init( MapStore* ms )
   if( ms->GetProjectHeadRecord( dst ) == R_OK )
   {
     memcpy( &HR, (DataFileHeadRec*)dst.str(), sizeof HR );
-    m_TrueMerkator = !strnicmp( HR.PrjType, "MERK", sizeof HR.PrjType );
+    m_TrueMerkator = !_strnicmp( HR.PrjType, "MERK", sizeof HR.PrjType );
   }
   else
   {
@@ -140,7 +140,7 @@ Merkator::Init( MapStore* ms )
       if( ::GetPrivateProfileString( "PROJECTION", pd->entry, "", buf, sizeof buf, ms->GetIniPath()))
         memcpy( pd->pValue, buf, pd->size );
     }
-    m_TrueMerkator = !strnicmp( HR.PrjType, "MERK", sizeof HR.PrjType );
+    m_TrueMerkator = !_strnicmp( HR.PrjType, "MERK", sizeof HR.PrjType );
   }
 
   if( m_TrueMerkator )

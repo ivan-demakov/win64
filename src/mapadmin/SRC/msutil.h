@@ -19,10 +19,10 @@ double     Deg2Rad( int deg );
 #endif
 char const* GetDT();
 ResultCode TraceError( int mapNum, ResultCode r, char const* opName, long p0 = 0, long p1 = 0 );
-ResultCode ReadData( void* pData, int size, istream* pSrc );
-ResultCode ReadData( streampos pos, void* pData, int size, istream* pSrc );
-ResultCode WriteData( void* pData, int size, ostream* pDst );
-ResultCode WriteData( streampos pos, void* pData, int size, ostream* pDst );
+ResultCode ReadData( void* pData, int size, std::istream* pSrc );
+ResultCode ReadData( std::streampos pos, void* pData, int size, std::istream* pSrc );
+ResultCode WriteData( void* pData, int size, std::ostream* pDst );
+ResultCode WriteData( std::streampos pos, void* pData, int size, std::ostream* pDst );
 char* MakePath( char const* path, char* buf, char const* ext, char const* name = 0 );
 int GetLong( char const* path, char const* section, char const* entry, long* par, long def );
 int GetString( char const* path, char const* section, char const* entry, char* par, int size, char* def );

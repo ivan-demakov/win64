@@ -7,11 +7,13 @@
 #define _SPCTREE_H_
 //=====================================================================
 #include <stdlib.h>
-#include <fstream.h>
+#include <fstream>
 #include "rcode.h"
 #include "ptrect.h"
 #include "poslist.h"
 #include "ident.h"
+
+
 //=====================================================================
 #define MAGICNEST 0x5453454eL // код начала записи гнезда
 #define MAGICPOOL 0x4c4f4f50L // код начала записи списка
@@ -62,13 +64,13 @@ public:
   virtual int SelectObjects( SelectParam* pSp, int bInside ) = 0;
 
   // сохранение элемента пространственной структуры в файле
-  virtual ResultCode Save( ofstream& Ot ) = 0;
+  virtual ResultCode Save( std::ofstream& Ot ) = 0;
 
   // загрузка элемента пространственной структуры из файла
-  virtual ResultCode Load( ifstream& In ) = 0;
+  virtual ResultCode Load( std::ifstream& In ) = 0;
 
   // сохранение типа элемента
-  static  ResultCode Save( long magic, ofstream& Ot );
+  static  ResultCode Save( long magic, std::ofstream& Ot );
 
   // сохранение полной структуры в заданном файле
   static ResultCode Save( char const* path, BranchPtr* pRoot );
@@ -77,7 +79,7 @@ public:
   static ResultCode Load( char const* path, BranchPtr* pRoot );
 
   // загрузка типа и габарита элемента
-  static ResultCode Load( SpcTree** pRoot, ifstream& In );
+  static ResultCode Load( SpcTree** pRoot, std::ifstream& In );
 
   static int IsValidNode( int Node, SelectParam* pSp );
 
@@ -98,7 +100,7 @@ public:
 class SpcObj : public Rect
 {
 public:
-  SpcObj( Rect const& box, streampos off, 
+  SpcObj( Rect const& box, std::streampos off,
           int minLimit = 0, 
           int maxLimit = 0, 
           int node = 0, 
@@ -122,7 +124,7 @@ public:
     { SpcTree::operator delete( p ); }
 #endif //_USE_HEAP_
 
-  streampos Offset;  // смещение
+  std::streampos Offset;  // смещение
   int       MinLim;  // нижняя  граница отображения
   int       MaxLim;  // верхняя граница отображения
   int       Node;    // код узла
@@ -142,8 +144,8 @@ public:
   int Split( SpcTree** ppRoot );
   SpcObj* GetHead() { return pPool; }
 
-  ResultCode Load( ifstream& In );
-  ResultCode Save( ofstream& Ot);
+  ResultCode Load(std::ifstream& In );
+  ResultCode Save(std::ofstream& Ot);
 
 private:
   int PoolSize;  // размер списка
@@ -181,11 +183,11 @@ public:
   { 
     return &pBranch; 
   }
-  ResultCode Load( ifstream& In )
+  ResultCode Load(std::ifstream& In )
   {
     return SpcTree::Load( &pBranch, In );
   }
-  ResultCode Save( ofstream& Ot )
+  ResultCode Save(std::ofstream& Ot )
   {
     return pBranch ? pBranch->Save( Ot ) : SpcTree::Save( MAGICEMPT, Ot );
   }
@@ -217,8 +219,8 @@ public:
   int SelectObjects( SelectParam* pSp, int bInside );
   int NoBranches( SpcTree** ppRoot );
 
-  ResultCode Load( ifstream& In );
-  ResultCode Save( ofstream& Ot );
+  ResultCode Load(std::ifstream& In );
+  ResultCode Save(std::ofstream& Ot );
 
 private:
   BranchPtr Br[NB]; // ветви
@@ -230,11 +232,11 @@ class SpaceTree
 public:
   SpaceTree();
   ~SpaceTree();
-  int   AddObject( Rect const& box, streampos off, 
+  int   AddObject( Rect const& box, std::streampos off,
                    int minLimit, int maxLimit, int node, int bSort );
-  int   ReplaceObject( Rect const& box, streampos off, 
+  int   ReplaceObject( Rect const& box, std::streampos off,
                        int minLimit, int maxLimit, int node );
-  int   RemoveObject( Rect const& box, streampos pos );
+  int   RemoveObject( Rect const& box, std::streampos pos );
   int   SelectObjects( Rect const& box, int limit, long* pNodes, PositionList& rPosList );
   void  Clear();
   int   Sort();

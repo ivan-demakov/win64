@@ -107,7 +107,7 @@ private:
   int UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Point* Rgn = 0 );
   int ksi2gpl( int nMode, int nNode, ksi_obj ksi_val, CIdent Id,
 		           double pcf[2][3], double utm[4],
-               ofstream& log, int oldEntry );
+               std::ofstream& log, int oldEntry );
   int MoveObjectToProject( void* pSrc, CBox* pBox );
   int IsObjectInProject( CBox* pBox );
   int UpdateKsiObjDef( ksi_obj ksi_tmp, ksi_obj ksi_log,
@@ -119,10 +119,10 @@ private:
                        char* pClassMap,
 											 double pcf[2][3],
 											 double utm[4],
-                       ofstream& log );
-  ResultCode OutputLog( ofstream& out, int oldEntry, void* pSrc );
-  ResultCode CreateLog( char const* errPath, ofstream& out );
-  void OutputObject( ofstream& out, void* pData );
+                       std::ofstream& log );
+  ResultCode OutputLog( std::ofstream& out, int oldEntry, void* pSrc );
+  ResultCode CreateLog( char const* errPath, std::ofstream& out );
+  void OutputObject( std::ofstream& out, void* pData );
   int CreatePosTab( IdentDirectHashTab* pIdTab, int bDelMode, int bIdentMode );
   static int BoxInRgn( Rect const& Box, Point* Rgn );
   static int PntInRgn( Point const& Pt, Point* Rgn );

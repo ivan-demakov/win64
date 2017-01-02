@@ -110,8 +110,9 @@ CSublDlg::OnInitDialog()
 {
   CDialog::OnInitDialog();
   EnableToolTips( 1 );
-
-  for( int i = CELEM( bb ) ; --i >= 0 ; )
+  
+  int i;
+  for(i = CELEM( bb ) ; --i >= 0 ; )
   {
     HBITMAP hBmp = (HBITMAP)LoadImage( App.m_hInstance, LPCTSTR( bb[i][1] ), IMAGE_BITMAP, 0, 0, LR_LOADMAP3DCOLORS );
     if( hBmp )
@@ -1169,7 +1170,8 @@ CSublDlg::OnNotify( WPARAM wParam, LPARAM lParam, LRESULT* pResult )
   notify.pNMHDR = pNMHDR;
 
   int bFnd = 0;
-  for( int i = CELEM( bb ) ; !bFnd && --i >= 0 ; )
+  int i;
+  for(i = CELEM( bb ) ; !bFnd && --i >= 0 ; )
   {
     CButton* pBtn = (CButton*)GetDlgItem( bb[i][0] );
     bFnd = pBtn && (UINT)pBtn->m_hWnd == wParam;
@@ -1202,7 +1204,7 @@ CSublDlg::GetScaleRatio( CString path, Polar c, double ls, int Z, double* pkx, d
   Gdiplus::Rect rect( 0, 0, 450, 450 );
   Bitmap* pbmp = 0;
   CStdioFile* IF = 0;
-  ofstream OF;
+  std::ofstream OF;
   if( !OF.good())
           goto Fail;
 
@@ -1219,7 +1221,7 @@ CSublDlg::GetScaleRatio( CString path, Polar c, double ls, int Z, double* pkx, d
           goto Fail;
 
   char buf[4096];
-  OF.open( path, ios::out|ios::trunc|ios::binary );
+  OF.open( path, std::ios::out|std::ios::trunc|std::ios::binary );
   for(;;)
   {
     int n = IF->Read( buf, sizeof buf );
@@ -1253,7 +1255,8 @@ CSublDlg::GetScaleRatio( CString path, Polar c, double ls, int Z, double* pkx, d
     int i = 224, j = 224;
     int s = 0;
     UINT fv = pp[i][j];
-    for( int n = 0 ; n < 225 && !s ; ++n, i += mx[k], j += my[k] )
+	int n;
+    for(n = 0 ; n < 225 && !s ; ++n, i += mx[k], j += my[k] )
       s = pp[i][j] != fv;
 
     if( !s )
@@ -1620,7 +1623,7 @@ CSublDlg::OnInsertionEnd( CDrawObject* pObj )
           if( pObe )
           {
             char const* psrc1 = ((CText*)pObe->GetActualCont()->GetHead()->GetNext())->GetStringPtr()->m_String;
-            if( !stricmp( psrc0, psrc1 ))
+            if( !_stricmp( psrc0, psrc1 ))
             {
               AddItem( pObe );
               RefreshPosSize( pObe );
@@ -1737,7 +1740,7 @@ CSublDlg::OnInsertionEnd( CDrawObject* pObj )
     CStdioFile* IF = IS.OpenURL( url, 1, INTERNET_FLAG_TRANSFER_BINARY );
     if( IF )
     {
-      ofstream OF( path, ios::out|ios::trunc|ios::binary );
+		std::ofstream OF( path, std::ios::out| std::ios::trunc| std::ios::binary );
       if( !OF.good())
       {
         ErrBox( "Не удается открыть файл\n для сохранения подложки!" );
@@ -1922,7 +1925,7 @@ CSublDlg::OnInsertionEnd( CDrawObject* pObj )
         CStdioFile* IF = IS.OpenURL( url, 1, INTERNET_FLAG_TRANSFER_BINARY );
         if( IF )
         {
-          ofstream OF( path, ios::out|ios::trunc|ios::binary );
+			std::ofstream OF( path, std::ios::out| std::ios::trunc| std::ios::binary );
           if( !OF.good())
           {
             ErrBox( "Не удается открыть временный файл\n для сохранения подложки!" );

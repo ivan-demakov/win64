@@ -17,7 +17,7 @@
 #include "util.h"
 #include "ksi_type.h"
 #include "mercator.h"
-#include <fstream.h>
+#include <fstream>
 #include <gdiplus.h>
 //=====================================================================
 #ifdef _DEBUG
@@ -425,7 +425,7 @@ COverviewDialog::CreateBmp( CRect* pRect )
     }
     else
     {
-      ofstream os( m_OverviewPath, ios::out | ios::app | ios::binary );
+      std::ofstream os( m_OverviewPath, ios::out | ios::app | ios::binary );
       os.write((char*)&m_Box, sizeof m_Box );
       os.close();
     }
