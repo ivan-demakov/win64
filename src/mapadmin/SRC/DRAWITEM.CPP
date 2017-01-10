@@ -392,7 +392,8 @@ CPolyItem::CPolyItem( ksi_obj init_list, int bBound ):
     m_PointNum = KSI_LIST_LEN( list );
     if( m_pPoints = m_PointNum ? new CPoint[m_PointNum+m_bBound] : 0 )
     {
-       for( CPoint *pp = m_pPoints ; list != ksi_nil ; list = KSI_CDR( list ))
+		CPoint *pp;
+       for(pp = m_pPoints ; list != ksi_nil ; list = KSI_CDR( list ))
         *pp++ = CppPoint( KSI_CAR( list ));
        if( bBound )
          *pp = *m_pPoints;

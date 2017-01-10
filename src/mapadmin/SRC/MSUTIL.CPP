@@ -144,7 +144,8 @@ static int
 IsNumVect( ksi_obj vec, int sz, int nn = 0 )
 {
   ASSERT( nn <= sz );
-  for( int r = KSI_VEC_P( vec ) && KSI_VEC_LEN( vec ) >= sz ; r && --nn >= 0 ;
+  int r;
+  for( r = KSI_VEC_P( vec ) && KSI_VEC_LEN( vec ) >= sz ; r && --nn >= 0 ;
        r = KSI_NUM_P( KSI_VEC_REF( vec, nn )));
 //  ASSERT( r );
   return r;

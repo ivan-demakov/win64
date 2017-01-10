@@ -70,7 +70,8 @@ MakeFilled( CPoint* pPnt, int nPnt, CPoint* pRgn, int nRgn, ksi_obj fb_color, ks
   ksi_obj ksi_pls = ksi_nil;
   for( CPoint p0, p1 ; lh.GetHead( p0, p1 ) ; )
   {
-    for( ksi_obj ksi_pll = KSI_LIST2( KsiPoint( p0 ), KsiPoint( p1 ));;)
+	ksi_obj ksi_pll;
+    for(ksi_obj ksi_pll = KSI_LIST2( KsiPoint( p0 ), KsiPoint( p1 ));;)
     {
 
       CPoint np;

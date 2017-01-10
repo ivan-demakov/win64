@@ -303,7 +303,8 @@ CGraphData::NextGlobalSearch()
   if( !m_pLayer )
     return 0;
 
-  for( CDrawObject* pObj = 0 ;
+  CDrawObject* pObj;
+  for( pObj = 0 ;
        !( pObj = m_pLayer[m_LayerNum]->FindPrev( &m_SearchSpot )) && GetPrevLayer() ;
        m_pLayer[m_LayerNum]->SetLast());
   return pObj;

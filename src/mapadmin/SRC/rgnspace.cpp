@@ -129,9 +129,9 @@ RgnPool::Connect()
     int bs2 = bs * 16;
 
     int in = FindPointToPoint( pp0 + 1, pp0->x, pp1 + 1, pp1->x, nn, 1024, bs2, bs );
-    int n0, n1;
+    int i, n0, n1;
 
-    for( int i = nTry * 4 ; i < in ; ++i )
+    for( i = nTry * 4 ; i < in ; ++i )
     {
       n0 = nn[i][0];
       n1 = nn[i][1];
@@ -384,12 +384,12 @@ RegionDef::Split( CPoint c, RgnPool& rst, int bHorz )
   CPoint* pp0 = pPoly + 1;
   int n0 = pPoly->x;
 
-  int i0 = -1, i1 = -1;
+  int i, i0 = -1, i1 = -1;
   int x0, x1;
   int y0, y1;
   
   CPoint p1, p0( pp0[0] );
-  for( int i = n0 ; --i >= 0 ; )
+  for( i = n0 ; --i >= 0 ; )
   {
     p1 = p0;
     p0 = pp0[i];

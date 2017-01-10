@@ -65,7 +65,8 @@ CObjLinkNode::HasOutNode( int bDel )
 		CDrawObject* pObj = p->m_pObj;
 		int n = pObj->Node();
 		CConductor* pCnd = pView->GetConductor();
-		for( int i = pCnd->m_nNodes ; --i >= 0 ; )
+		int i;
+		for(int i = pCnd->m_nNodes ; --i >= 0 ; )
 			if( pCnd->m_pCurrentNodeList[i] == n )
 				break;
 		if( i < 0 )
@@ -514,7 +515,8 @@ CMapView::EndCoedition( CDrawObject* pObj )
     CDrawObject* pObj0 = m_ClipData.GetObjectPtr( CBuildMode::GetContextId());
     if( pObj0 )
     {
-      for( int i = m_Conductor.GetLinkSize() ;
+		int i;
+      for( i = m_Conductor.GetLinkSize() ;
            --i >= 0 && m_Conductor.GetTable( i ) != pObj0->TabIdent() ; );
       if( i < 0 )
         m_Conductor.AddLink( pObj0->TabIdent());
@@ -2065,7 +2067,8 @@ CMapView::CreatePointObject()
   {
     CString nm = m_Conductor.GetParams()[i];
     CString vl = m_Conductor.GetParams()[i+1];
-    for( char** pn = ipn ; *pn && nm.CompareNoCase( *pn ) ; ++pn );
+	char** pn;
+    for( pn = ipn ; *pn && nm.CompareNoCase( *pn ) ; ++pn );
     if( *pn )
       ksi_param = ksi_cons( cons_with_sym( nm, atoi( vl )), ksi_param );
     else
@@ -2119,7 +2122,8 @@ CMapView::CreateLineObject()
   CIdent id( m_Conductor.GetIdent());
         ksi_obj ksi_vars = ksi_nil;
 
-  for( int i = m_Conductor.GetParamSize() ; --i >= 0 ; )
+  int i;
+  for( i = m_Conductor.GetParamSize() ; --i >= 0 ; )
   {
     ksi_obj ksi_par = cons_with_sym( m_Conductor.GetParamName( i ), m_Conductor.GetParamValue( i ));
     ksi_vars = ksi_cons( ksi_par, ksi_vars );

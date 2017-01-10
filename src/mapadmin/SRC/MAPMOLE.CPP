@@ -64,7 +64,7 @@ CMapmoleApp::OpenDocumentFile( LPCSTR DocFileName )
       return 0;
 
   std::fstream DataStream;
-  DataStream.open( DocFileName, ios::in|ios::out|ios::binary, filebuf::sh_read );
+  DataStream.open( DocFileName, std::ios::in| std::ios::out| std::ios::binary, filebuf::sh_read );
   if( DataStream.good())
     DataStream.close();
   else

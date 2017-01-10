@@ -21,14 +21,16 @@ static char BASED_CODE THIS_FILE[] = __FILE__;
 int
 CBmpDefArray::GetFreeId()
 {
-  for( int id = 0 ; GetBmpDef( id ) ; ++id );
+  int id;
+  for(id = 0 ; GetBmpDef( id ) ; ++id );
   return id;
 }
 //=====================================================================
 CBmpDef*
 CBmpDefArray::GetBmpDef( int id )
 {
-  for( int i = GetSize() ; --i >= 0 && GetAt( i )->m_BmpId != id ; );
+	int i;
+  for(i = GetSize() ; --i >= 0 && GetAt( i )->m_BmpId != id ; );
   return i >= 0 ? GetAt( i ) : 0;
 }
 //=====================================================================

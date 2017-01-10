@@ -246,8 +246,8 @@ CConvDlg::CreateIdentList()
 
   ksi_obj in_port = ksi_open_file( ksi_ptr02string( fName ), ksi_ptr02string( "rt" ));
 
-
-	for( int tt = 0 ;;  )
+  int tt;
+  for( tt = 0 ;;  )
   {
     ksi_obj ksi_par = ksi_read( in_port );
 
@@ -950,7 +950,7 @@ CConvDlg::OnOK()
       m_Rgn = step ? 0 : new Point[m_RgnSize+1];
       Point* pp = m_Rgn;
 
-      std::ifstream rin( path, ios::in|ios::nocreate );
+	  std::ifstream rin( path, std::ios::in| std::ios::nocreate );
       if( rin.bad())
       {
         ErrBox( "Не удается открыть файл описания региона!" );
@@ -968,7 +968,7 @@ CConvDlg::OnOK()
         
         rin >> nr >> rs;
 
-        if( rin.eof() || stricmp( ttl, "Region" ) || nr != 1 || rs < 3 )
+        if( rin.eof() || _stricmp( ttl, "Region" ) || nr != 1 || rs < 3 )
         {
           ErrBox( "Некорректный регион!" );
           return;
@@ -1258,7 +1258,8 @@ CConvDlg::RestoreConfig( LPCTSTR path )
                        IDC_CVD_ASSAMBLY_BY_TABLE_RADIO,
                        IDC_CVD_ASSAMBLY_ALL_RADIO };
 
-  for( int i = CELEM( AC ) ; --i >= 0 && !IsDlgButtonChecked( AC[i] ) ; );
+	int i;
+  for( i = CELEM( AC ) ; --i >= 0 && !IsDlgButtonChecked( AC[i] ) ; );
   if( i < 0 )
     CheckDlgButton( PROJECT_TO_PROJECT, 1 );
   

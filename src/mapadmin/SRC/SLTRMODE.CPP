@@ -268,7 +268,7 @@ CSelectTraceMode::Reopen()
   }
 
   m_pOwner->ClearSelection( 0, 0 );
-  for( i = 0 ; i < m_Trace.GetSize() ; ++i )
+  for( int i = 0 ; i < m_Trace.GetSize() ; ++i )
     InsertSelect( m_pOwner->GetObjectPtr( m_Trace[i]->m_ObjId ), m_Trace[i]->m_ObjSelType );
 
   m_TmpTraceSize = m_Trace.GetSize();
@@ -306,7 +306,8 @@ CSelectTraceMode::Open()
   {
     TGstream buf;
     CTabIdent* pTi = new CTabIdent[m_Trace.GetSize()];
-    for( int i = m_Trace.GetSize(), n = 0 ; --i >= 0 ; )
+	int i, n;
+    for( i = m_Trace.GetSize(), n = 0 ; --i >= 0 ; )
       if( !m_pOwner->GetObjectPtr( m_Trace[i]->m_ObjId ))
         pTi[n++] = m_Trace[i]->m_ObjId;
 
@@ -322,7 +323,7 @@ CSelectTraceMode::Open()
 
     static long ih = 0;
 
-    for( i = m_Trace.GetSize() ; --i >= 0 ; )
+    for( int i = m_Trace.GetSize() ; --i >= 0 ; )
       if( !m_pOwner->GetObjectPtr( m_Trace[i]->m_ObjId ))
       {
         if( bSlClient )

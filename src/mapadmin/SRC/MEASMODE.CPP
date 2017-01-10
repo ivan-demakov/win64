@@ -318,7 +318,8 @@ CalcLoopLength( CPoint* pp, int pn )
     return S;
 
   int d1 = DupNum( pp, ++pn );
-  for( CPoint* ps = pp ; --pn > 0 ; )
+  CPoint* ps;
+  for( ps = pp ; --pn > 0 ; )
   {
     int d0 = d1 - 1;
     d1 = DupNum( ++pp, pn );
@@ -834,7 +835,6 @@ CFindDistanceMode::OnLButtonDown( UINT &flags, CPoint &loc )
 #else
          	CTabIdList IdList;
 #endif // _TabIdentHashTab_
-					int r;
 					{
 						CWaitCursor wc;
             ReportHint( "Выполняется поиск точки. Пожалуйста, подождите..." );

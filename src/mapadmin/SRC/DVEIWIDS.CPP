@@ -60,7 +60,8 @@ CMapView::OnUpdateAppCommandUI( CCmdUI* pCmdUI )
 
   pCmdUI->SetCheck( GetMode( pCmdUI->m_nID ) != 0 );
 
-  for( UINT* p = aid ; *p && pCmdUI->m_nID != *p ; ++p );
+  UINT* p;
+  for( p = aid ; *p && pCmdUI->m_nID != *p ; ++p );
   pCmdUI->Enable( !*p || m_Conductor.GetUserRights() >= UR_L_EDIT );
 }
 //=====================================================================

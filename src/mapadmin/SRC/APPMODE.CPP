@@ -74,7 +74,8 @@ CMapView::AddMode( CAppMode* pMode )
     return 0;
   }
 
-  for( CAppMode** ppMode = &m_pMode ;
+  CAppMode** ppMode;
+  for(ppMode = &m_pMode ;
        *ppMode && (*ppMode)->m_nGroup > pMode->m_nGroup ;
        ppMode = &(*ppMode)->m_pNext );
 
@@ -97,7 +98,8 @@ CMapView::RemoveMode( CAppMode* pMode )
   if( !pMode )
     return 0;
 
-  for( CAppMode** ppCur = &m_pMode ; *ppCur && *ppCur != pMode ;
+  CAppMode** ppCur;
+  for(ppCur = &m_pMode ; *ppCur && *ppCur != pMode ;
        ppCur = &(*ppCur)->m_pNext );
 
   if( *ppCur )
@@ -132,7 +134,8 @@ CAppMode*
 CMapView::GetMode( UINT nID1, UINT nID2 )
 {
   nID2 || ( nID2 = nID1 + 1 );
-  for( CAppMode* pCur = m_pMode ;
+  CAppMode* pCur;
+  for(pCur = m_pMode ;
        pCur && ( pCur->m_nID < nID1 || pCur->m_nID >= nID2 ) ;
        pCur = pCur->m_pNext );
   return pCur;
@@ -148,14 +151,16 @@ CMapView::GetActiveMode( UINT id )
 CAppMode*
 CMapView::GetActiveMode( UINT* pId )
 {
-  for( CAppMode* pMode = 0 ; *pId && !pMode ; pMode = GetActiveMode( *pId++ ));
+	CAppMode* pMode;
+  for(pMode = 0 ; *pId && !pMode ; pMode = GetActiveMode( *pId++ ));
   return pMode;
 }
 //=====================================================================
 CAppMode*
 CMapView::GetMode( UINT* pId )
 {
-  for( CAppMode* pMode = 0 ; *pId && !pMode ; pMode = GetMode( *pId++ ));
+	CAppMode* pMode;
+  for(pMode = 0 ; *pId && !pMode ; pMode = GetMode( *pId++ ));
   return pMode;
 }
 //=====================================================================
@@ -401,8 +406,8 @@ CMapView::OnKeyDown( UINT key_code, UINT count, UINT flags )
 
   int bCtrl = GetKeyState( VK_CONTROL ) < 0;
   int bShft = GetKeyState( VK_SHIFT   ) < 0;
-
-  for( int i = CELEM( ect ) ; --i >= 0 && key_code != ect[i][0] ; );
+  int i;
+  for(i = CELEM( ect ) ; --i >= 0 && key_code != ect[i][0] ; );
 
   if( i >= 0 )
     OnChar( ect[i][bCtrl+1], count, 0 );
@@ -467,7 +472,8 @@ CMapView::OnSetCursor( CWnd* pWnd, UINT nHitTest, UINT message )
   static HCURSOR IS = App.LoadCursor( IDC_INCSCALE );
   static HCURSOR crs[] = { 0, GS, IS, GS };
 
-  for( CAppMode* pCur = m_pMode ; pCur && !pCur->OnSetCursor() ; pCur = pCur->m_pNext );
+  CAppMode* pCur;
+  for(pCur = m_pMode ; pCur && !pCur->OnSetCursor() ; pCur = pCur->m_pNext );
 
   int ks = ( GetKeyState( VK_SHIFT   ) < 0 ? 1 : 0 ) |
            ( GetKeyState( VK_CONTROL ) < 0 ? 2 : 0 );

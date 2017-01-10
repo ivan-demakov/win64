@@ -415,8 +415,9 @@ CMapView::OnPrint( CDC* pDC, CPrintInfo* pInfo )
   CRect d1( 0, 0, 1, 1 );
   pDC->DPtoLP( &d1 );
   r.BottomRight() -= d1.Size();
-
-  for( int i = 4, fr = 0 ; --i >= 0 ;
+  
+  int fr = 0;
+  for( int i = 4 ; --i >= 0 ;
        PrintBorder( i, ppi, r, pDC ),
        fr |= ppi->crmt[i] == MS_FRAME );
 

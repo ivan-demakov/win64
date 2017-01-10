@@ -412,7 +412,8 @@ COverviewDialog::CreateBmp( CRect* pRect )
     GetImageEncodersSize( &num, &size );
     ImageCodecInfo* pImageCodecInfo = (ImageCodecInfo*) new char[size];
     GetImageEncoders( num, size, pImageCodecInfo );
-    for( int i = num ; --i >= 0 && wcscmp( pImageCodecInfo[i].MimeType, L"image/bmp" ) ; );
+	int i;
+    for( i = num ; --i >= 0 && wcscmp( pImageCodecInfo[i].MimeType, L"image/bmp" ) ; );
     if( i >= 0 )
       bmpClsid = pImageCodecInfo[i].Clsid;
     delete pImageCodecInfo;
@@ -425,7 +426,7 @@ COverviewDialog::CreateBmp( CRect* pRect )
     }
     else
     {
-      std::ofstream os( m_OverviewPath, ios::out | ios::app | ios::binary );
+		std::ofstream os( m_OverviewPath, std::ios::out | std::ios::app | std::ios::binary );
       os.write((char*)&m_Box, sizeof m_Box );
       os.close();
     }

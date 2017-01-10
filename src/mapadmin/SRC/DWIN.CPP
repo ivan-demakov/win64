@@ -189,7 +189,8 @@ CMainWin::CreateToolBar( int i )
 int
 CMainWin::CreateToolBars()
 {
-  for( int i = CELEM( m_pToolBar ) ; --i >= 0 ; delete m_pToolBar[i] )
+	int i;
+  for( i = CELEM( m_pToolBar ) ; --i >= 0 ; delete m_pToolBar[i] )
     m_pToolBar[i] && m_pToolBar[i]->DestroyWindow();
 
   ToolBarPos const* ptbd = TBS;
@@ -405,7 +406,8 @@ CMainWin::OnToolbarSelect( UINT nId )
 int
 CMainWin::GetBarNum( UINT bitMapID )
 {
-  for( int i = CELEM( TBS ) ; --i >= 0 && TBS[i].bitMapID != bitMapID ; );
+	int i;
+  for(i = CELEM( TBS ) ; --i >= 0 && TBS[i].bitMapID != bitMapID ; );
   return i;
 }
 //=====================================================================

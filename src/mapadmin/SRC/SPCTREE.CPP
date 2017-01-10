@@ -169,7 +169,8 @@ Nest::ReplaceObject( SpcObj const* pObj )
   if( !IntersectRect( *pObj ))
     return 0;
 
-  for( BranchPtr* pb = Br + NB ; --pb >= Br && !pb->ReplaceObject( pObj ) ; );
+  BranchPtr* pb;
+  for(BranchPtr* pb = Br + NB ; --pb >= Br && !pb->ReplaceObject( pObj ) ; );
   return pb >= Br;
 }
 //=====================================================================

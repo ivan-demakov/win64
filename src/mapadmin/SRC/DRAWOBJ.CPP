@@ -75,7 +75,8 @@ CDrawContainer::RemoveHead()
 CVisiblePrim*
 CDrawContainer::FindIndex( int nIndex )
 {
-  for( CVisiblePrim* pPrim = m_pHead ; pPrim && --nIndex >= 0 ;
+	CVisiblePrim* pPrim;
+  for( pPrim = m_pHead ; pPrim && --nIndex >= 0 ;
        pPrim = pPrim->GetNext());
   return pPrim;
 }
@@ -216,7 +217,8 @@ CDrawContainer::CalcBoundBox( CBox& box )
 int
 CDrawContainer::Detected( CSpot const& spot, int bStrict, int* pDist )
 {
-  for( int i = m_nCount ; --i >= 0 ; )
+	int i;
+  for( i = m_nCount ; --i >= 0 ; )
   {
     CVisiblePrim* p = FindIndex( i );
     int hr = m_bHR || m_bTHR && p->GetType() == KEY_TEXT;
@@ -678,7 +680,8 @@ CDrawObject::DrawToPoint( CSpot const& spot, CPoint* pPoint, int mode )
 CVisiblePrim*
 CDrawObject::GetItem( int n )
 {
-  for( CVisiblePrim* p = n >= 0 ? m_pActualCont->GetHead() : 0 ; p && --n >= 0 ; p = p->GetNext());
+	CVisiblePrim* p;
+  for( p = n >= 0 ? m_pActualCont->GetHead() : 0 ; p && --n >= 0 ; p = p->GetNext());
   return p;
 }
 //=====================================================================
@@ -729,8 +732,8 @@ CDrawObject::SetPoly( CPoint const* points, int pn )
 {
   SHAPE_NDX* pSh = &m_ShapeNdx[Class()];
   int n = pSh->ndx;
-
-  for( CVisiblePrim* p = n >= 0 ? m_pOriginCont->GetHead() : 0 ; p && --n >= 0 ; p = p->GetNext());
+  CVisiblePrim* p;
+  for( p = n >= 0 ? m_pOriginCont->GetHead() : 0 ; p && --n >= 0 ; p = p->GetNext());
 
   CVisiblePrim* pPrim = pSh->shape == SH_POLYLINE  ||
                         pSh->shape == SH_BPOLYLINE ||
@@ -807,7 +810,8 @@ CDrawObject::InitShapeNdx( int n )
   if( KSI_TRUE_P( ksi_map ))
   {
     ksi_obj ksi_fmp = ksi_false;
-    for( int k = CELEM( key ) ; KSI_FALSE_P( ksi_fmp ) && --k >= 0 ;
+	int k;
+    for( k = CELEM( key ) ; KSI_FALSE_P( ksi_fmp ) && --k >= 0 ;
          ksi_fmp = ksi_memq( key[k], ksi_map ));
     if( KSI_TRUE_P( ksi_fmp ))
     {
@@ -949,7 +953,8 @@ SplitNum( int fs, int ss )
   if( ss == 0 )
     return 1;
 
-  for( int n = 1 ; fs / n > ss ; ++n );
+  int n;
+  for( n = 1 ; fs / n > ss ; ++n );
   return n;
 }
 //======================================================================

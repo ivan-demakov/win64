@@ -202,7 +202,7 @@ CObjDef::Save() const
   if( kd[0] != 0 || kd[1] != 1 || kd[2] != 2 )
     return 0;
 
-  int n;
+  int n, t;
   for( n = 0, t = 1 ; t < FULL_RANGE ; ++t )
   {
     CString const& name = m_Oda[t].Name;

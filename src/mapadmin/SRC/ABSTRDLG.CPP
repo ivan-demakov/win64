@@ -1360,12 +1360,14 @@ CSubdialog::GetFreeClass( int bFromBegin )
 {
   if( bFromBegin )
   {
-    for( int t = 0 ; ++t < CLASS_RANGE && ( m_pObjDef->IsClass( t ) || IsObject( t )) ; );
+	  int t;
+    for(t = 0 ; ++t < CLASS_RANGE && ( m_pObjDef->IsClass( t ) || IsObject( t )) ; );
     return t < CLASS_RANGE ? t : -1;
   }
   else
   {
-    for( int t = CLASS_RANGE ; --t >= 0  && ( m_pObjDef->IsClass( t ) || IsObject( t )) ; );
+	  int t;
+    for(t = CLASS_RANGE ; --t >= 0  && ( m_pObjDef->IsClass( t ) || IsObject( t )) ; );
     return t;
   }
 }
@@ -1737,9 +1739,9 @@ CColorCombo::AddColor( COLORREF clr )
   if( clr == -1 )
     return;
 
-  int n = GetCount();
+  int i, n = GetCount();
 
-  for( int i = n ; --i >= 0 && GetItemData( i ) != clr ; );
+  for( i = n ; --i >= 0 && GetItemData( i ) != clr ; );
   if( i < 0 )
   {
     InsertString( i = n - 1, 0 );
@@ -1794,7 +1796,8 @@ CColorCombo::DrawItem( LPDRAWITEMSTRUCT lpDIS )
 static COLORREF
 CalcBWColor( COLORREF clr )
 {
-  for( int s = 0 ; clr ; s += clr & 0xff, clr >>= 8 );
+	int s;
+  for(s = 0 ; clr ; s += clr & 0xff, clr >>= 8 );
   int c = s / 3;
   return c | ( c << 8 ) | ( c << 16 );
 }
@@ -1998,8 +2001,8 @@ CLineStyleList::Init( int initVal )
 {
   CRect r;
   GetClientRect( &r );
-  int s = 0;
-  for( int i = 0 ; CLineParamDialog::m_StyleKey[i].m_Str ; ++i )
+  int i, s = 0;
+  for( i = 0 ; CLineParamDialog::m_StyleKey[i].m_Str ; ++i )
   {
     int t = CLineParamDialog::m_StyleKey[i].m_Key;
     SetItemData( AddString( 0 ), t );
@@ -2330,8 +2333,8 @@ CPolygonStyleList::Init(  int initVal )
 {
   CRect r;
   GetClientRect( &r );
-  int s = 0;
-  for( int ns = 0 ; CPolygonParamDialog::m_HatchKey[ns].m_Str ; ++ns )
+  int ns, s = 0;
+  for( ns = 0 ; CPolygonParamDialog::m_HatchKey[ns].m_Str ; ++ns )
   {
     int v = CPolygonParamDialog::m_HatchKey[ns].m_Key;
     SetItemData( AddString( 0 ), v );

@@ -29,7 +29,8 @@ GetLinkPoint( CMapView* pView, CTabIdent const& id, CPoint* pPoint )
     else
     if( pObj->GetPolygon())
     {
-      for( CVisiblePrim* pp = pObj->GetActualCont()->GetHead() ; pp && pp->GetType() != KEY_TEXT ; pp = pp->GetNext());
+		CVisiblePrim* pp;
+      for(pp = pObj->GetActualCont()->GetHead() ; pp && pp->GetType() != KEY_TEXT ; pp = pp->GetNext());
       if( pp )
       {
         CBox box;
@@ -78,7 +79,8 @@ CMapView::AddFuncLink( CFuncLink& funcLink )
 
   m_bRedraw = m_bFuLinksShow;
 
-  for( int i = m_FuLinkArray.GetSize() ; --i >= 0 && ( funcLink != m_FuLinkArray[i] ); );
+  int i;
+  for(i = m_FuLinkArray.GetSize() ; --i >= 0 && ( funcLink != m_FuLinkArray[i] ); );
   if( i < 0 )
     i = m_FuLinkArray.Add( funcLink );
   else
@@ -98,7 +100,8 @@ CMapView::RemFuncLink( CFuncLink& funcLink )
   if( !funcLink.DefPoints( this ))
     return 0;
 
-  for( int i = m_FuLinkArray.GetSize() ; --i >= 0 && ( funcLink != m_FuLinkArray[i] ); );
+  int i;
+  for(i = m_FuLinkArray.GetSize() ; --i >= 0 && ( funcLink != m_FuLinkArray[i] ); );
   if( i < 0 )
     return 0;
 
@@ -358,7 +361,8 @@ CMapView::TestFLTopscr( CPoint* pLoc )
     f.CreateFontIndirect( &MsgFnt );
     dc.SelectObject( &f );
     char const* p0 = ps;
-    for( char const* p1 = p0 ; *p1 ; p0 = p1 + 1 )
+	char const* p1;
+    for( p1 = p0 ; *p1 ; p0 = p1 + 1 )
     {
       ( p1 = strchr( p0, '\n' )) || ( p1 = strchr( p0, '\0' ));
       CSize ext( dc.GetOutputTextExtent( p0, p1 - p0 ));

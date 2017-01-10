@@ -1084,7 +1084,7 @@ CMapView::OnLoadTrackPointsCmd( UINT nID )
   }
 
   std::ifstream data;
-  data.open( fdlg->GetPathName(), ios::in, filebuf::sh_read );
+  data.open( fdlg->GetPathName(), std::ios::in, std::filebuf::sh_read );
   delete fdlg;
 
   CArray <Polar,Polar&> PolPoints;
@@ -1112,7 +1112,8 @@ CMapView::OnLoadTrackPointsCmd( UINT nID )
 
   ksi_obj ksi_pts = ksi_nil;
   CSize docSize( GetDocument()->GetSize());
-  for( int i = 0 ; i < n ; ++i )
+  int i;
+  for(i = 0 ; i < n ; ++i )
   {
 		Point pt;
 		if( !MerkatorData.Pol2Prj( PolPoints[i], pt ))

@@ -46,8 +46,8 @@ CBaseLawDialog::InsertTreeNode( HTREEITEM parent, int type, int bSub )
   for( int k = 1 ; k < n ; ++k )
 	{
     int t = types[k];
-		int r = m_pObjDef->GetMenuRange( t );
-		for( int l = k ; --l >= 0 && m_pObjDef->GetMenuRange( types[l] ) > r ; types[l+1] = types[l] );
+		int l, r = m_pObjDef->GetMenuRange( t );
+		for( l = k ; --l >= 0 && m_pObjDef->GetMenuRange( types[l] ) > r ; types[l+1] = types[l] );
 		types[l+1] = t;
 	}
 
@@ -63,7 +63,8 @@ CBaseLawDialog::InsertTreeNode( HTREEITEM parent, int type, int bSub )
 HTREEITEM
 CBaseLawDialog::FindTreeNode( HTREEITEM node, int type )
 {
-  for( HTREEITEM fnode = 0 ; !fnode && node ; node = m_pClassTree->GetNextSiblingItem( node ))
+	HTREEITEM fnode;
+  for( fnode = 0 ; !fnode && node ; node = m_pClassTree->GetNextSiblingItem( node ))
     fnode = m_pClassTree->GetItemData( node ) == type ? 
       node : FindTreeNode( m_pClassTree->GetChildItem( node ), type );
   return fnode;

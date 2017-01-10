@@ -1578,7 +1578,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
 	int bCvt = nMode & CM_COORD_CONVERT;
   
   ResultCode r = R_OK;
-  for( i = 0 ; i < l &&  r == R_OK ; ++i )
+  for( int i = 0 ; i < l &&  r == R_OK ; ++i )
   {
     while( pDlg->GetStop() == 1 );
     if( pDlg->GetStop() == 2 )
@@ -1734,7 +1734,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
                      HR.Version, &pSrc, pDrh->GetClass(), bGeo, ksi_map );
 
     mifFile1.close();
-    midFile1 << endl;
+    midFile1 << std::endl;
     midFile1.close();
    
     std::ofstream mifFile2, midFile2;
@@ -2468,7 +2468,8 @@ Keyword2num( CString const& s )
     "roundrect",
     "collection"
   };
-  for( int i = CELEM( ttl ) ; --i >= 0 && s != ttl[i] ; );
+  int i;
+  for( i = CELEM( ttl ) ; --i >= 0 && s != ttl[i] ; );
   return KEY_WORD( i );
 }
 //=====================================================================
@@ -2655,7 +2656,8 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
         static CString un[] = { "cm", "dm", "m" };
         static double  cf[] = {   1,   10, 100, 100 };
         tst[l-1] = 0;
-        for( int i = 0 ; i < CELEM( un ) && un[i] != tst + 1 ; ++i );
+		int i;
+        for(i = 0 ; i < CELEM( un ) && un[i] != tst + 1 ; ++i );
 
         long SmInUnit;
         GetUnitDec( &SmInUnit );

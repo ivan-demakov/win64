@@ -17,7 +17,8 @@ static char BASED_CODE THIS_FILE[] = __FILE__;
 UINT
 CStrAssoc::Translate( char const* key_name ) const
 {
-  for( CStrAssoc const* ap = this ; ap->m_Str && *ap != key_name ; ++ap );
+	CStrAssoc const* ap;
+  for(ap = this ; ap->m_Str && *ap != key_name ; ++ap );
   return ap->m_Key;
 }
 //=====================================================================
@@ -31,7 +32,8 @@ CStrAssoc::KsiTranslate( ksi_obj ksi_key ) const
 char const*
 CStrAssoc::Translate( UINT key ) const
 {
-  for( CStrAssoc const* ap = this ; ap->m_Str && ap->m_Key != key ; ++ap );
+	CStrAssoc const* ap;
+  for(ap = this ; ap->m_Str && ap->m_Key != key ; ++ap );
   return ap->m_Str ? ap->m_Str : "";
 }
 //=====================================================================
@@ -85,15 +87,17 @@ CStrAssocMap::Init( char const* sectName )
 CIntAssocMap::IntAssoc* 
 CIntAssocMap::FindPos( int key ) const
 {
-  for( int s = 1, i = key % m_nSize ; m_pMap[i].Used() && m_pMap[i].m_Key != key ;
-       i = ( i + s++ ) % m_nSize );
+  int s, i;
+  for(s = 1, i = key % m_nSize ; m_pMap[i].Used() && m_pMap[i].m_Key != key ;
+  i = ( i + s++ ) % m_nSize );
   return m_pMap + i;
 }
 //=====================================================================
 int 
 CIntAssocMap::FindFreeKey() const
 {
-  for( int key = 0 ; m_pMap[key].Used() ; ++key );
+	int key;
+  for(key = 0 ; m_pMap[key].Used() ; ++key );
   return key;
 }
 //=====================================================================

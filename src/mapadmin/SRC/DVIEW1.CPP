@@ -1251,11 +1251,12 @@ CMapView::UpdateColorTab( COLORREF MonitorColor,
 
     if( bClear && !bConcret )
     {
-      ksi_obj ksi_key = ksi_int2num( k );
-      for( ksi_obj lst = par_lst ; KSI_PLIST_P( lst ) ; lst = KSI_CDR( lst ))
+      ksi_obj lst, ksi_key = ksi_int2num( k );
+      for(lst = par_lst ; KSI_PLIST_P( lst ) ; lst = KSI_CDR( lst ))
       {
         ksi_obj par = KSI_CAR( lst );
-        for( int i = CELEM( clr_key ) ; --i >= 0 ; )
+		int i;
+        for( i = CELEM( clr_key ) ; --i >= 0 ; )
           if( KSI_EQ_P( ksi_key, ksi_assv_ref( par, clr_key[i] )))
             break;
         if( i >= 0 )
@@ -1635,7 +1636,7 @@ CMapView::OnMakeStatistics( UINT id )
   if( id == IDM_MAKE_RGN_STATISTICS )
   {
     CString path( App.GetProjectFilePath( "region.txt" ));
-    std::ifstream rin( path, ios::in|ios::nocreate );
+	std::ifstream rin( path, std::ios::in| std::ios::nocreate );
 
     if( rin.bad())
     {
@@ -1648,7 +1649,7 @@ CMapView::OnMakeStatistics( UINT id )
 
     rin >> ttl >> nr >> rgnSize;
 
-    if( rin.eof() || stricmp( ttl, "Region" ) || nr != 1 || rgnSize < 3 )
+    if( rin.eof() || _stricmp( ttl, "Region" ) || nr != 1 || rgnSize < 3 )
     {
       ErrBox( "Некорректный регион!" );
       return;
@@ -1689,7 +1690,8 @@ CMapView::OnMakeStatistics( UINT id )
   ReportHint( "Пожалуйста, подождите..." );
   m_MapStore.AcountAllObjects( t, pRgn, rgnSize );
 
-  for( int i = CELEM( c ) ; --i >= 0 ; c[i] = i );
+  int i;
+  for( i = CELEM( c ) ; --i >= 0 ; c[i] = i );
 
   int l, ml = 18;
 
@@ -1699,14 +1701,15 @@ CMapView::OnMakeStatistics( UINT id )
     int nl = strlen( m_pObjDef->GetName( t1 ));
     if( t[i] && ml < nl )
       ml = nl;
-    for( int j = i ;
+	int j;
+    for(j = i ;
          --j > 0 && strcmp( m_pObjDef->GetName( c[j] ), m_pObjDef->GetName( t1 )) < 0 ;
          t[j+1] = t[j], c[j+1] = c[j] );
     t[j+1] = t0;
     c[j+1] = t1;
   }
 
-  std::ofstream os( fName, ios::out | ios::trunc, filebuf::sh_none );
+  std::ofstream os( fName, std::ios::out | std::ios::trunc, std::filebuf::sh_none );
 
   CTime tm = CTime::GetCurrentTime();
   char line[256];
@@ -1717,9 +1720,9 @@ CMapView::OnMakeStatistics( UINT id )
     *pl = '=';
 
   os << line
-     << "Проект - " << GetDocument()->GetDocName() << endl
-     << "Дата   - " << tm.Format( "%d.%m.%y" ) << endl
-     << "Время  - " << tm.Format( "%H:%M:%S" ) << endl
+     << "Проект - " << GetDocument()->GetDocName() << std::endl
+     << "Дата   - " << tm.Format( "%d.%m.%y" ) << std::endl
+     << "Время  - " << tm.Format( "%H:%M:%S" ) << std::endl
      << line;
   for( i = CELEM( t ) ; --i >= 0 ; )
   {
@@ -1730,7 +1733,7 @@ CMapView::OnMakeStatistics( UINT id )
       sprintf( d, "%d", t[i] );
       os << n;
       for( l = ml + 6 - strlen( n ) - strlen( d ) ; --l >= 0 ; os << '.' );
-      os << d << endl;
+      os << d << std::endl;
     }
   }
   os << line;
@@ -1808,7 +1811,7 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
 
   bool bCommNum = ptn == btn && pen == ben;
 
-  std::ofstream os( fName, ios::out | ios::trunc, filebuf::sh_none );
+  std::ofstream os( fName, std::ios::out | std::ios::trunc, std::filebuf::sh_none );
 
   int sol = m_ScaleOnLoading;
   m_ScaleOnLoading = 0;
@@ -1838,7 +1841,8 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
     memcpy( m_pDRH->GetBriefPtr(), pSrc, m_pDRH->GetBriefSize());
 
     CIdent pi( m_pDRH->GetIdent());
-    for( int* pc = lct ; *pc != 0 && *pc != pi.Class() ; ++pc );
+	int* pc;
+    for( pc = lct ; *pc != 0 && *pc != pi.Class() ; ++pc );
     if( !*pc )
       continue;
 
@@ -1939,10 +1943,11 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
 
       Rect rc( cp[i][0].x - BR, cp[i][0].y - BR, cp[i][0].x + BR, cp[i][0].y + BR );
 
-      buf.seekp( 0, ios::beg );
+      buf.seekp( 0, std::ios::beg );
 
       ResultCode r = R_REPEAT;
-      for( int tCnt = 0 ; !tCnt && r == R_REPEAT ;
+	  int tCnt;
+      for( tCnt = 0 ; !tCnt && r == R_REPEAT ;
            r = m_MapStore.SelectByRect( rc, BB, buf, &tCnt ));
 
       int tpc = tCnt ? bct : pct;
@@ -2007,7 +2012,7 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
 
       os <<  tpc << ";"
          <<  tab << ";"
-         <<  ent << endl;
+         <<  ent << std::endl;
     }
 
     n += t || w;
@@ -2537,7 +2542,8 @@ CMapView::OnDebug1()
           GetImageEncodersSize( &num, &size );
           ImageCodecInfo* pImageCodecInfo = (ImageCodecInfo*) new char[size];
           GetImageEncoders( num, size, pImageCodecInfo );
-          for( int i = num ; --i >= 0 && wcscmp( pImageCodecInfo[i].MimeType, L"image/bmp" ) ; );
+		  int i;
+          for( i = num ; --i >= 0 && wcscmp( pImageCodecInfo[i].MimeType, L"image/bmp" ) ; );
           if( i >= 0 )
             bmpClsid = pImageCodecInfo[i].Clsid;
           delete pImageCodecInfo;
@@ -2571,7 +2577,7 @@ CMapView::OnDebug1()
 
 			if( DoModalDlg( fdlg, 0 ) == IDOK )
 			{
-			  std::ofstream os( fdlg->GetPathName(), ios::out | ios::binary | ios::trunc, filebuf::sh_read );
+				std::ofstream os( fdlg->GetPathName(), std::ios::out | std::ios::binary | std::ios::trunc, std::filebuf::sh_read );
 			  os.write( dst.str(), dst.pcount());
 				os.close();
 			}

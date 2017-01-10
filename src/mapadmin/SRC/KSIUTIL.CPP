@@ -285,7 +285,8 @@ KsiPoint( CPoint pnt )
 ksi_obj
 KsiPoints( CPoint* pPnt, int nPnt )
 {
-  for( ksi_obj ksi_lst = ksi_nil ;
+	ksi_obj ksi_lst;
+  for( ksi_lst = ksi_nil ;
        --nPnt >= 0 ;
        ksi_lst = ksi_cons( KsiPoint( pPnt[nPnt] ), ksi_lst ));
   return ksi_lst;
@@ -378,7 +379,8 @@ ksi_draw_diff( ksi_obj ksi_new_pl )
     while( --n0 >= 0 )
     {
       CPoint* tp1 = pl1;
-      for( int k1 = n1 ; --k1 >= 0 && ( pl0[0] != tp1[0] || pl0[1] != tp1[1] ); ++tp1 );
+	  int k1;
+      for( k1 = n1 ; --k1 >= 0 && ( pl0[0] != tp1[0] || pl0[1] != tp1[1] ); ++tp1 );
       if( k1 >= 0 )
         for( ++pl0, ++tp1 ; n0 > 0 && k1 > 0 && pl0[1] == tp1[1] ; ++pl0, ++tp1, --n0, --k1 );
       else
@@ -641,7 +643,8 @@ ksi_calc_string_width( ksi_obj str, ksi_obj font, ksi_obj angle, ksi_obj do_list
 
   if( bDoList )
   {
-    for( ksi_obj ksi_lst = ksi_nil ; sl > 0 ; --sl )
+	  ksi_obj ksi_lst;
+    for( ksi_lst = ksi_nil ; sl > 0 ; --sl )
     {
       CSize ext( dc.GetOutputTextExtent( sp, sl ));
       ksi_lst = ksi_cons( ksi_int2num( MulDiv( ext.cx, h, M )), ksi_lst );

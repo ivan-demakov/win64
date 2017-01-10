@@ -388,7 +388,8 @@ static char OldOrder[] = "Class Parent Priority MaxLimit Show Load Table MinScal
 static int
 ParamNum( char const* pn )
 {
-  for( int i = CELEM( pnm ) ; --i >= 0 && stricmp( pn, pnm[i] ) ; );
+	int i;
+  for(i = CELEM( pnm ) ; --i >= 0 && _stricmp( pn, pnm[i] ) ; );
   return i;
 }
 //=====================================================================
@@ -791,7 +792,8 @@ MapStore::FindObjects( CTabIdent const* pTid, int* pnId, TGstream& dst )
 ResultCode
 MapStore::FindObjectId( CTabIdent const* pTid, int nId, CIdent* pId )
 {
-  for( ResultCode r = R_OK ; r == R_OK && --nId >= 0 ; )
+	ResultCode r;
+  for(r = R_OK ; r == R_OK && --nId >= 0 ; )
   {
     std::streampos pos = TabIdentIndex.SelectObject( pTid[nId] );
     r = pos ? R_OK : R_NOIDENT;
@@ -1120,8 +1122,8 @@ MapStore::IsPolylineClipped( Point const* pPoints, int nPoints, int w, int bnd )
 
   Clip.Inflate( w );
   Point const* pp = pPoints;
-  Point p0;
-  for( p0 = *pp++, p1 ; --nPoints > 0 ; p0 = p1 )
+  Point p0, p1;
+  for( p0 = *pp++ ; --nPoints > 0 ; p0 = p1 )
   {
     p1 = ( HR.Version & 1 ) ? *pp++ : p0 + *pp++;
     if( IsLineClipped( p0, p1 ))

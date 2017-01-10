@@ -84,7 +84,8 @@ CLineTmpl::CreateTemplates()
 
     ibuf[0] = period * sz;
 
-    for( int i = 1 ; i < CELEM( ibuf ) ; )
+	int i;
+    for( i = 1 ; i < CELEM( ibuf ) ; )
     {
       int pllc;
       ts.read( LPTSTR( &pllc ), sizeof( int ));
@@ -261,7 +262,8 @@ CLineTmpl::DrawPart( CDC* pDC, int ntempl, CPoint* pPoints, int count,
     for( int cnt = count ; --cnt > 0 ; )
     {
       CPoint p3( p1 = p2 ), p4( p2 = Ratio( *pp++, num, den )+ org );
-      for( int bd = 1, i = 2 ; --i >= 0 ; )
+	  int bd, i;
+      for( bd = 1, i = 2 ; --i >= 0 ; )
       {
         int v[] = { LeftOf( p3, top, btm ),
                     LeftOf( p4, top, btm ),

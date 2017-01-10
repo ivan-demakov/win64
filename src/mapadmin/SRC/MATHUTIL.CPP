@@ -420,7 +420,7 @@ IsPointInTriangle( CPoint c, CPoint const* tgl )
     return 0;
 
   CPoint p0, p1( tgl[2] );
-  int s;
+  int s, n;
   for(s = 0, n = 3 ; --n >= 0 ; )
   {
     p0 = p1;
@@ -445,9 +445,9 @@ IsPointInPolygon( CPoint c, CPoint const* plg, int n, int bWithBound, int d )
   static int const rm[2][2] = {{0,1},{3,2}};
   CPoint p0( plg[n-1] );
   CSize pd( p0 - c );
-  int pt = rm[pd.cy<0][pd.cx<0];
+  int s, pt = rm[pd.cy<0][pd.cx<0];
 
-  for( int s = 0 ; --n >= 0 ; )
+  for( s = 0 ; --n >= 0 ; )
   {
     if( c == p0 )
       return 2;
@@ -1124,7 +1124,8 @@ SmartCloneLine( TGstream& dst, CPoint* pp, int n, int r )
 double
 CalcLength( CPoint* pp, int pn )
 {
-  for( double s = 0 ; --pn > 0 ; s += MerkatorData.Dist( Point( pp[0].x, pp[0].y ), Point( pp[1].x, pp[1].y )), ++pp );
+	double s;
+  for(s = 0 ; --pn > 0 ; s += MerkatorData.Dist( Point( pp[0].x, pp[0].y ), Point( pp[1].x, pp[1].y )), ++pp );
   return s;
 }
 //=====================================================================
@@ -1189,10 +1190,10 @@ Djordan( double* sp, int n, int m )
   ASSERT( m >= n );
   ASSERT( m <= 2*n );
   ASSERT( n <= D );
-  int s[D];
+  int i, s[D];
   double* ss = sp;
   double Dt = 1.;
-  for( int i = 0 ; i < n ; ++i, sp += m )
+  for( i = 0 ; i < n ; ++i, sp += m )
   {
     int l, k;
     double mv = 0;
@@ -1331,7 +1332,8 @@ Triang( Polar p0, CPoint r0, Polar p1, CPoint r1, CPoint r2 )
 static int
 FindNext( CPoint* p, int n, int h )
 {
-  for( int k = 1 ; k < n ; ++k )
+	int k;
+  for(k = 1 ; k < n ; ++k )
   {
     CSize s( p[k+1] - p[0] );
     if( !s.cx && !s.cy )
@@ -1613,7 +1615,8 @@ FindPointToPoint( CPoint* p0, int n0, CPoint* p1, int n1, int pi[][2], int ni, i
 
   if( ni > 1 )
   {
-    for( int i = 0 ; i < ni && lh ; lh = lh->next, ++i )
+	  int i;
+    for( i = 0 ; i < ni && lh ; lh = lh->next, ++i )
     {
       pi[i][0] = lh->ni0;
       pi[i][1] = lh->ni1;
@@ -1809,7 +1812,7 @@ FindNearesRepers( Polar dp, RepInf* pRI, int nRep )
     tt.dis = R * ang;
 
 	int i;
-    for(int i = n ; --i >= 0 && pRI[i].dis > tt.dis ; pRI[i+1] = pRI[i] );
+    for(i = n ; --i >= 0 && pRI[i].dis > tt.dis ; pRI[i+1] = pRI[i] );
     pRI[i+1] = tt;
     n += n < nRep;
   }
@@ -2171,7 +2174,8 @@ SmartClipLine( CPoint p0, CPoint p1, CPoint const* plg, int n, LItemHash* plh,
   tmp.SetSize( 2 );
   tmp[0] = 0;
   tmp[1] = dl;
-  for( int i = n ; --i >= 0 ; )
+  int i;
+  for( i = n ; --i >= 0 ; )
   {
     FPoint tp0( tp1 );
     tx = plg[i].x - p0.x;
@@ -2197,7 +2201,8 @@ SmartClipLine( CPoint p0, CPoint p1, CPoint const* plg, int n, LItemHash* plh,
     double x = tp0.fx - tp0.fy * ( tp1.fx - tp0.fx ) / ( tp1.fy - tp0.fy );
     if( x >= 1 && x <= dl - 1 )
     {
-      for( int k = tmp.GetSize() ; --k >= 0 && tmp[k] > x ; );
+		int k;
+      for(k = tmp.GetSize() ; --k >= 0 && tmp[k] > x ; );
       tmp.InsertAt( k + 1, x );
     }
   }
@@ -2499,7 +2504,8 @@ PointHash::~PointHash()
 int
 PointHash::Find( CPoint pt )
 {
-  for( CPointItem* p = m_Tab[HashFun(pt)] ;
+	CPointItem* p;
+  for(p = m_Tab[HashFun(pt)] ;
        p && p->m_Value != pt ; p = p->m_pAlter );
   return p != 0;
 }
@@ -2507,7 +2513,8 @@ PointHash::Find( CPoint pt )
 void
 PointHash::Add( CPoint pt )
 {
-  for( CPointItem** pp = &m_Tab[HashFun(pt)] ;
+	CPointItem** pp;
+  for(pp = &m_Tab[HashFun(pt)] ;
        *pp && (*pp)->m_Value != pt ; pp = &(*pp)->m_pAlter );
   if( !*pp )
     *pp = new CPointItem( pt );
@@ -2612,7 +2619,8 @@ FindOnLine( CPoint* pt, int np, CPoint cp, int x0[2] )
     int x = p0.x;
     if( p0.y != p1.y )
       x += double( p1.x - p0.x ) / double( p1.y - p0.y ) * double( cp.y - p0.y );
-    for( int tn = cn++ ; --tn >= 0 && xp[tn] > x ; xp[tn+1] = xp[tn] );
+	int tn;
+    for( tn = cn++ ; --tn >= 0 && xp[tn] > x ; xp[tn+1] = xp[tn] );
     xp[tn+1] = x;
   }
 

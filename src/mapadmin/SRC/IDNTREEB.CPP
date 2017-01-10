@@ -45,7 +45,7 @@ IdentDirectHashTab::AddObject( CTabIdent const& id, std::streampos pos )
     IdentItem* pNew = new IdentItem[newSize];
     if( !pNew )
     {
-      cerr << "Alloc " << ( newSize * sizeof IdentItem ) << " for " << m_nUsed << " indexes failed!" << endl;
+      cerr << "Alloc " << ( newSize * sizeof IdentItem ) << " for " << m_nUsed << " indexes failed!" << std::endl;
       return 0;
     }
     memset( pNew, 0, newSize * sizeof IdentItem );

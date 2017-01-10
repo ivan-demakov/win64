@@ -8,8 +8,9 @@
 #define NO_WARN_MBCS_MFC_DEPRECATION
 #define _CRT_SECURE_NO_WARNINGS
 
-#pragma warning(disable : 4200)
-#pragma warning(disable : 4244)
+//#pragma warning(disable : 4200)
+//#pragma warning(disable : 4244)
+//#pragma warning(disable : 4838)
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0502
