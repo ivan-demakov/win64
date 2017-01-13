@@ -16,9 +16,10 @@
 *.la
 *.so
 *.so.*
-*.log
 *.Po
 *.Plo
 *.log
 *.tlog
 *.db
+*.pdb
+*.idb
