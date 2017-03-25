@@ -2444,7 +2444,7 @@ ExtractSubs( char* rp, char dlm, int ns )
   return wp == tmp ? un : tmp;
 }
 //=====================================================================
-static enum KEY_WORD
+enum KEY_WORD
 {
   KW_NONE,
   KW_REGION,
@@ -2533,7 +2533,7 @@ MakePref( int cl, int st, int tb, int en, int nd )
                     ksi_cons( node_key,   ksi_int2num( nd )));
 }
 //=====================================================================
-static struct SubParam
+struct SubParam
 {
   int SubNum;
   int xVal;

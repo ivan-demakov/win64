@@ -1,4 +1,4 @@
-#include <math.h>
+//#include <math.h>
 //=====================================================================
 //== Point ============================================================
 //=====================================================================
@@ -155,13 +155,13 @@ Rect::Height() const
 //=====================================================================
 #ifndef _CLIENT_APP
 inline long
-max( long a, long b )
+xmax( long a, long b )
 {
   return a > b ? a : b;
 }
 
 inline long
-min( long a, long b )
+xmin( long a, long b )
 {
   return a < b ? a : b;
 }

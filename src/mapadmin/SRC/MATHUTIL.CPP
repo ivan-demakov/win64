@@ -110,7 +110,7 @@ Trig::atan2( int vCos, int vSin )
 //=====================================================================
 int
 Trig::atan2( CSize s )
-{ 
+{
   return atan2( s.cx, -s.cy );
 }
 //=====================================================================
@@ -638,7 +638,7 @@ DistPointToPolyline( CPoint pt, CPoint const* pll, int n )
 //=====================================================================
 int
 DistPointToEllipse( CPoint pt, CRect const& rect )
-{ 
+{
   CSize s( pt - rect.CenterPoint());
   int a = abs( rect.Width());
   int b = abs( rect.Height());
@@ -669,7 +669,7 @@ IsPointInSector( CPoint pt, CRect const& rect, int start, int delta )
   delta %= 3600;
   start = (( start % 3600 ) + 3600 ) % 3600;
   delta += start;
-  
+
   int a = atan2( pt - rect.CenterPoint());
   if( a >= start && a < delta )
      return 1;
@@ -684,15 +684,15 @@ IsPointInSector( CPoint pt, CRect const& rect, int start, int delta )
 int
 DistPointToArc( CPoint pt, CRect const& rect, int start, int delta )
 {
-  return IsPointInSector( pt, rect, start, delta ) ? DistPointToEllipse( pt, rect ) : MAX_INT;  
+  return IsPointInSector( pt, rect, start, delta ) ? DistPointToEllipse( pt, rect ) : MAX_INT;
 }
 //=====================================================================
 int
 DistPointToSector( CPoint pt, CRect const& rect, int start, int delta )
 {
   if( !IsPointInSector( pt, rect, start, delta ))
-		return MAX_INT;  
-	
+		return MAX_INT;
+
 	if( delta < 0 )
   {
     start += delta;
@@ -827,7 +827,7 @@ CrossPoint( CPoint const& p00, CPoint const& p01,
 		pCrosPoint->y = y;
 	}
 
-  return 
+  return
 		!bOnLinesOnly ? 1:
 		x >= min( p00.x, p01.x ) && x >= min( p10.x, p11.x ) &&
 		y >= min( p00.y, p01.y ) && y >= min( p10.y, p11.y ) &&
@@ -940,7 +940,7 @@ MakeArc( TGstream& dst, CPoint p0, CPoint p1, CPoint p2, int r, int b36 = 1 )
 
 	if( da == 0 )
     return 0;
-	
+
  	CPoint tp0[2];
   CPoint tp1[2];
   tp0[0] = EdgePoint( p0, p1, r );
@@ -969,7 +969,7 @@ MakeArc( TGstream& dst, CPoint p0, CPoint p1, CPoint p2, int r, int b36 = 1 )
 		++na;
 
   da /= na;
-  
+
 	while( --na > 0  )
 	{
 		sa += da;
@@ -979,7 +979,7 @@ MakeArc( TGstream& dst, CPoint p0, CPoint p1, CPoint p2, int r, int b36 = 1 )
 	}
 
   dst.write( LPCSTR( tp1+1 ), sizeof(CPoint));
-  
+
 	return n;
 }
 */
@@ -1072,7 +1072,7 @@ SmartCloneLine( TGstream& dst, CPoint* pp, int n, int r )
   if( n < 2 || r == 0 )
     return 0;
 
-  int i, j;
+  int i;
 
 	CPoint tp0[2];
 	CPoint tp1[2];
@@ -2682,10 +2682,10 @@ FindCrossPoints( CRect const& r0, CRect const& r1, CPoint pt[2] )
 	double h = sqrt( R0 *R0 - a * a );
 	double x2 = c0.x + a * ( c1.x - c0.x ) / d;
 	double y2 = c0.y + a * ( c1.y - c0.y ) / d;
-	pt[0].x = x2 + h * ( c1.y - c0.y ) / d; 
-	pt[1].x = x2 - h * ( c1.y - c0.y ) / d; 
-	pt[0].y = y2 - h * ( c1.x - c0.x ) / d; 
-	pt[1].y = y2 + h * ( c1.x - c0.x ) / d; 
+	pt[0].x = x2 + h * ( c1.y - c0.y ) / d;
+	pt[1].x = x2 - h * ( c1.y - c0.y ) / d;
+	pt[0].y = y2 - h * ( c1.x - c0.x ) / d;
+	pt[1].y = y2 + h * ( c1.x - c0.x ) / d;
   return 2;
 }
 //=====================================================================

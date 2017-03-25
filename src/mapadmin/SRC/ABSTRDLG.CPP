@@ -35,7 +35,7 @@ BEGIN_MESSAGE_MAP( CAutoScrollTreeCtrl, CTreeCtrl )
   ON_WM_TIMER()
 END_MESSAGE_MAP()
 //======================================================================
-static int CALLBACK 
+static int CALLBACK
 CompareFunc( LPARAM lParam1, LPARAM lParam2, LPARAM )
 {
   CObjDef* pObjDef = pView->GetDocument()->GetObjDef();

@@ -7,10 +7,12 @@
 //#define _AFX_NO_DEBUG_CRT
 #define NO_WARN_MBCS_MFC_DEPRECATION
 #define _CRT_SECURE_NO_WARNINGS
+#pragma warning(disable : 4200)
 
-//#pragma warning(disable : 4200)
-//#pragma warning(disable : 4244)
-//#pragma warning(disable : 4838)
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4838)
+#pragma warning(disable : 4554)
+#pragma warning(disable : 4018)
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0502
@@ -29,7 +31,7 @@
 //#define STRICT
 #define _ATL_APARTMENT_THREADED
 
-#define CELEM(a) (sizeof(a)/sizeof(a[0])) 
+#define CELEM(a) (sizeof(a)/sizeof(a[0]))
 
 #include <atlbase.h>
 //#include <atlcom.h>

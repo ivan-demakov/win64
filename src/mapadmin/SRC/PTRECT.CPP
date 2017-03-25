@@ -5,7 +5,7 @@
 #include "msutil.h"
 //=====================================================================
 void
-Rect::AddRect( Rect const& r, int angle )
+PtRect::Rect::AddRect( Rect const& r, int angle )
 {
   if( angle == 0 )
     *this |= r;

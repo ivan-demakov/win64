@@ -863,7 +863,7 @@ CFindDistanceMode::OnLButtonDown( UINT &flags, CPoint &loc )
 #else
           CTabIdList IdList;
 #endif // _TabIdentHashTab_
-          int r;
+          //int r;
           {
             CWaitCursor wc;
             ReportHint( "Выполняется поиск точки. Пожалуйста, подождите..." );
