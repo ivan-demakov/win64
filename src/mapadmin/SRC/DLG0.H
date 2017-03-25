@@ -14,20 +14,20 @@ class CRepDialog : public CDialog
 {
 public:
   CRepDialog() : CDialog( IDD_REPER_DLG ) {}
-	int GetRepers() { return m_bRepers; }
-	int GetOneError() { return m_bOneError; }
-	int GetAllErrors() { return m_bAllErrors; }
-	CString const& GetPath() { return m_FilePath; }
+        int GetRepers() { return m_bRepers; }
+        int GetOneError() { return m_bOneError; }
+        int GetAllErrors() { return m_bAllErrors; }
+        CString const& GetPath() { return m_FilePath; }
 
 private:
   void DoDataExchange( CDataExchange* pDX );
-	void OnFilePathButton();
+        void OnFilePathButton();
 
 private:
   static int m_bRepers;
   static int m_bOneError;
   static int m_bAllErrors;
-	static CString m_FilePath;
+        static CString m_FilePath;
 
   DECLARE_MESSAGE_MAP()
 };
@@ -54,12 +54,8 @@ private:
 class CGotoDialog : public CDialog
 {
 public:
-  CGotoDialog( CPoint c, int sc ) :
-    m_Scale( sc ),
-    CDialog( IDD_GOTO_DIALOG, 0 )
-  {
-    m_Point = c;
-  }
+  CGotoDialog() : CDialog( IDD_GOTO_DIALOG, 0 )
+  {}
   int OnInitDialog();
   void OnCoordButtonClicked();
   void OnGMSButtonClicked();
@@ -69,17 +65,18 @@ public:
   void OnCancel();
   void OnLBClicked();
   void OnRBClicked();
+	void SetPointScale( CPoint c, int s );
   int GetScale() { return m_Scale; }
 
   static CPoint GetPoint() { return m_Point; }
 
 private:
-	void UpdateCmd( int cmd );
+  void UpdateCmd( int cmd );
   void ShowDecart();
   void ShowPolar();
-	void PolDec();
-	void DecPol();
-  
+  void PolDec();
+  void DecPol();
+
   static int Scale2Pos( int scale );
   static int Pos2Scale( int pos );
 
@@ -180,10 +177,10 @@ private:
 class CCoordGridDialog : public CDialog
 {
 public:
-  CCoordGridDialog( CPoint pt ) : 
-    CDialog( IDD_COORD_GRID_DIALOG, 0 )    
+  CCoordGridDialog( CPoint pt ) :
+    CDialog( IDD_COORD_GRID_DIALOG, 0 )
   {
-    m_ProjPoint = pt;    
+    m_ProjPoint = pt;
   }
   int  OnInitDialog();
   void OnOK();
@@ -203,8 +200,8 @@ private:
 class CSplDialog: public CDialog
 {
 public:
-  CSplDialog() : 
-    CDialog( IDD_SPL_DIALOG, 0 )    
+  CSplDialog() :
+    CDialog( IDD_SPL_DIALOG, 0 )
   {}
   void DoDataExchange( CDataExchange* pDX );
   void OnScaleButton();
@@ -271,55 +268,62 @@ public:
   void Init( CMapView* pView, ObjectInfoArray* pArray );
   void UpdateClass( int n );
   void UpdateObject( int n );
-  void OnObjListDblClick();
+  void OnObjListDblClick( NMHDR*, LRESULT* );
   int  OnInitDialog();
   void OnCancel();
   BOOL OnNotify( WPARAM wParam, LPARAM lParam, LRESULT* pResult );
 
 private:
-  CMapView* m_pView; 
+  CMapView* m_pView;
   ObjectInfoArray* m_pArray;
 
   DECLARE_MESSAGE_MAP()
 };
 //=====================================================================
-class CCloneParamDialog : public CDialog
+class CCloneExampleBox : public CListBox
 {
-  class CExampleBox : public CListBox
-	{
   public:
-		CExampleBox();
-		~CExampleBox();
-		void Init( CPoint* pp, int np );
+    CCloneExampleBox();
+    ~CCloneExampleBox();
+    void Init( CPoint* pp, int np );
   private:
     void DrawItem( LPDRAWITEMSTRUCT lpDIS );
+    void OnLButtonDown( UINT nFlags, CPoint point );
+
   private:
-  	CPoint* m_Points[3];
-	  int     m_nPoint[3];
-	};
+    CPoint* m_Points[3];
+    int     m_nPoint[3];
+
+  public:
+    int     m_nDir;
+
+    DECLARE_MESSAGE_MAP()
+};
+	
+class CCloneParamDialog : public CDialog
+{
+  friend class CCloneExampleBox;
 
 public:
   CCloneParamDialog( CPoint* pp, int np ) :
-		CDialog( IDD_CLONE_PARAM_DIALOG, 0 ),
-		m_Points( pp ),
-		m_nPoint( np )
-	{}
+                CDialog( IDD_CLONE_PARAM_DIALOG, 0 ),
+                m_Points( pp ),
+                m_nPoint( np )
+        {}
   int OnInitDialog();
-	void DoDataExchange( CDataExchange* pDX );
-  void OnDirBtn();
+  void DoDataExchange( CDataExchange* pDX );
 
-  static int GetStep() { return m_nDir ? m_Step : -m_Step; }
-  static int GetRep() { return m_nRep; }
+  int GetStep();
+  int GetRep()  { return m_nRep; }
 
 private:
   static long m_Step;
   static long m_nRep;
-  static int  m_nDir;
   CIntEdit    m_Edit0;
-	CFloatEdit  m_Edit1; 
-	CPoint* m_Points;
-	int     m_nPoint;
-	CExampleBox m_ExampleBox;
+  CFloatEdit  m_Edit1;
+  CPoint* m_Points;
+  int     m_nPoint;
+  CCloneExampleBox m_ExampleBox;
 
   DECLARE_MESSAGE_MAP()
 };

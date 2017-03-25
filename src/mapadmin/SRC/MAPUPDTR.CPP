@@ -33,7 +33,7 @@ MapUpdater::SetSize( CSize s )
   WriteData( 0, &HR, sizeof HR, &DataStream );
 }
 //=====================================================================
-int 
+int
 MapUpdater::SetModified( int m )
 {
   int t = ModifiedFlag;
@@ -42,69 +42,46 @@ MapUpdater::SetModified( int m )
 }
 //=====================================================================
 int
-MapUpdater::TestInclude( char pClassMap[128], ClassType t )
+MapUpdater::TestInclude( char* pClassMap, ClassType t )
 {
-  return pClassMap ? pClassMap[t>>3] & ( 1 << ( t & 7 )) : 1;
+  return pClassMap ? GetBit( pClassMap, t ) : 1;
 }
 //=====================================================================
-static CPoint
-UpdatePoint( double x, double y, double cf[2][3] )
+CPoint
+MapUpdater::UpdatePoint( double x, double y, double cf[2][3] )
 {
   if( cf )
   {
     int nx = x * cf[0][0] + y * cf[0][1] + cf[0][2];
-    int ny = x * cf[1][0] + y * cf[1][1] + cf[1][2];   
+    int ny = x * cf[1][0] + y * cf[1][1] + cf[1][2];
     return CPoint( nx, ny );
   }
   return CPoint( x, y );
 }
 //=====================================================================
-static CPoint
-UpdatePoint( CPoint pt, double cf[2][3], double utm[5], int bAbs )
+CPoint
+MapUpdater::UpdatePoint( CPoint pt, double cf0[2][3], double utm[5], double cf1[2][3], int bAbs )
 {
-	if( utm )
-	{
-		Polar pol;
-		if( MerkatorData.GK2Pol( Point( pt.x, pt.y ), 
-			                       Point( utm[0] * 1e2 / SmInUnit, utm[1] * SmInUnit * 1e2 / SmInUnit ), 
-														 utm[3], utm[4], utm[2] * Deg, pol ))
-		{
-			Point p( MerkatorData.Pol2Dec( pol ));
-			pt.x = p.x;
-			pt.y = p.y;
-		}
-	}
-  if( cf )
+  if( cf0 )
   {
-    int x = pt.x * cf[0][0] + pt.y * cf[0][1] + ( bAbs ? cf[0][2] : 0 );
-    int y = pt.x * cf[1][0] + pt.y * cf[1][1] + ( bAbs ? cf[1][2] : 0 );
-		pt.x = x;
-		pt.y = y;
+    int x = pt.x * cf0[0][0] + pt.y * cf0[0][1] + ( bAbs ? cf0[0][2] : 0 );
+    int y = pt.x * cf0[1][0] + pt.y * cf0[1][1] + ( bAbs ? cf0[1][2] : 0 );
+    pt.x = x;
+    pt.y = y;
   }
-  return pt;
-}
-//=====================================================================
-static Point
-UpdatePoint( Point pt, double cf[2][3], double utm[5], int bAbs )
-{	
-	if( utm )
-	{
-		Polar pol;
-		if( MerkatorData.GK2Pol( Point( pt.x, pt.y ), 
-			                       Point( utm[0] * 1e2 / SmInUnit, utm[1] * SmInUnit * 1e2 / SmInUnit ), 
-														 utm[3], utm[4], utm[2] * Deg, pol ))
-		{
-			Point p( MerkatorData.Pol2Dec( pol ));
-			pt.x = p.x;
-			pt.y = p.y;
-		}
-	}
-  if( cf )
+  if( utm && bAbs )
   {
-    int x = pt.x * cf[0][0] + pt.y * cf[0][1] + ( bAbs ? cf[0][2] : 0 );
-    int y = pt.x * cf[1][0] + pt.y * cf[1][1] + ( bAbs ? cf[1][2] : 0 );
-		pt.x = x;
-		pt.y = y;
+    Polar pol;
+    if( MerkatorData.GK2Pol( pt, CPoint( utm[0] * 1e2 / SmInUnit, utm[1] * SmInUnit * 1e2 / SmInUnit ),
+                             utm[3], utm[4], utm[2] * Deg, pol ))
+      pt = MerkatorData.Pol2Dec( pol );
+  }
+  if( cf1 )
+  {
+    int x = pt.x * cf1[0][0] + pt.y * cf1[0][1] + ( bAbs ? cf1[0][2] : 0 );
+    int y = pt.x * cf1[1][0] + pt.y * cf1[1][1] + ( bAbs ? cf1[1][2] : 0 );
+    pt.x = x;
+    pt.y = y;
   }
   return pt;
 }
@@ -116,7 +93,7 @@ MapUpdater::IsObjectInProject( CBox* pBox )
          pBox->top  < 0 || pBox->bottom > HR.YSize;
 }
 //=====================================================================
-int 
+int
 MapUpdater::MoveObjectToProject( void* pSrc, CBox* pBox )
 {
   int dx = pBox->left < 0 || pBox->left > HR.XSize ? -pBox->left : 0;
@@ -128,15 +105,15 @@ MapUpdater::MoveObjectToProject( void* pSrc, CBox* pBox )
   double pcf[2][3] = { 1, 0, dx, 0, 1, dy };
   pBox->SetRect( 0, 0, 0, 0 );
   void* pData = pSrc;
-  UpdateObjectCoord( &pSrc, pcf, 0 );
+  UpdateObjectCoord( &pSrc, pcf, 0, 0 );
   pSrc = pData;
   *pBox = CalcBoundBox( HR.Version, &pSrc );
 
   return 1;
 }
 //=====================================================================
-int 
-MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Point* Rgn )
+int
+MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf0[2][3], double utm[4], double pcf1[2][3], CPoint* Rgn )
 {
   PrimRecord* pPr    = (PrimRecord*)*ppSrc;
   Drawable* pObjPar  = (Drawable*)&pPr->param;
@@ -152,20 +129,23 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
 
   int da = 0;
   int rx = 0, ry = 0;
-  if( pcf )
+  if( pcf0 )
   {
-    CPoint t0( UpdatePoint( CPoint( 0, 0 ), pcf, utm, 0 ));
-    CPoint t1( UpdatePoint( CPoint( 10000, 0 ), pcf, utm, 0 ));
+    CPoint t0( UpdatePoint( CPoint( 0, 0 ), pcf0, utm, pcf1, 1 ));
+    CPoint t1( UpdatePoint( CPoint( 10000, 0 ), pcf0, utm, pcf1, 1 ));
     da = atan2( t1.x - t0.x, t0.y - t1.y );
 
-/*
-    if( pcf[0][0] * pcf[1][1] < 0 )
+    double k = pcf0[0][0] * pcf0[1][1];
+    if( pcf1 )
+      k *= pcf1[0][0] * pcf1[1][1];
+
+    if( k < 0 )
     {
-      rx = pcf[0][0] < 0;
-      ry = pcf[1][1] < 0;
+      rx = pcf0[0][0] * pcf1[0][0] < 0;
+      ry = pcf0[1][1] * pcf1[1][1] < 0;
     }
-*/  
-	}
+
+  }
 
   if( bVisible  )
   {
@@ -183,35 +163,40 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
     case PF_CONTAINER:
     {
       *ppSrc = pPr->param.container.prims;
-	  int n;
-      for(n = pPr->param.container.length ;
-           --n >= 0 && UpdateObjectCoord( ppSrc, pcf, utm, Rgn ) ; );
+      int n = pPr->param.container.length;
+      while( --n >= 0 && UpdateObjectCoord( ppSrc, pcf0, utm, pcf1, Rgn ));
       return n < 0;
     }
     case PF_POLYPOINT:
     case PF_FOOTNOTE:
     {
       int nPoints = pObjPar->polypoint.length;
-      Point* pPoints = (Point*)pObjPar->polypoint.points;
+      CPoint* pPoints = (CPoint*)pObjPar->polypoint.points;
       *ppSrc = pPoints + nPoints;
       if( Rgn && !bVisible )
         break;
 
-      Point pt( 0, 0 );
+      CPoint pt( 0, 0 );
       for( int i = 0 ; i < nPoints ; ++i, ++pPoints )
       {
         if( !Rgn )
-          *pPoints = UpdatePoint( *pPoints, pcf, utm, bAbs || i == 0 );
+          *pPoints = UpdatePoint( *pPoints, pcf0, utm, pcf1, bAbs || i == 0 );
         else
-        if( !PntInRgn( bAbs ? *pPoints : pt += *pPoints, Rgn ))
-          return 0;
+        {
+          if( bAbs )
+            pt = *pPoints;
+          else
+            pt += *pPoints;
+          if( !PntInRgn( pt, Rgn ))
+            return 0;
+        }
       }
       break;
     }
     case PF_MULTILINE:
     {
       int nPoints = pObjPar->polypoint.length;
-      Point* pPoints = (Point*)pObjPar->polypoint.points;
+      CPoint* pPoints = (CPoint*)pObjPar->polypoint.points;
       *ppSrc = pPoints + nPoints;
       if( Rgn && !bVisible )
         break;
@@ -220,7 +205,7 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
       {
         int ab = bAbs || !( i & 1 );
         if( !Rgn )
-          *pPoints = UpdatePoint( *pPoints, pcf, utm, ab );
+          *pPoints = UpdatePoint( *pPoints, pcf0, utm, pcf1, ab );
         else
         if( !PntInRgn( ab ? *pPoints : pPoints[-1] + pPoints[0], Rgn ))
           return 0;
@@ -229,10 +214,10 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
     }
     case PF_POINT:
     {
-      Point* pPoint = (Point*)&pPr->param.pnt;
+      CPoint* pPoint = (CPoint*)&pPr->param.pnt;
       *ppSrc = &pPr->param.pnt + 1;
       if( !Rgn )
-        *pPoint = UpdatePoint( *pPoint, pcf, utm, 1 );
+        *pPoint = UpdatePoint( *pPoint, pcf0, utm, pcf1, 1 );
 
       else
       if( bVisible && !PntInRgn( *pPoint, Rgn ))
@@ -241,12 +226,12 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
     }
     case PF_ICON:
     {
-      Point* pPoint = (Point*)&pPr->param.icon;
+      CPoint* pPoint = (CPoint*)&pPr->param.icon;
       *ppSrc = &pPr->param.icon + 1;
-      Point p( pPr->param.icon.x, pPr->param.icon.y );
+      CPoint p( pPr->param.icon.x, pPr->param.icon.y );
       if( !Rgn )
       {
-        p = UpdatePoint( p, pcf, utm, 1 );
+        p = UpdatePoint( p, pcf0, utm, pcf1, 1 );
         pPr->param.icon.x = p.x;
         pPr->param.icon.y = p.y;
       }
@@ -262,11 +247,11 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
                                     &pText->param.string;
       *ppSrc = pSP->string + pSP->length;
 
-      Point p0( pText->org.x, pText->org.y );
+      CPoint p0( pText->org.x, pText->org.y );
 
       if( !Rgn )
       {
-        if( bVisible )
+        if( bVisible && ( rx || ry ))
         {
           FontParam1 FP;
           if( HR.Version < 107 )
@@ -289,10 +274,10 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
                   FP.number, FP.height, FP.weight, FP.style );
 
           CPoint p0( pText->org.x, pText->org.y );
-          CPoint t0( UpdatePoint( p0, pcf, utm, 1 ));
-          CPoint t1( UpdatePoint( p0 + TurnPoint( ox, oy, an ), pcf, utm, 1 ));
-          CPoint t2( UpdatePoint( p0 + TurnPoint( ox, oy + b.bottom + b.top, an ), pcf, utm, 1 ));
-          CPoint t3( UpdatePoint( p0 + TurnPoint( ox + b.right, oy, an ), pcf, utm, 1 ));
+          CPoint t0( UpdatePoint( p0, pcf0, utm, pcf1, 1 ));
+          CPoint t1( UpdatePoint( p0 + TurnPoint( ox, oy, an ), pcf0, utm, pcf1, 1 ));
+          CPoint t2( UpdatePoint( p0 + TurnPoint( ox, oy + b.bottom + b.top, an ), pcf0, utm, pcf1, 1 ));
+          CPoint t3( UpdatePoint( p0 + TurnPoint( ox + b.right, oy, an ), pcf0, utm, pcf1, 1 ));
 
           if( rx )
           {
@@ -300,17 +285,12 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
             an = atan2( t1.x, -t1.y );
             t1 = t3;
           }
-          else
+
           if( ry )
           {
             t3 -= t1;
             an = atan2( t3.x, -t3.y );
             t1 = t2;
-          }
-          else
-          {
-            t3 -= t1;
-            an = atan2( t3.x, -t3.y );
           }
 
           pSP->angle = an;
@@ -322,7 +302,7 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
         else
         {
           CPoint p0( pText->org.x, pText->org.y );
-          CPoint t0( UpdatePoint( p0, pcf, utm, 1 ));
+          CPoint t0( UpdatePoint( p0, pcf0, utm, pcf1, 1 ));
           int an = pSP->angle + da;
           pSP->angle = rx ? 1800 - an : ry ? -an : an;
           pText->org.x = t0.x;
@@ -341,7 +321,7 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
       *ppSrc = pItem + length;
 
       CPoint p0( pItem->org.x, pItem->org.y );
-      CPoint p1( UpdatePoint( p0, pcf, utm, 1 ));
+      CPoint p1( UpdatePoint( p0, pcf0, utm, pcf1, 1 ));
       CSize dp( p1 - p0 );
       for( ; --length >= 0 ; ++pItem )
         if( !Rgn )
@@ -351,7 +331,7 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
           pItem->angle += da;
         }
         else
-        if( PntInRgn( Point( pItem->org.x, pItem->org.y ), Rgn ))
+        if( PntInRgn( pItem->org, Rgn ))
           break;
       if( Rgn && length < 0 )
         return 0;
@@ -359,12 +339,12 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
     }
     case PF_ELLIPSE :
     {
-      rect* pr = &pObjPar->ellipse;
+      RECT* pr = &pObjPar->ellipse;
       *ppSrc = pr + 1;
-      
+
       if( Rgn )
       {
-				Point p( pr->left, pr->top );
+        CPoint p( pr->left, pr->top );
         if( bVisible && !PntInRgn( p, Rgn ))
           return 0;
       }
@@ -372,8 +352,8 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
       {
         int w = pr->right - pr->left;
         int h = pr->bottom - pr->top;
-        Point p( pr->left, pr->top );
-        p = UpdatePoint( p, pcf, utm, 1 );
+        CPoint p( pr->left, pr->top );
+        p = UpdatePoint( p, pcf0, utm, pcf1, 1 );
         pr->left   = p.x;
         pr->top    = p.y;
         pr->right  = p.x + w;
@@ -387,7 +367,7 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
       *ppSrc = pr + 1;
       if( Rgn )
       {
-        Point p( pr->left, pr->top );
+        CPoint p( pr->left, pr->top );
         if( bVisible && !PntInRgn( p, Rgn ))
           return 0;
       }
@@ -399,8 +379,8 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
           w = -w;
         if( ry )
           h = -h;
-        Point p( pr->left, pr->top );
-        p = UpdatePoint( p, pcf, utm, 1 );
+        CPoint p( pr->left, pr->top );
+        p = UpdatePoint( p, pcf0, utm, pcf1, 1 );
         pr->left   = p.x;
         pr->top    = p.y;
         pr->right  = p.x + w;
@@ -419,7 +399,7 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
       *ppSrc = pr + 1;
       if( Rgn )
       {
-        Point p( pr->left, pr->top );
+        CPoint p( pr->left, pr->top );
         if( bVisible && !PntInRgn( p, Rgn ))
           return 0;
       }
@@ -431,8 +411,8 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
           w = -w;
         if( ry )
           h = -h;
-        Point p( pr->left, pr->top );
-        p = UpdatePoint( p, pcf, utm, 1 );
+        CPoint p( pr->left, pr->top );
+        p = UpdatePoint( p, pcf0, utm, pcf1, 1 );
         pr->left   = p.x;
         pr->top    = p.y;
         pr->right  = p.x + w;
@@ -457,18 +437,18 @@ MapUpdater::UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Po
 }
 //=====================================================================
 static int
-OutputKsiItem( std::ofstream& out, char const* p )
+OutputKsiItem( ofstream& out, char const* p )
 {
   out << p;
   return strlen( p );
 }
 //=====================================================================
 static int
-OutputKsiDlm( std::ofstream& out, int len )
+OutputKsiDlm( ofstream& out, int len )
 {
   if( len >= 72 )
   {
-    out << std::endl;
+    out << endl;
     len = 0;
   }
   else
@@ -480,7 +460,7 @@ OutputKsiDlm( std::ofstream& out, int len )
 }
 //=====================================================================
 static int
-OutputKsiPair( std::ofstream& out, int x, int y )
+OutputKsiPair( ofstream& out, int x, int y )
 {
   CString t;
   t.Format( "(%d . %d)", x, y );
@@ -488,7 +468,7 @@ OutputKsiPair( std::ofstream& out, int x, int y )
 }
 //=====================================================================
 static int
-OutputKsiCoord( std::ofstream& out, int x, int y )
+OutputKsiCoord( ofstream& out, int x, int y )
 {
   CString t;
   t.Format( "(#:%s . #(%d %d))", KSI_KEY_PTR( keyCoord ), x, y );
@@ -496,7 +476,7 @@ OutputKsiCoord( std::ofstream& out, int x, int y )
 }
 //=====================================================================
 static int
-OutputKsiSize( std::ofstream& out, int cx, int cy, int a )
+OutputKsiSize( ofstream& out, int cx, int cy, int a )
 {
   CString t;
   t.Format( "(#:%s . #(%d %d %d))", KSI_KEY_PTR( keySize ), cx, cy, a );
@@ -504,7 +484,7 @@ OutputKsiSize( std::ofstream& out, int cx, int cy, int a )
 }
 //=====================================================================
 static int
-OutputKsiKey( std::ofstream& out, ksi_obj ksi_key, int len )
+OutputKsiKey( ofstream& out, ksi_obj ksi_key, int len )
 {
   CString t;
   t.Format( "(#:%s", KSI_KEY_PTR( ksi_key ));
@@ -512,7 +492,7 @@ OutputKsiKey( std::ofstream& out, ksi_obj ksi_key, int len )
 }
 //=====================================================================
 static int
-OutputKsiKeyPair( std::ofstream& out, ksi_obj ksi_key, int i )
+OutputKsiKeyPair( ofstream& out, ksi_obj ksi_key, int i )
 {
   CString t;
   t.Format( "(#:%s . %d)", KSI_KEY_PTR( ksi_key ), i );
@@ -520,7 +500,7 @@ OutputKsiKeyPair( std::ofstream& out, ksi_obj ksi_key, int i )
 }
 //=====================================================================
 static int
-OutputKsiText( std::ofstream& out, int x, int y, int cx, int cy, int a, 
+OutputKsiText( ofstream& out, int x, int y, int cx, int cy, int a,
                char const* s, int sln, int len )
 {
   ksi_obj ks = ksi_object2string( ksi_str2string( s, sln ));
@@ -532,12 +512,12 @@ OutputKsiText( std::ofstream& out, int x, int y, int cx, int cy, int a,
 }
 //=====================================================================
 static int
-OutputKsiObject( std::ofstream& out, int vers, void** ppSrc, int len = 0, int level = 0 )
-{ 
+OutputKsiObject( ofstream& out, int vers, void** ppSrc, int len = 0, int level = 0 )
+{
   PrimRecord* pPr = (PrimRecord*)*ppSrc;
   int bAbsPoly = vers & 1;
   int bVisible = pPr->type & PF_VISIBLE;
-  
+
   int SF = PF_STROKED;
   int FF = PF_FILLED;
   int sft = pPr->type & ( SF | FF );
@@ -574,7 +554,7 @@ OutputKsiObject( std::ofstream& out, int vers, void** ppSrc, int len = 0, int le
       *ppSrc = &pPr->param.pnt + 1;
       if( level < 2 )
       {
-        point* pPnt = &pPr->param.pnt;
+        POINT* pPnt = &pPr->param.pnt;
         len += OutputKsiCoord( out, pPnt->x, pPnt->y );
       }
       break;
@@ -598,9 +578,9 @@ OutputKsiObject( std::ofstream& out, int vers, void** ppSrc, int len = 0, int le
       *ppSrc = pSP->string + pSP->length;
       if( level < 2 )
       {
-        len += OutputKsiText( out, 
-                              pText->org.x, pText->org.y, 
-                              pSP->offset.x, pSP->offset.y, 
+        len += OutputKsiText( out,
+                              pText->org.x, pText->org.y,
+                              pSP->offset.x, pSP->offset.y,
                               pSP->angle, pSP->string, pSP->length,
                               len );
       }
@@ -619,14 +599,14 @@ OutputKsiObject( std::ofstream& out, int vers, void** ppSrc, int len = 0, int le
     case PF_FOOTNOTE:
     {
       int nPoints = pObjPar->polypoint.length;
-      point* pPoints = (point*)pObjPar->polypoint.points;
-      point* pp = pPoints + nPoints;
+      POINT* pPoints = pObjPar->polypoint.points;
+      POINT* pp = pPoints + nPoints;
       *ppSrc = pp;
       if( level < 2 )
       {
         len = OutputKsiKey( out, keyPoly, len );
         int x = 0, y = 0;
-        for( point const* p = pPoints ; p < pp ; ++p )
+        for( POINT const* p = pPoints ; p < pp ; ++p )
         {
           len += OutputKsiPair( out, bAbsPoly ? p->x : x += p->x,
                                      bAbsPoly ? p->y : y += p->y );
@@ -640,17 +620,17 @@ OutputKsiObject( std::ofstream& out, int vers, void** ppSrc, int len = 0, int le
     case PF_MULTILINE:
     {
       int nPoints = pObjPar->polypoint.length;
-      point* pPoints = (point*)pObjPar->polypoint.points;
-      point* pp = pPoints + nPoints;
+      POINT* pPoints = pObjPar->polypoint.points;
+      POINT* pp = pPoints + nPoints;
       *ppSrc = pp;
       if( level < 2 )
       {
         len = OutputKsiKey( out, keyPoly, len );
         int s = 1;
-        for( point const* p = pPoints ; p < pp ; ++p, s ^= 1 )
+        for( POINT const* p = pPoints ; p < pp ; ++p, s ^= 1 )
         {
-          len += OutputKsiPair( out, 
-                                s || bAbsPoly ? p[0].x : p[0].x + p[-1].x, 
+          len += OutputKsiPair( out,
+                                s || bAbsPoly ? p[0].x : p[0].x + p[-1].x,
                                 s || bAbsPoly ? p[0].y : p[0].y + p[-1].y );
           if( p + 1 < pp )
             len = OutputKsiDlm( out, len );
@@ -661,7 +641,7 @@ OutputKsiObject( std::ofstream& out, int vers, void** ppSrc, int len = 0, int le
     }
     case PF_ELLIPSE :
     {
-      rect* pr = &pObjPar->ellipse;
+      RECT* pr = &pObjPar->ellipse;
       *ppSrc = pr + 1;
       if( level < 2 )
       {
@@ -672,7 +652,7 @@ OutputKsiObject( std::ofstream& out, int vers, void** ppSrc, int len = 0, int le
       break;
     }
     case PF_RECTANGLE :
-    { 
+    {
       RectParam* pr = &pObjPar->rectangle;
       *ppSrc = pr + 1;
       if( level < 2 )
@@ -698,10 +678,10 @@ OutputKsiObject( std::ofstream& out, int vers, void** ppSrc, int len = 0, int le
       break;
     }
   }
-  
+
   if( level < 2 )
     len += OutputKsiItem( out, ")" );
-    
+
   return len;
 }
 //=====================================================================
@@ -711,15 +691,15 @@ IsValidIdent( int mode, ksi_obj ksi_ParamList,
 {
   int bd = !( mode & CM_FLTER_ID_DIAP ) ||
             id.Table() == TabNum  && ( !minId || id.Entry() >= minId ) && ( !maxId || id.Entry() < maxId );
-  int bl = 1;    
+  int bl = 1;
   if( mode & CM_FLTER_ID_LIST )
   {
     ksi_obj ksi_id = ksi_cons( ksi_int2num( id.Table()), ksi_int2num( id.Entry()));
     bl = KSI_TRUE_P( ksi_assoc_ref( ksi_ParamList, ksi_id, 0 )) ||
-			   KSI_TRUE_P( ksi_member( ksi_id, ksi_ParamList, 0 ));
+                           KSI_TRUE_P( ksi_member( ksi_id, ksi_ParamList, 0 ));
   }
   return bd && bl;
-}  
+}
 //=====================================================================
 static int
 IsValidDate( int mode, CTime t0, CTime t1, CTime t2 )
@@ -728,16 +708,16 @@ IsValidDate( int mode, CTime t0, CTime t1, CTime t2 )
 }
 //=====================================================================
 void
-MapUpdater::OutputObject( std::ofstream& out, void* pData )
+MapUpdater::OutputObject( ofstream& out, void* pData )
 {
   int t = pDrh->GetClass();
-  out << "; " << pDocument->GetObjDef()->GetName( t ) << std::endl
+  out << "; " << pDocument->GetObjDef()->GetName( t ) << endl
       << "((class . " << t
-      << ") (status . " << int( pDrh->GetStatus()) 
-      << ") (table . " << pDrh->GetTable() 
+      << ") (status . " << int( pDrh->GetStatus())
+      << ") (table . " << pDrh->GetTable()
       << ") (entry . " << pDrh->GetEntry()
       << ") (node . "  << pDrh->GetNode()
-      << ")\n"; 
+      << ")\n";
   void* pSrc = pData;
   OutputKsiObject( out, HR.Version, &pSrc );
   out <<  ")\n\n";
@@ -746,88 +726,90 @@ MapUpdater::OutputObject( std::ofstream& out, void* pData )
 static ksi_obj
 ChangeId( CBaseDataRec* pDrh, ksi_obj ksi_ParamList )
 {
-	CIdent id( pDrh->GetIdent());
+  CIdent id( pDrh->GetIdent());
   ksi_obj ksi_i = ksi_cons( ksi_int2num( id.Table()), ksi_int2num( id.Entry()));
-	ksi_obj ksi_par = ksi_assoc_ref( ksi_ParamList, ksi_i, 0 );
-	if( !KSI_PLIST_P( ksi_par ))
-		return ksi_nil;
+  ksi_obj ksi_par = ksi_assoc_ref( ksi_ParamList, ksi_i, 0 );
+  if( !KSI_PLIST_P( ksi_par ))
+    return ksi_nil;
 
-	ksi_i = ksi_assv_ref( ksi_par, keyTable );
-	if( KSI_EINT_P( ksi_i ))
-	  id.SetTable( ksi_num2int( ksi_i ));
+  ksi_i = ksi_assv_ref( ksi_par, keyTable );
+  if( KSI_EINT_P( ksi_i ))
+    id.SetTable( ksi_num2int( ksi_i ));
 
-	ksi_i = ksi_assv_ref( ksi_par, keyObject );
-	if( KSI_EINT_P( ksi_i ))
-	  id.SetEntry( ksi_num2int( ksi_i ));
+  ksi_i = ksi_assv_ref( ksi_par, keyObject );
+  if( KSI_EINT_P( ksi_i ))
+    id.SetEntry( ksi_num2int( ksi_i ));
 
-	ksi_i = ksi_assv_ref( ksi_par, keyClass );
-	if( KSI_EINT_P( ksi_i ))
-	  id.SetClass( ksi_num2int( ksi_i ));
+  ksi_i = ksi_assv_ref( ksi_par, keyClass );
+  if( KSI_EINT_P( ksi_i ))
+    id.SetClass( ksi_num2int( ksi_i ));
 
-	ksi_i = ksi_assv_ref( ksi_par, keyStatus );
-	if( KSI_EINT_P( ksi_i ))
-	  id.SetStatus( ksi_num2int( ksi_i ));
+  ksi_i = ksi_assv_ref( ksi_par, keyStatus );
+  if( KSI_EINT_P( ksi_i ))
+    id.SetStatus( ksi_num2int( ksi_i ));
 
-	ksi_i = ksi_assv_ref( ksi_par, keyNode );
-	if( KSI_EINT_P( ksi_i ))
-	  pDrh->SetNode( ksi_num2int( ksi_i ));
+  ksi_i = ksi_assv_ref( ksi_par, keyNode );
+  if( KSI_EINT_P( ksi_i ))
+    pDrh->SetNode( ksi_num2int( ksi_i ));
 
-	pDrh->SetIdent( id );
-	return ksi_par;
+  pDrh->SetIdent( id );
+  return ksi_par;
 }
 //=====================================================================
 static void
 SetShapeKey( ksi_obj ksi_val, SHAPE_NDX* pSh )
 {
-	if( pSh->shape != SH_NOTHING )
-	{
-		ksi_obj ksi_cont = KSI_CAR( KSI_CDR( ksi_val ));
-		int nShp = pSh->ndx;
-		ASSERT( nShp < KSI_LIST_LEN( ksi_cont ));
-		ksi_obj ksi_itm = ksi_list_ref( ksi_cont, KSI_MK_SINT( nShp ));
-		ksi_set_cdr_x( ksi_itm, ksi_cons( ksi_cons( keyShape, ksi_true ), ksi_cdr( ksi_itm )));
-	}
+  if( pSh->shape != SH_NOTHING )
+  {
+    ksi_obj ksi_cont = KSI_CAR( KSI_CDR( ksi_val ));
+    int nShp = pSh->ndx;
+    ASSERT( nShp < KSI_LIST_LEN( ksi_cont ));
+    ksi_obj ksi_itm = ksi_list_ref( ksi_cont, KSI_MK_SINT( nShp ));
+    ksi_set_cdr_x( ksi_itm, ksi_cons( ksi_cons( keyShape, ksi_true ), ksi_cdr( ksi_itm )));
+  }
 }
 //=====================================================================
 ResultCode
 MapUpdater::GPL2GPL( CConvDlg* pDlg,
                      char const* txtPath, char const* errPath,
                      ksi_obj ksi_ParamList,
-                     int nMode, 
+                     int nMode,
                      int tableNum,
                      int minIdent, int maxIdent,
                      CTime time1, CTime time2,
                      int nNode,
                      char* pClassMap,
-                     double pcf[2][3],
-                     Point* Rgn, Rect const* pBox )
+                     double pcf0[2][3],
+                     double utm[4],
+                     double pcf1[2][3],
+                     CPoint* Rgn, CRect const* pBox )
 {
   char buf1[_MAX_PATH], buf2[_MAX_FNAME], buf3[_MAX_FNAME], buf4[_MAX_FNAME];
-
-  char* pp = strrchr( strcpy( buf1, InitPath ), '\\' );
+  strcpy_s( buf1, InitPath );
+  char* pp = strrchr( buf1, '\\' );
   pp[1] = 0;
   SetCurrentDirectory( buf1 );
-	
-	char TmpPath[_MAX_PATH];
+
+  char TmpPath[_MAX_PATH];
   _splitpath( DataPath, buf1, buf2, buf3, buf4 );
   _makepath( TmpPath, buf1, buf2, buf3, ".tmp" );
 
-	int bCpy = CopyFile( DataPath, TmpPath, 0 );
-	if( !bCpy )
-	{
-		ErrBox( "Не удалось создать временную копию проекта" );
-		return R_OK;
-	}
+  int bCpy = CopyFile( DataPath, TmpPath, 0 );
+  if( !bCpy )
+  {
+    ErrBox( "Не удалось создать временную копию проекта" );
+    return R_OK;
+  }
 
-	std::fstream TmpStream( TmpPath, std::ios::in| std::ios::binary, std::filebuf::sh_read );
+  fstream TmpStream( TmpPath, ios::in|ios::binary, SH_DENYWR );
   if( TmpStream.bad())
     return TraceError( MapNumber, R_NOFILE, TmpPath );
 
-  std::ofstream err( errPath, std::ios::out | std::ios::trunc );
+  ofstream err( errPath, ios::out | ios::trunc );
   if( !err.good())
     return TraceError( MapNumber, R_NOFILE, errPath );
 
-  std::ofstream log;  
+  ofstream log;
   ResultCode r = CreateLog( errPath, log );
   if( r != R_OK )
     return r;
@@ -839,9 +821,9 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
   CBaseDataRecPtr pNewDrh = pDrh;
   long newVersion = HR.Version;
   int bChangeVersion = 0;
-  
+
   if(( nMode & CM_OBJECTS_CONVERT ) && bSquizze && !Rgn &&  !pClassMap &&
-      !( nMode & ( CM_FLTER_ID_DIAP | CM_FLTER_ID_LIST | CM_TIME_SELECT )))    
+      !( nMode & ( CM_FLTER_ID_DIAP | CM_FLTER_ID_LIST | CM_TIME_SELECT )))
   {
     GetLong( DataPath, "General", "Version", &newVersion, DEFVERSION );
     if( HR.Version < newVersion && AskBox( "Изменять версию проекта?" ) == IDYES )
@@ -854,10 +836,11 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
   RemoveAllIndex();
   SetModifiedFlag();
 
-  std::streampos rPos, wPos, ePos;
-  for(rPos = sizeof HR, wPos = rPos, ePos = HR.FreePos;
-       rPos < ePos ; rPos += rSize )
-	{
+
+  int bUTM = nMode & CM_UTM_CONVERT;
+  streampos rPos = sizeof HR, wPos = rPos;
+  for( streampos ePos = HR.FreePos ; rPos < ePos ; rPos += rSize )
+  {
     pDlg->SetReport( nTotal, nObj, nErr );
 
     while( pDlg->GetStop() == 1 );
@@ -866,40 +849,40 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
                 "несконвертированных объектов.\n\n"
                 "Прерывать?" ) == IDYES )
       break;
-
     rSize = GetRecord( rPos, &TmpStream ) == R_OK ? pDrh->GetSize() : 1;
     int wSize = rSize;
-	  nTotal += rSize != 1;
-		if( rSize > 1 && ( !bSquizze || pDrh->IsObjRec()))
+    
+    nTotal += rSize != 1;
+    if( rSize > 1 && ( !bSquizze || pDrh->IsObjRec()))
     {
       int bNodeChanged = 0;
 
       if( pDrh->IsObjRec())
       {
         void* pSrc = pData;
+        CRect r;
         if( TestInclude( pClassMap, pDrh->GetClass()) &&
             IsValidIdent( nMode, ksi_ParamList, tableNum, minIdent, maxIdent, pDrh->GetTabIdent()) &&
             IsValidDate( nMode, pDrh->GetTime(), time1, time2 ) &&
-            ( !pBox || pBox->IntersectRect( pDrh->GetBox())) &&
-            ( !Rgn || UpdateObjectCoord( &pSrc, 0, 0, Rgn )))
+            ( !pBox || r.IntersectRect( pBox, &pDrh->GetBox())) &&
+            ( !Rgn || UpdateObjectCoord( &pSrc, 0, 0, 0, Rgn )))
         {
           if(( nMode & CM_SET_NODE ) && pDrh->GetNode() != nNode )
           {
             pDrh->SetNode( nNode );
             bNodeChanged = 1;
           }
-					
-         	CIdent oldId( pDrh->GetIdent());
-					ksi_obj ksi_par = ChangeId( pDrh, ksi_ParamList );
+          CIdent oldId( pDrh->GetIdent());
+          ksi_obj ksi_par = ChangeId( pDrh, ksi_ParamList );
 
-          if( nMode & CM_COORD_CONVERT )
+          if( nMode & ( CM_COORD_CONVERT ))
           {
             pSrc = pData;
-            UpdateObjectCoord( &pSrc, pcf, 0 );
+            UpdateObjectCoord( &pSrc, pcf0, bUTM ? utm : 0, bUTM ? pcf1 : 0, 0 );
             pSrc = pData;
             CDrawObject::SetDrawnClass( oldId.Class());
             CBox nb( CalcBoundBox( HR.Version, &pSrc ));
-            pDrh->SetBox( *((Rect*)&nb ));
+            pDrh->SetBox( nb );
             if( nb.left > nb.right || nb.top > nb.bottom )
               ++nBad;
             else
@@ -917,11 +900,11 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
               ++nErr;
               continue;
             }
-    
+
             pSrc = pData;
-            ksi_obj ksi_new_class  = KSI_MK_SINT( pDrh->GetClass()); 
+            ksi_obj ksi_new_class  = KSI_MK_SINT( pDrh->GetClass());
             ksi_obj ksi_new_status = KSI_MK_SINT( pDrh->GetStatus());
-            ksi_obj ksi_old_class  = KSI_MK_SINT( oldId.Class()); 
+            ksi_obj ksi_old_class  = KSI_MK_SINT( oldId.Class());
             ksi_obj ksi_old_status = KSI_MK_SINT( oldId.Status());
             ksi_obj ksi_ob = ConvertObject( HR.Version, &pSrc, 1 );
 
@@ -930,21 +913,21 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
                                        ksi_old_class, ksi_old_status,
                                        ksi_new_class, ksi_new_status,
                                        ( nMode & CM_OBJECTS_CONVERT ) ? ksi_par : ksi_nil,
-																			 ksi_ob, 0 );
+                                                                                                                                                         ksi_ob, 0 );
             ksi_defsym( "is-convertion?", ksi_false, ksi_current_env());
-              
+
             if( KSI_LIST_P( ksi_vl ))
             {
               TGstream tmp;
-              r = WriteData( 0, pDrh->GetRecPtr(), pDrh->GetRecSize(), &tmp );
+              ResultCode r = WriteData( 0, pDrh->GetRecPtr(), pDrh->GetRecSize(), &tmp );
               if( r != R_OK )
                return r;
-        
+
               char* pTmpData = tmp.str() + pDrh->GetRecSize();
               void* pTmpSrc = pTmpData;
 
-							SHAPE_NDX* pSh = &CDrawObject::m_ShapeNdx[pDrh->GetClass()];
-							SetShapeKey( ksi_vl, pSh );
+              SHAPE_NDX* pSh = &CDrawObject::m_ShapeNdx[pDrh->GetClass()];
+              SetShapeKey( ksi_vl, pSh );
 
               r = ConvertObject( newVersion, ksi_vl, tmp );
 
@@ -966,7 +949,7 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
                 continue;
               }
 
-              pDrh->SetBox( *((Rect*)&box ));                
+              pDrh->SetBox( box );
               wSize = tmp.tellp();
               pDrh->SetSize( wSize );
               pDrh->SetTime( time( 0 ));
@@ -984,7 +967,7 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
           }
         }
       }
-      
+
       CBaseDataRecPtr tmpDrh = pDrh;
       if( bChangeVersion )
       {
@@ -992,18 +975,18 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
         wSize = pNewDrh->GetSize();
         pDrh = pNewDrh;
       }
-      
-			PutRecord( wPos );
+
+      PutRecord( wPos );
 
       SetModifiedFlag();
       AddIndex( wPos, pDrh->GetBox(), pDrh->GetNode(), pDrh->GetClass(), pDrh->GetTabIdent(), 0 );
       OutputLog( log, pDrh->GetEntry(), pData );
       ++nObj;
       pDrh = tmpDrh;
-			
+
       wPos += wSize;
     }
-	}
+  }
 
   SpaceIndex.Sort();
 
@@ -1025,9 +1008,32 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
   }
 
   pDlg->SetReport( nTotal, nObj, nErr, 1 );
- 
+
   HR.Version = newVersion;
   HR.FreePos = wPos;
+  if( bUTM )
+  {
+    char const sect[] = "PROJECTION";
+    char const mtyp[] = "MERK";
+
+    sprintf_s( HR.PrjType, "%s", mtyp );
+    sprintf_s( HR.Parallel_1, "%s", "0" );
+    sprintf_s( HR.Semimajor, "%1.5f", MerkatorData.GetRmj());
+    sprintf_s( HR.Semiminor, "%1.5f", MerkatorData.GetRmn());
+    sprintf_s( HR.XC0, "%d", (int)pcf1[0][2] );
+    sprintf_s( HR.YC0, "%d", (int)pcf1[1][2] );
+    sprintf_s( HR.LN0, "%s", "0" );
+    sprintf_s( HR.LT0, "%s", "0" );
+
+    App.WriteProfileString( sect, "Type", mtyp );
+    App.WriteProfileString( sect, "Semimajor", HR.Semimajor );
+    App.WriteProfileString( sect, "Semiminor", HR.Semiminor );
+    App.WriteProfileString( sect, "XC0", HR.XC0 );
+    App.WriteProfileString( sect, "XCY", HR.YC0 );
+    App.WriteProfileString( sect, "LT0", HR.LT0 );
+    App.WriteProfileString( sect, "LN0", HR.LN0 );
+    App.WriteProfileString( sect, "Parallel_1", HR.Parallel_1 );
+  }
   WriteData( 0, &HR, sizeof HR, &DataStream );
 
   if( bChangeVersion )
@@ -1037,7 +1043,7 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
   }
 
   TmpStream.close();
-	CFile::Remove( TmpPath );
+  CFile::Remove( TmpPath );
 
   pDrh = pNewDrh;
 
@@ -1045,19 +1051,23 @@ MapUpdater::GPL2GPL( CConvDlg* pDlg,
 }
 //=====================================================================
 int
-MapUpdater::BoxInRgn( Rect const& Box, Point* Rgn )
+MapUpdater::BoxInRgn( CRect const& Box, CPoint* Rgn )
 {
+  CPoint p0( Box.left, Box.top );
+  CPoint p1( Box.left, Box.bottom );
+  CPoint p2( Box.right, Box.top );
+  CPoint p3( Box.right, Box.bottom );
   for( int rs = Rgn++->x ; rs ; Rgn += rs, rs = Rgn++->x )
-    if( MapStore::IsPointInPolygon( Box.LeftTop(), Rgn, rs ) &&
-        MapStore::IsPointInPolygon( Box.RightTop(), Rgn, rs ) &&
-        MapStore::IsPointInPolygon( Box.LeftBottom(), Rgn, rs ) &&
-        MapStore::IsPointInPolygon( Box.RightBottom(), Rgn, rs ))
+    if( IsPointInPolygon( p0, Rgn, rs ) &&
+        IsPointInPolygon( p1, Rgn, rs ) &&
+        IsPointInPolygon( p2, Rgn, rs ) &&
+        IsPointInPolygon( p3, Rgn, rs ))
       return 1;
   return 0;
 }
 //=====================================================================
 int
-MapUpdater::PntInRgn( Point const& Pt, Point* Rgn )
+MapUpdater::PntInRgn( CPoint const& Pt, CPoint* Rgn )
 {
   for( int rs = Rgn++->x ; rs ; Rgn += rs, rs = Rgn++->x )
     if( MapStore::IsPointInPolygon( Pt, Rgn, rs ))
@@ -1066,7 +1076,7 @@ MapUpdater::PntInRgn( Point const& Pt, Point* Rgn )
 }
 //=====================================================================
 static void
-OutputMifCoord( std::ofstream& out, double v )
+OutputMifCoord( ofstream& out, double v )
 {
   CString b;
   b.Format( "%1.2f ", v * SmInUnit * 1e-2 );
@@ -1074,12 +1084,12 @@ OutputMifCoord( std::ofstream& out, double v )
 }
 //=====================================================================
 static void
-OutputMifPair( std::ofstream& out, int x, int y, double cf[][3] )
+OutputMifPair( ofstream& out, int x, int y, double cf[][3] )
 {
   CPoint p( CMapView::Project2Grid( CPoint( x, y )));
   OutputMifCoord( out, cf ? p.x * cf[0][0] + p.y * cf[0][1] + cf[0][2] : p.x );
   OutputMifCoord( out, cf ? p.x * cf[1][0] + p.y * cf[1][1] + cf[1][2] : p.y );
-  out << std::endl;
+  out << endl;
 }
 //=====================================================================
 static int
@@ -1093,15 +1103,14 @@ CalcPlan2Merk( CPoint sp, double mvxy[][N_REP+2] )
   {
     MerkatorData.InitLocal( rt[0].pPt );
 
-	int i;
-    for(i = N_REP ; --i >= 0 ; )
-		{
-			Point tp( MerkatorData.Pol2Dec( rt[i].pPt ));
+    for( int i = N_REP ; --i >= 0 ; )
+    {
+      CPoint tp( MerkatorData.Pol2Dec( rt[i].pPt ));
       rt[i].dPt.x = tp.x;
       rt[i].dPt.y = tp.y;
-		}
+    }
 
-    for( i = N_REP ; --i >= 0 ; )
+    for( int i = N_REP ; --i >= 0 ; )
     {
       mvxy[i][0] = rt[i].sPt.x;
       mvxy[i][1] = rt[i].sPt.y;
@@ -1109,7 +1118,7 @@ CalcPlan2Merk( CPoint sp, double mvxy[][N_REP+2] )
       mvxy[i][3] = rt[i].dPt.x;
       mvxy[i][4] = rt[i].dPt.y;
     }
-    
+
     bRg = fabs( Djordan( mvxy[0], N_REP, N_REP + 2 )) > 1;
     if( !bRg )
       MerkatorData.DeinitLocal();
@@ -1125,38 +1134,38 @@ Plan2Merk( double p[2], double mvxy[][N_REP+2] )
 }
 //=====================================================================
 static void
-OutputMifPoly( std::ofstream& out, point const* p, int np, 
+OutputMifPoly( ofstream& out, CPoint const* p, int np,
                int bAbs, int bBound, int bWriteLen, double pcf[][3], int bGeo )
 {
   if( bWriteLen )
-    out << ( np + bBound ) << std::endl;
+    out << ( np + bBound ) << endl;
 
-	if( bGeo )
+  if( bGeo )
   {
-		double mvxy[N_REP][N_REP+2];
+    double mvxy[N_REP][N_REP+2];
 
     int bMetr = bGeo & CM_OUTPUT_GEO_METR;
     int bGrad = bGeo & CM_OUTPUT_GEO_GRAD;
     int bTm = MerkatorData.TrueMerkator();
-		int bRg = 0;
+    int bRg = 0;
 
-		if( !bTm )
-		{
-      point const* pp = p;
+    if( !bTm )
+    {
+      CPoint const* pp = p;
       int x = 0, y = 0;
       double sx = 0, sy = 0;
       for( int i = np ; --i >= 0 ; ++pp )
-			{
+      {
         sx += bAbs ? pp->x : x += pp->x;
         sy += bAbs ? pp->y : y += pp->y;
-			}
+      }
 
       CPoint sp(  sx / np, sy / np );
-      bRg = CalcPlan2Merk( sp, mvxy );				
-		}
+      bRg = CalcPlan2Merk( sp, mvxy );
+    }
 
-		point const* pp = p; 
-		int x = 0, y = 0;
+    CPoint const* pp = p;
+    int x = 0, y = 0;
     for( int i = np + bBound ; --i >= 0 ; ++pp )
     {
       if( bBound && !i )
@@ -1165,51 +1174,51 @@ OutputMifPoly( std::ofstream& out, point const* p, int np,
         x = y = 0;
       }
 
-			CPoint t( bAbs ? pp->x : x += pp->x, bAbs ? pp->y : y += pp->y );
-			Point tp( t.x, t.y );
+      CPoint t( bAbs ? pp->x : x += pp->x, bAbs ? pp->y : y += pp->y );
+      CPoint tp( t.x, t.y );
       Polar pc;
 
       if( bTm )
-			{
+      {
         MerkatorData.Prj2Pol( tp, pc );
-				if( bMetr )
-				{
+        if( bMetr )
+        {
           tp = MerkatorData.Pol2Dec( pc );
-					t.x = tp.x;
-					t.y = tp.y;
-				}
-			}
-			else
+          t.x = tp.x;
+          t.y = tp.y;
+        }
+      }
+      else
       if( bRg )
       {
         double dv[2] = { pp->x, pp->y };
         Plan2Merk( dv, mvxy );
-				tp = Point( dv[0] , dv[1] );
-				if( bGrad )
-					pc = MerkatorData.Dec2Pol( tp );
-				t.x = dv[0] * 1e2 / SmInUnit;
-				t.y = dv[1] * 1e2 / SmInUnit;
+        tp = CPoint( dv[0] , dv[1] );
+        if( bGrad )
+          pc = MerkatorData.Dec2Pol( tp );
+        t.x = dv[0] * 1e2 / SmInUnit;
+        t.y = dv[1] * 1e2 / SmInUnit;
       }
 
       if( bMetr )
-			{
-				OutputMifCoord( out, t.x );
-				OutputMifCoord( out, t.y );
-        out << std::endl;
-			}
-			else
-			{
+      {
+        OutputMifCoord( out, t.x );
+        OutputMifCoord( out, t.y );
+        out << endl;
+      }
+      else
+      {
         CString b;
         b.Format( "%1.6f %1.6f", pc.lon / Deg, pc.lat / Deg );
-        out << b << std::endl;
-			}
+        out << b << endl;
+      }
     }
-		if( bRg )
-		  MerkatorData.DeinitLocal();
+    if( bRg )
+      MerkatorData.DeinitLocal();
   }
   else
   {
-    point const* sp = p;
+    CPoint const* sp = p;
     for( int x = 0, y = 0 ; --np >= 0 ; ++p )
       OutputMifPair( out, bAbs ? p->x : x += p->x, bAbs ? p->y : y += p->y, pcf );
     if( bBound )
@@ -1218,36 +1227,34 @@ OutputMifPoly( std::ofstream& out, point const* p, int np,
 }
 //=====================================================================
 static int
-OutputMifPoint( std::ofstream& out, int x, int y, double pcf[][3], int bGeo )
+OutputMifPoint( ofstream& out, int x, int y, double pcf[][3], int bGeo )
 {
   out << "Point ";
-  point pm;
-  pm.x = x;
-  pm.y = y;
+  CPoint pm( x, y );
   OutputMifPoly( out, &pm, 1, 1, 0, 0, pcf, bGeo );
   return 1;
 }
 //=====================================================================
 static int
-OutputMifPolyline( std::ofstream& out, point const* pp, int np, int bAbs, double pcf[][3], int bGeo )
+OutputMifPolyline( ofstream& out, CPoint const* pp, int np, int bAbs, double pcf[][3], int bGeo )
 {
   if( np )
   {
-    out << "Pline " << np << std::endl;
+    out << "Pline " << np << endl;
     OutputMifPoly( out, pp, np, bAbs, 0, 0, pcf, bGeo );
-    out << std::endl;
+    out << endl;
   }
   return np;
 }
 //=====================================================================
 static int
-OutputMifRegion( std::ofstream& out, point const* pp, int np, int bAbs, double pcf[][3], int bGeo )
+OutputMifRegion( ofstream& out, CPoint const* pp, int np, int bAbs, double pcf[][3], int bGeo )
 {
   if( np )
   {
-    out << "Region 1" << std::endl;
+    out << "Region 1" << endl;
     OutputMifPoly( out, pp, np, bAbs, 1, 1, pcf, bGeo );
-    out << std::endl;
+    out << endl;
   }
   return np;
 }
@@ -1255,8 +1262,8 @@ OutputMifRegion( std::ofstream& out, point const* pp, int np, int bAbs, double p
 static CString
 CalcMifText( char const* pStr, int len )
 {
-	CString r;
-  for(r; --len >= 0 ; ++pStr )
+  CString r;
+  for( ; --len >= 0 ; ++pStr )
     if( *pStr == '\"' )
       r += "\"\"";
     else
@@ -1268,7 +1275,7 @@ CalcMifText( char const* pStr, int len )
 }
 //=====================================================================
 static int
-OutputMifText( std::ofstream& mifOut, Text* pText, double pcf[][3], int version, int bGeo )
+OutputMifText( ofstream& mifOut, Text* pText, double pcf[][3], int version, int bGeo )
 {
   StringParam* pSP = &pText->param.full.string;
   FontParam1 FP;
@@ -1284,7 +1291,7 @@ OutputMifText( std::ofstream& mifOut, Text* pText, double pcf[][3], int version,
   else
     memcpy( &FP, &pText->param.full.FontParams.font1, sizeof FP );
 
-  int h = abs( FP.height );
+  int h = abs( long( FP.height ));
   int s = ( FP.weight > 0 ) | ( FP.style << 1 );
 
   int an = pSP->angle;
@@ -1295,38 +1302,38 @@ OutputMifText( std::ofstream& mifOut, Text* pText, double pcf[][3], int version,
           FP.number, FP.height, FP.weight, FP.style );
 
   CPoint p0( pText->org.x, pText->org.y );
-	CPoint t1( UpdatePoint( p0 + TurnPoint( ox + b.left,  oy + b.top, an ), pcf, 0, 1 ));
-  CPoint t2( UpdatePoint( p0 + TurnPoint( ox + b.right, oy + b.top, an ), pcf, 0, 1 ));
-	CPoint t0( UpdatePoint( p0 + TurnPoint( ox + b.left,  oy + b.bottom, an ), pcf, 0, 1 ));
+        CPoint t1( MapUpdater::UpdatePoint( p0 + TurnPoint( ox + b.left,  oy + b.top, an ), pcf, 0, 0, 1 ));
+  CPoint t2( MapUpdater::UpdatePoint( p0 + TurnPoint( ox + b.right, oy + b.top, an ), pcf, 0, 0, 1 ));
+        CPoint t0( MapUpdater::UpdatePoint( p0 + TurnPoint( ox + b.left,  oy + b.bottom, an ), pcf, 0, 0, 1 ));
 
-	t2 -= t1;
-	t0 -= t1;
+  t2 -= t1;
+  t0 -= t1;
   an = atan2( t2.x, t2.y );
-	t0 = t1 + TurnPoint( t0, an );
-	t2 = t1 + TurnPoint( t2, an );
+  t0 = t1 + TurnPoint( t0, an );
+  t2 = t1 + TurnPoint( t2, an );
 
-  mifOut << "Text " << '\"' << CalcMifText( pSP->string, pSP->length ) << '\"' << std::endl;
+  mifOut << "Text " << '\"' << CalcMifText( pSP->string, pSP->length ) << '\"' << endl;
 
-  point pm[] = {{ t0.x, t0.y }, { t2.x, t2.y }};
+  CPoint pm[] = {{ t0.x, t0.y }, { t2.x, t2.y }};
   OutputMifPoly( mifOut, pm, 2, 1, 0, 0, 0, bGeo );
-  mifOut << "Angle " << ( an / 10.0 ) << std::endl
-         << "Justify Left" << std::endl
+  mifOut << "Angle " << ( an / 10.0 ) << endl
+         << "Justify Left" << endl
          << "Font(\"" << pDocument->num2fontface( FP.number )
-         << "\"," << s << ",0," << FP.color << ")" << std::endl;
+         << "\"," << s << ",0," << FP.color << ")" << endl;
   if( memchr( pSP->string, '\n', pSP->length ))
-    mifOut << "Spacing 1" << std::endl;
-  mifOut << std::endl;
+    mifOut << "Spacing 1" << endl;
+  mifOut << endl;
   return 1;
 }
 //=====================================================================
 static int
-OutputMifObject( int pass, int level, std::ofstream* pMif, std::ofstream* pMid, double pcf[][3],
+OutputMifObject( int pass, int level, ofstream* pMif, ofstream* pMid, double pcf[][3],
                  int vers, void** ppSrc, int type, int bGeo, ksi_obj ksi_map )
-{ 
+{
   PrimRecord* pPr = (PrimRecord*)*ppSrc;
   int bAbsPoly = vers & 1;
   int bVisible = pPr->type & PF_VISIBLE;
-  
+
   int SF = PF_STROKED;
   int FF = PF_FILLED;
   int sft = pPr->type & ( SF | FF );
@@ -1340,9 +1347,8 @@ OutputMifObject( int pass, int level, std::ofstream* pMif, std::ofstream* pMid, 
   ksi_obj ksi_prt = PrimKeys->KsiTranslate( pPr->type & PF_SHAPE_MASK );
 
   int gt = pPr->type & PF_TYPE_MASK;
-  
-  static int bDone = 0;
-  int txtCnt = 0;
+
+  static int bDone = 0, txtCnt = 0;
 
   switch( gt )
   {
@@ -1361,13 +1367,13 @@ OutputMifObject( int pass, int level, std::ofstream* pMif, std::ofstream* pMid, 
           cnvCnt = 1;
           bDone = !pass;
           if( pass )
-            *pMid << '\"' << pDocument->GetObjDef()->GetName( type ) << "\"\n"; 
+            *pMid << '\"' << pDocument->GetObjDef()->GetName( type ) << "\"\n";
           if( KSI_PLIST_P( ksi_map ))
             ksi_set_car_x( ksi_map, ksi_false );
         }
 
         if( KSI_PLIST_P( ksi_map ) )
-          ksi_map = KSI_CDR( ksi_map ); 
+          ksi_map = KSI_CDR( ksi_map );
       }
 
       if( level == 0 && !pass )
@@ -1383,7 +1389,7 @@ OutputMifObject( int pass, int level, std::ofstream* pMif, std::ofstream* pMid, 
     }
     case PF_POINT:
     {
-      point* pp = &pPr->param.pnt;
+      CPoint* pp = (CPoint*)&pPr->param.pnt;
       *ppSrc = pp + 1;
       if( level == 1 && KSI_EQ_P( ksi_map, keyPoint ) && ( pass || !bDone ))
         return OutputMifPoint( *pMif, pp->x, pp->y, pcf, bGeo );
@@ -1399,7 +1405,7 @@ OutputMifObject( int pass, int level, std::ofstream* pMif, std::ofstream* pMid, 
     }
     case PF_ELLIPSE :
     {
-      rect* pe = &pObjPar->ellipse;
+      CRect* pe = (CRect*)&pObjPar->ellipse;
       *ppSrc = pe + 1;
       if( level == 1 && KSI_EQ_P( ksi_map, keyPoint ) && ( pass || !bDone ))
         return OutputMifPoint( *pMif, pe->left, pe->top, pcf, bGeo );
@@ -1435,33 +1441,33 @@ OutputMifObject( int pass, int level, std::ofstream* pMif, std::ofstream* pMid, 
 
       if( pass )
       {
-    	  FontParam1 FP;
+        FontParam1 FP;
         if( vers < 107 )
-				{
+        {
           FontParam* pFP = &pPr->param.textbyline.FontParams.font;
           FP.color  = pFP->color;
           FP.style  = pFP->style;
           FP.height = pFP->height;
           FP.number = pFP->number;
           FP.weight = pFP->weight;
-		    }
+        }
         else
           memcpy( &FP, &pPr->param.textbyline.FontParams.font1, sizeof FP );
 
         Text* pText = (Text*)new char[sizeof Text + 1];
-				pText->param.full.FontParams.font1 = FP;
-				pText->param.full.string.offset.x = 0;
-				pText->param.full.string.offset.y = 0;
-				pText->param.full.string.length = 1;
-				for( int i = 0 ; i < length ; ++i )
-				{
-					pText->org = pItem[i].org;
-					pText->param.full.string.angle = pItem[i].angle;
-					pText->param.full.string.string[0] = pItem[i].letter[0];
-					OutputMifText( *pMif, pText, pcf, vers, bGeo );
-				}
-				delete pText;
-				return 1;
+        pText->param.full.FontParams.font1 = FP;
+        pText->param.full.string.offset.x = 0;
+        pText->param.full.string.offset.y = 0;
+        pText->param.full.string.length = 1;
+        for( int i = 0 ; i < length ; ++i )
+        {
+          pText->org = pItem[i].org;
+          pText->param.full.string.angle = pItem[i].angle;
+          pText->param.full.string.string[0] = pItem[i].letter[0];
+          OutputMifText( *pMif, pText, pcf, vers, bGeo );
+        }
+        delete pText;
+        return 1;
       }
       break;
     }
@@ -1470,7 +1476,7 @@ OutputMifObject( int pass, int level, std::ofstream* pMif, std::ofstream* pMid, 
     case PF_FOOTNOTE:
     {
       int nPoints = pObjPar->polypoint.length;
-      point* pPoints = (point*)pObjPar->polypoint.points;
+      CPoint* pPoints = (CPoint*)pObjPar->polypoint.points;
       *ppSrc = pPoints + nPoints;
       if( level == 1 && gt == PF_POLYPOINT  && ( pass || !bDone ))
         return KSI_EQ_P( ksi_map, keyFplg ) ||
@@ -1493,46 +1499,46 @@ OutputMifObject( int pass, int level, std::ofstream* pMif, std::ofstream* pMid, 
 }
 //=====================================================================
 static void
-OutputMifHeader( std::ofstream* pOut, double* box, ksi_obj ksi_map, int bGeo )
+OutputMifHeader( ofstream* pOut, double* box, ksi_obj ksi_map, int bGeo )
 {
   int nc = ksi_map ? 9 : 1;
 
-  *pOut << "Version 300" << std::endl
-        << "Charset \"WindowsCyrillic\"" << std::endl
-        << "Delimiter \";\"" << std::endl;
+  *pOut << "Version 300" << endl
+        << "Charset \"WindowsCyrillic\"" << endl
+        << "Delimiter \";\"" << endl;
 
-	if( bGeo & CM_OUTPUT_GEO_GRAD )
-    *pOut << "CoordSys Earth Projection 1, 104" << std::endl;
-	else
-	if( bGeo & CM_OUTPUT_GEO_METR )
-	{
+  if( bGeo & CM_OUTPUT_GEO_GRAD )
+    *pOut << "CoordSys Earth Projection 1, 104" <<endl;
+  else
+  if( bGeo & CM_OUTPUT_GEO_METR )
+  {
     CString bb;
     bb.Format( "(%1.2f,%1.2f) (%1.2f,%1.2f)", box[0], box[1], box[2], box[3] );
-    *pOut << "CoordSys Earth Projection 10, 157, \"m\", 0 Bounds " << bb << std::endl;
-	}
-	else
-	{
+    *pOut << "CoordSys Earth Projection 10, 157, \"m\", 0 Bounds " << bb << endl;
+  }
+  else
+  {
     CString bb;
     bb.Format( "(%1.2f,%1.2f) (%1.2f,%1.2f)", box[0], box[1], box[2], box[3] );
-    *pOut << "CoordSys NonEarth Units \"m\" Bounds " << bb << std::endl;
-	}
- 
-  *pOut << "Columns " << nc << std::endl
-        << "GraphicsClassName Char(255)" << std::endl;
+    *pOut << "CoordSys NonEarth Units \"m\" Bounds " << bb << endl;
+  }
+
+  *pOut << "Columns " << nc << endl
+        << "GraphicsClassName Char(255)" << endl;
 
   if( ksi_map )
   {
-    *pOut << "GraphicsClass Integer"  << std::endl
-          << "GraphicsStatus Integer" << std::endl
-          << "TableNumber Integer"    << std::endl
-          << "TableObject Integer"    << std::endl
-          << "NodeNumber Integer"     << std::endl
-          << "CreationTime Char(31)"  << std::endl
-          << "Text1 Char(256)"        << std::endl
-          << "Text2 Char(256)"        << std::endl;
+    *pOut << "GraphicsClass Integer"  << endl
+          << "GraphicsStatus Integer" << endl
+          << "TableNumber Integer"    << endl
+          << "TableObject Integer"    << endl
+          << "NodeNumber Integer"     << endl
+          << "CreationTime Char(31)"  << endl
+          << "Text1 Char(256)"        << endl
+          << "Text2 Char(256)"        << endl;
   }
 
-  *pOut << "Data" << std::endl << std::endl;
+  *pOut << "Data" << endl << endl;
 }
 //=====================================================================
 ResultCode
@@ -1545,7 +1551,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
                      CTime time1, CTime time2,
                      char* pClassMap,
                      double pcf[2][3],
-										 Point* Rgn, Rect const* pBox )
+                     CPoint* Rgn, CRect const* pBox )
 {
   ksi_obj ksi_map_map[FULL_RANGE];
   for( int i = CELEM( ksi_map_map ) ; --i >= 0 ; ksi_map_map[i] = ksi_false );
@@ -1553,14 +1559,14 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
   char bNewMap[FULL_RANGE];
   int  bNewAll = 0x3;
 
-	memset( bNewMap, 0x3, sizeof bNewMap ); 
+  memset( bNewMap, 0x3, sizeof bNewMap );
 
   int nTotal = 0, nObj = 0, nErr = 0;
 
-	int bRestore = ( nMode & CM_RESTORE ) != 0;
+  int bRestore = ( nMode & CM_RESTORE ) != 0;
   int byTable  = nMode & CM_ASSAMBLY_BY_TABLE;
   int byAll    = nMode & CM_ASSAMBLY_ALL;
-  
+
   char miDrive[_MAX_DRIVE], miDir[_MAX_DIR], miName[_MAX_FNAME], tmp[_MAX_EXT];
 
   _splitpath( txtPath, miDrive, miDir, miName, tmp );
@@ -1573,10 +1579,10 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
 
   pDlg->GetDlgItem( IDC_CVD_TOTAL_EDIT )->ShowWindow( 0 );
 
-	int bGeo = nMode & CM_OUTPUT_GEO;
-  
-	int bCvt = nMode & CM_COORD_CONVERT;
-  
+  int bGeo = nMode & CM_OUTPUT_GEO;
+
+  int bCvt = nMode & CM_COORD_CONVERT;
+
   ResultCode r = R_OK;
   for( int i = 0 ; i < l &&  r == R_OK ; ++i )
   {
@@ -1584,7 +1590,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
     if( pDlg->GetStop() == 2 )
       break;
 
-    std::streampos inPos = PosTab.m_pTab[i].m_Pos;
+    streampos inPos = PosTab.m_pTab[i].m_Pos;
     r = GetRecord( inPos );
     pDlg->SetReport( nTotal++, nObj, nErr );
 
@@ -1594,18 +1600,18 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
         !IsValidIdent( nMode, ksi_ParamList, tableNum, minIdent, maxIdent, pDrh->GetTabIdent()))
       continue;
 
-    if( pBox && !pBox->IntersectRect( pDrh->GetBox()))
-		  continue;
+    if( pBox && !Intersect( *pBox, pDrh->GetBox()))
+      continue;
 
     void* pSrc = pData;
-    if( Rgn && !UpdateObjectCoord( &pSrc, 0, 0, Rgn ))
-		  continue;
+    if( Rgn && !UpdateObjectCoord( &pSrc, 0, 0, 0, Rgn ))
+                  continue;
 
-  	int t = pDrh->GetClass();
-  	int b = pDrh->GetTable();
+    int t = pDrh->GetClass();
+    int b = pDrh->GetTable();
 
     if( KSI_FALSE_P( ksi_map_map[t] ))
-      ksi_map_map[t] = KsiCall( "get-contents-map", KSI_MK_SINT( t ), KSI_MK_SINT( pDrh->GetStatus()), 0 ); 
+      ksi_map_map[t] = KsiCall( "get-contents-map", KSI_MK_SINT( t ), KSI_MK_SINT( pDrh->GetStatus()), 0 );
 
     ksi_obj ksi_map = ksi_copy_list( ksi_map_map[t] );
     if( KSI_FALSE_P( ksi_map ))
@@ -1623,7 +1629,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
 
     char mid1[_MAX_PATH], mid2[_MAX_PATH];
     CString name;
-    
+
     if( byAll )
       name = miName;
     else
@@ -1639,19 +1645,19 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
     int nfm0 = ( byAll ? bNewAll :  bNewMap[byTable?b:t] ) & 1;
     int nfm1 = ( byAll ? bNewAll :  bNewMap[byTable?b:t] ) & 2;
 
-    std::ofstream midFile1( mid1, std::ios::out | ( nfm0 ? std::ios::trunc : std::ios::app ));
-	  if( !midFile1.good())
+    ofstream midFile1( mid1, ios::out | ( nfm0 ? ios::trunc : ios::app ));
+    if( !midFile1.good())
       return TraceError( MapNumber, R_NOFILE, mid1 );
 
     CTime tm( pDrh->GetTime());
     CString st( tm.Format( "\"%d.%m.%Y %H:%M:%S\"" ));
-       
-    midFile1 << '\"' << pDocument->GetObjDef()->GetName( pDrh->GetClass()) << '\"' << ";" 
-             << pDrh->GetClass()       << ";" 
-             << (int)pDrh->GetStatus() << ";" 
-             << pDrh->GetTable()       << ";" 
-             << pDrh->GetEntry()       << ";" 
-             << pDrh->GetNode()        << ";" 
+
+    midFile1 << '\"' << pDocument->GetObjDef()->GetName( pDrh->GetClass()) << '\"' << ";"
+             << pDrh->GetClass()       << ";"
+             << (int)pDrh->GetStatus() << ";"
+             << pDrh->GetTable()       << ";"
+             << pDrh->GetEntry()       << ";"
+             << pDrh->GetNode()        << ";"
              << st;
 
     char mif1[_MAX_PATH], mif2[_MAX_PATH];
@@ -1660,19 +1666,19 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
     else
       name.Format( "%s_%c%d", miName, byTable ? 't' : 'c', byTable ? b : t );
     _makepath( mif1, miDrive, miDir, name, "mif" );
-    
+
     if( nMode & CM_ASSAMBLY_ALL )
       name.Format( "%s_1", miName );
     else
       name.Format( "%s_%c%d_1", miName, byTable ? 't' : 'c', byTable ? b : t );
     _makepath( mif2, miDrive, miDir, name, "mif" );
 
-    std::ofstream mifFile1( mif1, std::ios::out | ( nfm0 ? std::ios::trunc : std::ios::app ));
+    ofstream mifFile1( mif1, ios::out | ( nfm0 ? ios::trunc : ios::app ));
     if( !mifFile1.good())
       return TraceError( MapNumber, R_NOFILE, mif1 );
 
     double box[] = { 0, 0, HR.XSize, HR.YSize };
-    
+
     if( bCvt )
     {
       double x0 =  pcf[1][2];
@@ -1689,28 +1695,28 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
       box[2] = max( max( x0, x1 ), max( x2, x3 ));
       box[3] = max( max( y0, y1 ), max( y2, y3 ));
     }
-    
+
     if( nfm0 )
     {
       if( bGeo && CM_OUTPUT_GEO_METR )
-			{
-				if( MerkatorData.TrueMerkator())
-				{
-					Point p0( box[0], box[1] );
-					Point p1( box[2], box[3] );
-					FPoint f0, f1;
-					MerkatorData.Prj2Merk( p0, f0 );
-					MerkatorData.Prj2Merk( p1, f1 );
+      {
+        if( MerkatorData.TrueMerkator())
+        {
+          CPoint p0( box[0], box[1] );
+          CPoint p1( box[2], box[3] );
+          FPoint f0, f1;
+          MerkatorData.Prj2Merk( p0, f0 );
+          MerkatorData.Prj2Merk( p1, f1 );
           box[0] = f0.fx;
           box[1] = f0.fy;
           box[2] = f1.fx;
           box[3] = f1.fy;
-				}
-				else
-				{
+        }
+        else
+        {
           double mvxy[N_REP][N_REP+2];
           if( CalcPlan2Merk( CPoint( HR.XSize/2, HR.YSize/2 ), mvxy ))
-					{
+          {
             Plan2Merk( box, mvxy );
             Plan2Merk( box+2, mvxy );
             double x0 = min( box[0], box[2] );
@@ -1722,9 +1728,9 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
             box[2] = x1;
             box[3] = y1;
             MerkatorData.DeinitLocal();
-					}
+          }
         }
-			}
+      }
       OutputMifHeader( &mifFile1, box, ksi_map, bGeo );
     }
 
@@ -1734,24 +1740,24 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
                      HR.Version, &pSrc, pDrh->GetClass(), bGeo, ksi_map );
 
     mifFile1.close();
-    midFile1 << std::endl;
+    midFile1 << endl;
     midFile1.close();
-   
-    std::ofstream mifFile2, midFile2;
+
+    ofstream mifFile2, midFile2;
 
     if( ngr > 1 )
     {
-      mifFile2.open( mif2, std::ios::out | ( nfm1 ? std::ios::trunc : std::ios::app ));
+      mifFile2.open( mif2, ios::out | ( nfm1 ? ios::trunc : ios::app ));
       if( !mifFile2.good())
         return TraceError( MapNumber, R_NOFILE, mif2 );
 
-      midFile2.open( mid2, std::ios::out | ( nfm1 ? std::ios::trunc : std::ios::app ));
+      midFile2.open( mid2, ios::out | ( nfm1 ? ios::trunc : ios::app ));
       if( !midFile2.good())
         return TraceError( MapNumber, R_NOFILE, mid2 );
-      
+
       if( nfm1 )
         OutputMifHeader( &mifFile2, box, 0, bGeo );
-  
+
       pSrc = pData;
       OutputMifObject( 1, 0, &mifFile2, &midFile2, ( nMode & CM_COORD_CONVERT ) ? pcf : 0,
                        HR.Version, &pSrc, pDrh->GetClass(), bGeo, ksi_map );
@@ -1762,7 +1768,7 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
     int m = ngr > 1 ? ~0x3 : ~0x1;
     bNewMap[byTable?b:t] &= m;
     bNewAll &= m;
-    ++nObj;       
+    ++nObj;
   }
 
   pDlg->SetReport( nTotal, nObj, nErr, 1 );
@@ -1771,79 +1777,79 @@ MapUpdater::GPL2MIF( CConvDlg* pDlg,
 }
 //=====================================================================
 static int
-OutputGeoCoord( std::ofstream& out, int nPnt, CPoint* pPnt,
-                CIdent id, int bEnbound, int nMode ) 
+OutputGeoCoord( ofstream& out, int nPnt, CPoint* pPnt,
+                CIdent id, int bEnbound, int nMode )
 {
-	int bTm = MerkatorData.TrueMerkator();
-	int bRg = 0;
+  int bTm = MerkatorData.TrueMerkator();
+  int bRg = 0;
 
   double mvxy[N_REP][N_REP+2];
   if( !bTm )
-	{
+  {
     CPoint* pp = pPnt;
     int x = 0, y = 0;
     double sx = 0, sy = 0;
     for( int i = nPnt ; --i >= 0 ; ++pp )
-		{
+    {
       sx += pp->x;
       sy += pp->y;
-		}
-		CPoint sp( sx / nPnt, sy / nPnt );
-    bRg = CalcPlan2Merk( sp, mvxy );				
-	}
+    }
+    CPoint sp( sx / nPnt, sy / nPnt );
+    bRg = CalcPlan2Merk( sp, mvxy );
+  }
 
   CPoint* pp = pPnt;
   for( int i = nPnt + bEnbound, n = 0 ; --i >= 0 ; ++pp, ++n )
   {
     Polar pc;
-		CPoint pt( *pp );
+    CPoint pt( *pp );
 
-		if( bEnbound && !i )
-			pp = pPnt;
+    if( bEnbound && !i )
+      pp = pPnt;
 
     if( bTm )
-		{ 
-			Point t( pp->x, pp->y );
+    {
+      CPoint t( pp->x, pp->y );
       MerkatorData.Prj2Pol( t, pc );
       t = MerkatorData.Pol2Dec( pc );
-			pt.x = t.x;
-			pt.y = t.y;
-		}
-		else
+      pt.x = t.x;
+      pt.y = t.y;
+    }
+    else
     if( bRg )
     {
       double dv[2] = { pp->x, pp->y };
       Plan2Merk( dv, mvxy );
-			Point t( dv[0], dv[1] );
-			pc = MerkatorData.Dec2Pol( t );
-			pt.x = dv[0] * 1e2 / SmInUnit;
-			pt.y = dv[1] * 1e2 / SmInUnit;
+      CPoint t( dv[0], dv[1] );
+      pc = MerkatorData.Dec2Pol( t );
+      pt.x = dv[0] * 1e2 / SmInUnit;
+      pt.y = dv[1] * 1e2 / SmInUnit;
     }
-    
-		out << id.Class() << ';' << id.Table() << ';' << id.Entry() << ';' << n << ';';
 
-		if( nMode & CM_OUTPUT_GEO_METR )
-		{
-  		char dpx[32], dpy[32];
-      sprintf( dpx, "%1.2f", pt.x  * 1e-2 * SmInUnit  );
-      sprintf( dpy, "%1.2f", pt.y  * 1e-2 * SmInUnit  );
-      out << dpx << ';' << dpy << std::endl;
-		}
-		else
-		{
-  		char lat[32], lon[32];
-      sprintf( lat, "%1.6f", pc.lat / Deg );
-      sprintf( lon, "%1.6f", pc.lon / Deg );
-      out << lon << ';' << lat << std::endl;
-		}
+    out << id.Class() << ';' << id.Table() << ';' << id.Entry() << ';' << n << ';';
+
+    if( nMode & CM_OUTPUT_GEO_METR )
+    {
+      char dpx[32], dpy[32];
+      sprintf_s( dpx, "%1.2f", pt.x  * 1e-2 * SmInUnit  );
+      sprintf_s( dpy, "%1.2f", pt.y  * 1e-2 * SmInUnit  );
+      out << dpx << ';' << dpy << endl;
+    }
+    else
+    {
+      char lat[32], lon[32];
+      sprintf_s( lat, "%1.6f", pc.lat / Deg );
+      sprintf_s( lon, "%1.6f", pc.lon / Deg );
+      out << lon << ';' << lat << endl;
+    }
   }
-	if( bRg )
-	  MerkatorData.DeinitLocal();
+  if( bRg )
+    MerkatorData.DeinitLocal();
   return 1;
 }
 //=====================================================================
 static void
-OutputObjectGeoCoord( std::ofstream& out, void* pData, CIdent id, int nMode ) 
+OutputObjectGeoCoord( ofstream& out, void* pData, CIdent id, int nMode )
 {
   CDrawContainer* pCont = 0;
   void* pSrc = pData;
@@ -1869,26 +1875,26 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
                      int minIdent, int maxIdent,
                      CTime time1, CTime time2,
                      char* pClassMap, double pcf[2][3],
-										 Point* Rgn, Rect const* pBox )
+                     CPoint* Rgn, CRect const* pBox )
 {
   char bNewMap[FULL_RANGE];
   int bNewAll = 1;
 
-	memset( bNewMap, 1, sizeof bNewMap ); 
-	
-	int bRestore = ( nMode & CM_RESTORE ) != 0;
+  memset( bNewMap, 1, sizeof bNewMap );
+
+  int bRestore = ( nMode & CM_RESTORE ) != 0;
   int byTable  = nMode & CM_ASSAMBLY_BY_TABLE;
   int byAll    = nMode & CM_ASSAMBLY_ALL;
 
   char txDrive[_MAX_DRIVE], txDir[_MAX_DIR], txName[_MAX_FNAME], tmp[_MAX_EXT];
 
   _splitpath( txtPath, txDrive, txDir, txName, tmp );
-  
+
   int nTotal = 0, nObj = 0;
   long vers;
   ResultCode r = GetVersion( &vers );
 
-  std::ofstream out;
+  ofstream out;
   CString curTxt( "" );
 
   IdentDirectHashTab PosTab;
@@ -1900,7 +1906,7 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
     if( pDlg->GetStop() == 2 )
       break;
 
-    std::streampos inPos = PosTab.m_pTab[i].m_Pos;
+    streampos inPos = PosTab.m_pTab[i].m_Pos;
     r = GetRecord( inPos );
     if( r != R_OK )
       continue;
@@ -1913,27 +1919,27 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
         !IsValidIdent( nMode, ksi_ParamList, tableNum, minIdent, maxIdent, pDrh->GetTabIdent()))
       continue;
 
-    Rect Box( pDrh->GetBox());
-    
+    CRect Box( pDrh->GetBox());
+
     if(( nMode & CM_MOVE ) &&
         Box.left >= 0 &&
         Box.top  >= 0 &&
         Box.right  < HR.XSize &&
         Box.bottom < HR.YSize )
       continue;
-    
-    if( pBox && !pBox->IntersectRect( Box ))
-		  continue; 
+
+    if( pBox && !Intersect( *pBox, Box ))
+      continue;
 
     void* pSrc = pData;
 
     if( Rgn &&
         !BoxInRgn( pDrh->GetBox(), Rgn ) &&
-        !UpdateObjectCoord( &pSrc, 0, 0, Rgn ))
+        !UpdateObjectCoord( &pSrc, 0, 0, 0, Rgn ))
       continue;
 
     int t = pDrh->GetClass();
-  	int b = pDrh->GetTable();
+    int b = pDrh->GetTable();
 
     CString name;
     char txt[_MAX_PATH];
@@ -1950,8 +1956,8 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
     {
       if( out.is_open())
         out.close();
-      
-      out.open( txt, std::ios::out | ( bNew ? std::ios::trunc : std::ios::app ));
+
+      out.open( txt, ios::out | ( bNew ? ios::trunc : ios::app ));
 
       if( !out.good())
         return TraceError( MapNumber, R_NOFILE, txt );
@@ -1959,19 +1965,19 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
       curTxt = txt;
     }
 
-		if( nMode & CM_COORD_CONVERT )
+    if( nMode & CM_COORD_CONVERT )
     {
       pSrc = pData;
-      UpdateObjectCoord( &pSrc, pcf, 0 );
+      UpdateObjectCoord( &pSrc, pcf, 0, 0 );
       pSrc = pData;
-		}
+    }
 
     if( nMode & CM_OUTPUT_GEO )
     {
       if( bNew )
-				out << "CLASS_ID;TAB_ID;OBJ_ID;NUM;"   
-					  << (( nMode & CM_OUTPUT_GEO_METR ) ? "X;Y" : "LONGITUTE;LATITUDE" )
-					  << std::endl;
+        out << "CLASS_ID;TAB_ID;OBJ_ID;NUM;"
+        << (( nMode & CM_OUTPUT_GEO_METR ) ? "X;Y" : "LONGITUTE;LATITUDE" )
+        << endl;
       OutputObjectGeoCoord( out, pData, pDrh->GetIdent(), nMode );
     }
     else
@@ -1995,11 +2001,11 @@ MapUpdater::GPL2TXT( CConvDlg* pDlg,
 //=====================================================================
 int
 MapUpdater::ksi2gpl( int nMode, int nNode, ksi_obj ksi_val, CIdent Id,
-                     double pcf[2][3], double utm[4], std::ofstream& log, int oldEntry )
+                     double pcf[2][3], ofstream& log, int oldEntry )
 {
 //KsiCall( "tk-box", ksi_val, 0 );
   if( !KSI_LIST_P( ksi_val ))
-	  return -1;
+    return -1;
 
   TGstream dst;
   dword mg = REPMAGIC;
@@ -2007,39 +2013,42 @@ MapUpdater::ksi2gpl( int nMode, int nNode, ksi_obj ksi_val, CIdent Id,
 
   ResultCode r = WriteData( 0, pDrh->GetRecPtr(), pDrh->GetRecSize(), &dst );
   if( r != R_OK )
-	  return -1;
+    return -1;
 
-	int pos = dst.tellp();
+  int pos = dst.tellp();
 
   char* pData = dst.str() + pos;
   void* pSrc;
 
   SHAPE_NDX* pSh = &CDrawObject::m_ShapeNdx[Id.Class()];
-	SetShapeKey( ksi_val, pSh );
-	
+  SetShapeKey( ksi_val, pSh );
+
   r = ConvertObject( HR.Version, ksi_val, dst );
 
   if( r != R_OK )
-	  return -1;
-              
-  if( pcf && ( nMode & CM_COORD_CONVERT ) || utm && ( nMode & CM_UTM_CONVERT ))
+    return -1;
+
+  if( pcf && ( nMode & CM_COORD_CONVERT ))
   {
     pSrc = pData;
-    UpdateObjectCoord( &pSrc, pcf, utm );
+    UpdateObjectCoord( &pSrc, pcf, 0, 0 );
 
     pSrc = pData;
-		ksi_obj ksi_cont = ConvertObject( HR.Version, &pSrc, 1 );
+    ksi_obj ksi_cont = ConvertObject( HR.Version, &pSrc, 1 );
 
+    ksi_defsym( "is-convertion?", ksi_true, ksi_current_env());
     ksi_obj ksi_val = KsiCall( "rebuild-object",
                                 ksi_int2num( Id.Class()), ksi_int2num( Id.Status()),
                                 ksi_int2num( Id.Class()), ksi_int2num( Id.Status()),
                                 ksi_nil, ksi_cont, 0 );
+    ksi_defsym( "is-convertion?", ksi_false, ksi_current_env());
 
-		SetShapeKey( ksi_val, pSh );
+    SetShapeKey( ksi_val, pSh );
 
-		dst.seekp( pos );
+    dst.seekp( pos );
     r = ConvertObject( HR.Version, ksi_val, dst );
-	}
+
+  }
 
   pSrc = pData;
   CDrawObject::SetDrawnClass( Id.Class());
@@ -2049,11 +2058,11 @@ MapUpdater::ksi2gpl( int nMode, int nNode, ksi_obj ksi_val, CIdent Id,
     return -2;
 
   CRect pr( 0, 0, HR.XSize, HR.YSize );
-  
+
   if( !CRect().IntersectRect( &box, &pr ))
     return -3;
 
-  pDrh->SetBox( *((Rect*)&box ));
+  pDrh->SetBox( box );
 
   pDrh->SetMagic( OBJMAGIC );
   pDrh->SetSize( dst.tellp());
@@ -2068,7 +2077,7 @@ MapUpdater::ksi2gpl( int nMode, int nNode, ksi_obj ksi_val, CIdent Id,
 
   if( nMode & CM_REMOVE_DUPLICATES )
   {
-    Rect rct( pDrh->GetBox());
+    CRect rct( pDrh->GetBox());
     TGstream src;
     int ccnt;
     r = SelectByRect( rct, pDrh->GetClass(), src, &ccnt );
@@ -2116,20 +2125,19 @@ PutError( ksi_obj ksi_def, ksi_obj ksi_log, int ec = 0 )
 //=====================================================================
 int
 MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
-														 ksi_obj ksi_ParamList,
+                             ksi_obj ksi_ParamList,
                              int nMode, int nNode,
                              ksi_obj ksi_class_cnv_proc,
                              ksi_obj ksi_table_cnv_proc,
                              ksi_obj ksi_node_cnv_proc,
                              char* pClassMap,
-														 double pcf[2][3],
-														 double utm[4],
-                             std::ofstream& log )
+                             double pcf[2][3],
+                             ofstream& log )
 {
 
-	CSize ps( pView->GetDocument()->GetSize());
-	Point pt( ps.cx /= 2, ps.cy /= 2 );
-	KsiCall( "set-obj-scale-factor!", ksi_double2num( MerkatorData.ScaleFactor( pt )), 0 );
+  CSize ps( pView->GetDocument()->GetSize());
+  CPoint pt( ps.cx /= 2, ps.cy /= 2 );
+  KsiCall( "set-obj-scale-factor!", ksi_double2num( MerkatorData.ScaleFactor( pt )), 0 );
 
   if( !KSI_LIST_P( ksi_def ))
     return PutError( ksi_def, ksi_log );
@@ -2138,48 +2146,48 @@ MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
   ksi_obj ksi_status = ksi_assv_ref( ksi_def, ksi_keyword2symbol( keyStatus ));
   ksi_obj ksi_old_class  = ksi_class;
   ksi_obj ksi_old_status = ksi_status;
-  
-	ksi_obj ksi_table  = ksi_assv_ref( ksi_def, ksi_keyword2symbol( keyTable ));
+
+  ksi_obj ksi_table  = ksi_assv_ref( ksi_def, ksi_keyword2symbol( keyTable ));
   ksi_obj ksi_entry  = ksi_assv_ref( ksi_def, ksi_keyword2symbol( keyEntry ));
   ksi_obj ksi_node   = ksi_assv_ref( ksi_def, ksi_keyword2symbol( keyNode ));
 
-	ksi_obj ksi_par = ksi_nil;
-  
+  ksi_obj ksi_par = ksi_nil;
+
   if( nMode & CM_FLTER_ID_LIST )
   {
     ksi_obj ksi_id = ksi_cons( ksi_table, ksi_entry );
-		ksi_obj ksi_pr = ksi_assoc_ref( ksi_ParamList, ksi_id, 0 );
+                ksi_obj ksi_pr = ksi_assoc_ref( ksi_ParamList, ksi_id, 0 );
     if( KSI_FALSE_P( ksi_pr ) && KSI_FALSE_P( ksi_member( ksi_id, ksi_ParamList, 0 )))
-		  return 0;
+      return 0;
 
-		if( nMode & CM_OBJECTS_CONVERT )
-		{
-			ksi_par = ksi_pr;
+    if( nMode & CM_OBJECTS_CONVERT )
+    {
+      ksi_par = ksi_pr;
 
-    	ksi_obj ksi_i = ksi_assv_ref( ksi_par, keyTable );
-	    if( KSI_EINT_P( ksi_i ))
-	      ksi_table = ksi_i;
+      ksi_obj ksi_i = ksi_assv_ref( ksi_par, keyTable );
+      if( KSI_EINT_P( ksi_i ))
+        ksi_table = ksi_i;
 
-	    ksi_i = ksi_assv_ref( ksi_par, keyObject );
-	    if( KSI_EINT_P( ksi_i ))
-	      ksi_entry = ksi_i;
+      ksi_i = ksi_assv_ref( ksi_par, keyObject );
+      if( KSI_EINT_P( ksi_i ))
+        ksi_entry = ksi_i;
 
-	    ksi_i = ksi_assv_ref( ksi_par, keyClass );
-	    if( KSI_EINT_P( ksi_i ))
-	      ksi_class = ksi_i;
+      ksi_i = ksi_assv_ref( ksi_par, keyClass );
+      if( KSI_EINT_P( ksi_i ))
+        ksi_class = ksi_i;
 
-  	  ksi_i = ksi_assv_ref( ksi_par, keyStatus );
-	    if( KSI_EINT_P( ksi_i ))
-	      ksi_status = ksi_i;
+      ksi_i = ksi_assv_ref( ksi_par, keyStatus );
+      if( KSI_EINT_P( ksi_i ))
+        ksi_status = ksi_i;
 
-	    ksi_i = ksi_assv_ref( ksi_par, keyNode );
-	    if( KSI_EINT_P( ksi_i ))
-	      ksi_node = ksi_i;
-		}
+      ksi_i = ksi_assv_ref( ksi_par, keyNode );
+      if( KSI_EINT_P( ksi_i ))
+        ksi_node = ksi_i;
+    }
   }
-	
-	if( KSI_FALSE_P( ksi_node ))
-    ksi_node = ksi_zero;
+
+  if( KSI_FALSE_P( ksi_node ))
+  ksi_node = ksi_zero;
 
   if( ksi_procedure_p( ksi_node_cnv_proc ))
   {
@@ -2209,7 +2217,7 @@ MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
      }
   }
 
-  int tclass  = ksi_num2int( ksi_class ); 
+  int tclass  = ksi_num2int( ksi_class );
   int tstatus = ksi_num2int( ksi_status );
 
   if( !TestInclude( pClassMap, tclass ))
@@ -2217,7 +2225,7 @@ MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
 
   if( !( nMode & CM_SET_NODE ))
     nNode = ksi_num2int( ksi_node );
-  
+
   if( ksi_procedure_p( ksi_table_cnv_proc ))
   {
     ksi_obj ksi_vl = ksi_apply_2_with_catch( ksi_table_cnv_proc, ksi_table, ksi_entry );
@@ -2243,7 +2251,7 @@ MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
 
   if( bFound && ( nMode & CM_CREATE_NEW ))
     Id.SetEntry( TabIdentIndex.GetUniId( ttable ));
-        
+
   if( !bWrite && !( nMode & CM_AUTOBUILD ))
     return 0;
 
@@ -2253,7 +2261,7 @@ MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
   ksi_obj ksi_cont = ksi_assv( keyCont, ksi_def );
   ksi_defsym( "is-convertion?", ksi_true, ksi_current_env());
 
-	//KsiCall( "tk-box", ksi_cont, 0 );
+//KsiCall( "tk-box", ksi_cont, 0 );
   ksi_obj ksi_val = KsiCall( "rebuild-object",
                               ksi_old_class, ksi_old_status,
                               ksi_class, ksi_status,
@@ -2262,10 +2270,10 @@ MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
 //KsiCall( "tk-box", ksi_val, 0 );
 
   int nObj = 0, cr = 1;
-  
+
   if( bWrite )
   {
-    cr = ksi2gpl( nMode, nNode, ksi_val, Id, pcf, utm, log, tentry );
+    cr = ksi2gpl( nMode, nNode, ksi_val, Id, pcf, log, tentry );
     if( cr == 1 )
       ++nObj;
   }
@@ -2277,29 +2285,29 @@ MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
     return PutError( ksi_def, ksi_log, 1 - cr );
 
   if( nMode & CM_AUTOBUILD )
-	{
-  	ksi_obj ksi_lst = KsiCall( "build-in-context", ksi_class, ksi_status, ksi_val, 0 );
-	  if( KSI_LIST_P( ksi_lst ))
-		{
-			while( !KSI_NULL_P( ksi_lst ))
-			{
- 			  ksi_obj ksi_val = KSI_CAR( ksi_lst );
-				ksi_lst = KSI_CDR( ksi_lst );
-				if( KSI_LIST_LEN( ksi_val ) != 3 )
-  				continue;
-	  		
+  {
+    ksi_obj ksi_lst = KsiCall( "build-in-context", ksi_class, ksi_status, ksi_val, 0 );
+    if( KSI_LIST_P( ksi_lst ))
+    {
+      while( !KSI_NULL_P( ksi_lst ))
+      {
+        ksi_obj ksi_val = KSI_CAR( ksi_lst );
+        ksi_lst = KSI_CDR( ksi_lst );
+        if( KSI_LIST_LEN( ksi_val ) != 3 )
+          continue;
+
         ksi_class = KSI_CAR( ksi_val );
-		  	ksi_status = KSI_CAR( KSI_CDR( ksi_val ));
-			  ksi_cont = KSI_CAR( KSI_CDR( KSI_CDR( ksi_val )));
+        ksi_status = KSI_CAR( KSI_CDR( ksi_val ));
+        ksi_cont = KSI_CAR( KSI_CDR( KSI_CDR( ksi_val )));
         ksi_cont = KsiCall( "create-object",
                             ksi_class, ksi_status,
                             ksi_cont, 0 );
         CIdent Id( ksi_num2int( ksi_class ), ksi_num2int( ksi_status ), 0, TabIdentIndex.GetUniId( 0 ));
-        nObj += cr = ksi2gpl( nMode, nNode, ksi_cont, Id, pcf, utm, log, Id.Entry());
+        nObj += cr = ksi2gpl( nMode, nNode, ksi_cont, Id, pcf, log, Id.Entry());
         if( cr == -1 )
           return -R_BADSTREAM;
       }
-	  }
+    }
   }
   return nObj;
 }
@@ -2307,16 +2315,16 @@ MapUpdater::UpdateKsiObjDef( ksi_obj ksi_def, ksi_obj ksi_log,
 ResultCode
 MapUpdater::TXT2GPL( CConvDlg* pDlg,
                      char const* txtPath, char const* errPath,
-										 ksi_obj ksi_ParamList,
+                     ksi_obj ksi_ParamList,
                      int nMode, int nNode, char* pClassMap,
-										 double pcf[2][3], double utm[4] )
+                     double pcf[2][3] )
 {
   if( _access( txtPath, 0 ) < 0 )
     return TraceError( MapNumber, R_NOFILE, txtPath );
 
   ksi_obj ksi_log;
 
-  std::ofstream tstStream( errPath, std::ios::out | std::ios::trunc );
+  ofstream tstStream( errPath, ios::out | ios::trunc );
   if( tstStream.good())
   {
     tstStream.close();
@@ -2325,7 +2333,7 @@ MapUpdater::TXT2GPL( CConvDlg* pDlg,
   else
     return TraceError( MapNumber, R_NOFILE, errPath );
 
-  std::ofstream log;  
+  ofstream log;
   ResultCode r = CreateLog( errPath, log );
   if( r != R_OK )
     return r;
@@ -2333,7 +2341,7 @@ MapUpdater::TXT2GPL( CConvDlg* pDlg,
   if( nMode & ( CM_CLASS_CONVERT | CM_TABLE_CONVERT ))
     ksi_load( ksi_str02string( "mole_cnv" ));
 
-  ksi_obj ksi_class_cnv_proc = ( nMode & CM_CLASS_CONVERT ) ? 
+  ksi_obj ksi_class_cnv_proc = ( nMode & CM_CLASS_CONVERT ) ?
     ksi_eval_str_with_catch( "class-cnv" ) : ksi_false;
 
   ksi_obj ksi_table_cnv_proc = ( nMode & CM_TABLE_CONVERT ) ?
@@ -2360,13 +2368,13 @@ MapUpdater::TXT2GPL( CConvDlg* pDlg,
 
     pDlg->SetReport( nTotal++, nObj, nErr );
 
-    int cr = UpdateKsiObjDef( ksi_def, ksi_log, 
-			                        ksi_ParamList,
-              			          nMode, nNode,
+    int cr = UpdateKsiObjDef( ksi_def, ksi_log,
+                              ksi_ParamList,
+                              nMode, nNode,
                               ksi_class_cnv_proc,
                               ksi_table_cnv_proc,
                               ksi_node_cnv_proc,
-                              pClassMap, pcf, utm, log );
+                              pClassMap, pcf, log );
     if( cr == -R_BADSTREAM )
       r = R_BADSTREAM;
     else
@@ -2390,7 +2398,7 @@ ExtractSubs( char* rp, char dlm, int ns )
 {
   static char sp[] = " \t", un[] = ".", e[] = "", q[] = "\\\"";
   static char tmp[FULL_RANGE];
-  char* wp = tmp;  
+  char* wp = tmp;
 
   struct branch
   {
@@ -2400,8 +2408,8 @@ ExtractSubs( char* rp, char dlm, int ns )
   #define B -2
   #define G -1
 
-  static branch ST[][5] = 
-  { 
+  static branch ST[][5] =
+  {
  // '\0'       ';'         '\"'     ' '     'a'
     {{ B, 0 }, { G, e }, { 2, e }, { 0, e }, { 1, 0 }}, /* 0 */
     {{ G, e }, { G, e }, { B, 0 }, { 1, 0 }, { 1, 0 }}, /* 1 */
@@ -2424,7 +2432,7 @@ ExtractSubs( char* rp, char dlm, int ns )
         return un;
       if( bp->Prefix )
       {
-        strcpy( wp, bp->Prefix );
+        strcpy_s( wp, sizeof tmp - ( wp - tmp ), bp->Prefix );
         wp += strlen( bp->Prefix );
       }
       else
@@ -2440,11 +2448,11 @@ static enum KEY_WORD
 {
   KW_NONE,
   KW_REGION,
-  KW_PLINE, 
-  KW_LINE, 
-  KW_POINT, 
-  KW_TEXT, 
-  KW_RECT, 
+  KW_PLINE,
+  KW_LINE,
+  KW_POINT,
+  KW_TEXT,
+  KW_RECT,
   KW_ELLIPSE,
   KW_ARC,
   KW_ROUNDRECT,
@@ -2454,27 +2462,27 @@ static enum KEY_WORD
 static KEY_WORD
 Keyword2num( CString const& s )
 {
-  static char* ttl[] =  
-  { 
+  static char* ttl[] =
+  {
     "none",
-    "region", 
-    "pline", 
-    "line", 
-    "point", 
-    "text", 
-    "rect", 
+    "region",
+    "pline",
+    "line",
+    "point",
+    "text",
+    "rect",
     "ellipse",
     "arc",
     "roundrect",
     "collection"
   };
-  int i;
-  for( i = CELEM( ttl ) ; --i >= 0 && s != ttl[i] ; );
+  int i = CELEM( ttl );
+  while( --i >= 0 && s != ttl[i] );
   return KEY_WORD( i );
 }
 //=====================================================================
 static int
-FindKey( std::ifstream& Stream, char const* key, int bMess = 0 )
+FindKey( ifstream& Stream, char const* key, int bMess = 0 )
 {
   Stream.seekg( 0 );
   Stream.clear( 0 );
@@ -2493,7 +2501,7 @@ FindKey( std::ifstream& Stream, char const* key, int bMess = 0 )
                "не найдено предложение - " );
     ErrBox( t + key );
   }
-  
+
   return !Stream.eof();
 }
 //=====================================================================
@@ -2556,7 +2564,7 @@ MakePost( ksi_obj ksi_def, char* mid = 0, SubParam* psp = 0, double pcf[2][3] = 
         {
           double xx = atof( ExtractSubs( mid, dlm, ps->xVal ));
           double yy = atof( ExtractSubs( mid, dlm, ps->yVal ));
-          CPoint p( UpdatePoint( xx, yy, pcf ));
+          CPoint p( MapUpdater::UpdatePoint( xx, yy, pcf ));
           x = p.x;
           y = p.y;
           ksi_obj ksi_pl = KSI_LIST2( keyPoly, ksi_cons( ksi_int2num( x ), ksi_int2num( y )));
@@ -2565,11 +2573,11 @@ MakePost( ksi_obj ksi_def, char* mid = 0, SubParam* psp = 0, double pcf[2][3] = 
         {
           int a = 10 * atoi( ExtractSubs( mid, dlm, ps->aVal ));
           int x1 = x + 1000 * cos( a ), y1 = y - 1000 * sin( a );
-          ksi_pl = KSI_LIST3( keyPoly, ksi_cons( ksi_int2num( x ), ksi_int2num( y )), 
+          ksi_pl = KSI_LIST3( keyPoly, ksi_cons( ksi_int2num( x ), ksi_int2num( y )),
                                        ksi_cons( ksi_int2num( x1 ), ksi_int2num( y1 )));
         }
       }
-      ksi_obj ksi_tl = 
+      ksi_obj ksi_tl =
         KSI_LIST3( keyText, ksi_pl,
                    ksi_cons( keyString, ksi_str02string( Subs )));
       ksi_add_item( ksi_def, ksi_tl );
@@ -2582,11 +2590,11 @@ typedef CList<CPoint*,CPoint*&> PtlList;
 //=====================================================================
 typedef CList<RegionDef*,RegionDef*&> RegionList;
 //=====================================================================
-ResultCode 
+ResultCode
 MapUpdater::MIF2GPL( CConvDlg* pDlg,
                      char const* mifPath, char const* errPath,
-                     int nMode, int nNode, 
-                     int classNumber, int statusNumber, 
+                     int nMode, int nNode,
+                     int classNumber, int statusNumber,
                      int tableNumber, int entryNumber,
                      CString subsNumber,
                      int keyNumber, CString keyStr,
@@ -2595,7 +2603,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   CWaitCursor wc;
 
   SHAPE_TYPE shape = CDrawObject::GetShapeType( classNumber );
-  
+
   int bNeedRegion = shape == SH_POLYGON;
   int bNeedBPline = shape == SH_BPOLYLINE;
   int bNeedPline  = shape == SH_POLYLINE;
@@ -2605,7 +2613,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   int mMode = nMode & ~CM_IMPROVE & ~CM_COORD_CONVERT;
   if( !( nMode & CM_SET_NODE ))
     nNode = 0;
-  
+
   OFSTRUCT ofs;
   if( OpenFile( mifPath, &ofs, OF_EXIST ) < 0 )
   {
@@ -2620,11 +2628,11 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   _makepath( midPath, iv, ip, in, ".mid" );
   _makepath( mndPath, iv, ip, in, ".mnd" );
 
-  std::ifstream mifstr( mifPath, std::ios::in, std::filebuf::sh_read );
+  ifstream mifstr( mifPath, ios::in, SH_DENYWR );
 
   ksi_obj ksi_log;
 
-  std::ofstream tstStream( errPath, std::ios::out | std::ios::trunc );
+  ofstream tstStream( errPath, ios::out | ios::trunc );
   if( tstStream.good())
   {
     tstStream.close();
@@ -2633,7 +2641,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   else
     return TraceError( MapNumber, R_NOFILE, errPath );
 
-  std::ofstream log;  
+  ofstream log;
   r = CreateLog( errPath, log );
   if( r != R_OK )
     return r;
@@ -2642,7 +2650,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   char mid[FULL_RANGE];
   CString s;
   char dlm = ';';
-  int  clm = 0; 
+  int  clm = 0;
 
   if( !( nMode & CM_COORD_CONVERT ))
   {
@@ -2656,8 +2664,8 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
         static CString un[] = { "cm", "dm", "m" };
         static double  cf[] = {   1,   10, 100, 100 };
         tst[l-1] = 0;
-		int i;
-        for(i = 0 ; i < CELEM( un ) && un[i] != tst + 1 ; ++i );
+        int i;
+        for( i = 0 ; i < CELEM( un ) && un[i] != tst + 1 ; ++i );
 
         long SmInUnit;
         GetUnitDec( &SmInUnit );
@@ -2670,15 +2678,15 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
     pcf[0][0] = pcf[1][1] = k;
     pcf[0][1] = pcf[0][2] = pcf[1][0] = pcf[1][2] = 0;
   }
-  
+
   if( FindKey( mifstr, "delimiter" ))
   {
     mifstr >> tst;
     dlm = tst[1];
   }
 
-  std::ifstream midstr;
-  std::ofstream mndstr;
+  ifstream midstr;
+  ofstream mndstr;
 
   SubParam SN[8];
   int nSub = 0;
@@ -2710,9 +2718,9 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
 
     p = np;
   }
-  
+
   int bHasMid = OpenFile( midPath, &ofs, OF_EXIST ) >= 0;
-  int bUseKey = nMode & CM_KEY_SELECT; 
+  int bUseKey = nMode & CM_KEY_SELECT;
 
   if(( bUseKey || nSub > 0 ) && !bHasMid )
   {
@@ -2722,8 +2730,8 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
 
   if( bHasMid )
   {
-    midstr.open( midPath, std::ios::in, std::filebuf::sh_read );
-    mndstr.open( mndPath, std::ios::out| std::ios::trunc );
+    midstr.open( midPath, ios::in, SH_DENYWR );
+    mndstr.open( mndPath, ios::out|ios::trunc );
   }
 
   if( FindKey( mifstr, "columns" ))
@@ -2747,8 +2755,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
       Keys.Add( p );
   }
 
-  int i;
-  for( i = nSub ; --i >= 0 ; )
+  for( int i = nSub ; --i >= 0 ; )
   {
     CString a ("В MID-файле отсутствует поле " );
     CString b;
@@ -2763,7 +2770,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
     else
     if( SN[i].aVal > clm )
       b.Format( "%d", SN[i].aVal );
-    
+
     if( !b.IsEmpty())
     {
       ErrBox( a + b );
@@ -2782,20 +2789,20 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   mifstr.getline( tst, sizeof tst );
 
   mndstr << "TG_ID" << dlm;
-  for( i = clm ; --i >= 0 ; ) 
+  for( int i = clm ; --i >= 0 ; )
   {
     mifstr.getline( tst, sizeof tst );
     char w[256];
-    sscanf( tst, "%s", w );    
+    sscanf( tst, "%s", w );
     mndstr << w;
     if( i )
       mndstr << dlm;
-  }  
-  mndstr << std::endl;
+  }
+  mndstr << endl;
 
   if( !FindKey( mifstr, "data", 1 ))
     return R_OK;
-  
+
   int ObjCnt = 0;
 
   int fieldNum = entryNumber;
@@ -2807,7 +2814,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   int fontSize = 0;
   ksi_obj ksi_cln = KSI_MK_SINT( classNumber );
   ksi_obj ksi_fsk = ksi_str02key( "font-size" );
-  for( i = 2 ; --i >= 0 && fontSize == 0 ; )
+  for( int i = 2 ; --i >= 0 && fontSize == 0 ; )
   {
     ksi_obj par_lst = ksi_eval_str( i ? "abstract-param-list" : "concret-param-list" );
     if( !KSI_PLIST_P( par_lst ))
@@ -2817,7 +2824,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
       continue;
     ksi_par = ksi_assv_ref( ksi_par, ksi_fsk );
     if( KSI_NUM_P( ksi_par ))
-      fontSize = ksi_num2int( ksi_par );    
+      fontSize = ksi_num2int( ksi_par );
   }
 
   while( r == R_OK && !mifstr.eof())
@@ -2847,12 +2854,11 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
       if( bUseKey )
       {
         char* key = ExtractSubs( mid, dlm, keyNumber );
-		int i;
-        for(i = Keys.GetSize() ;  --i >= 0 && Keys[i] != key ; );
+        for( int i = Keys.GetSize() ;  --i >= 0 && Keys[i] != key ; );
         if( i < 0 )
           continue;
       }
-      
+
       if( ColCnt == 0 )
       {
         if( !( nMode & CM_NUMERATE_FROM ))
@@ -2896,12 +2902,12 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
           int npt;
           mifstr >> npt;
 
-					if( mifstr.eof())
-					{
-						npl = i;
-						break;
-					}
-          
+          if( mifstr.eof())
+          {
+            npl = i;
+            break;
+          }
+
           CPoint* pp = (CPoint*)new CPoint[npt+1];
           CPoint* p0 = pp;
           *pp++ = CPoint( npt, 0 );
@@ -2932,7 +2938,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
           if( !p0->x )
             continue;
 
-          int h = pDlg->GetDlgItemInt( IDC_CVD_IMPROVE_POLY_PARAM_EDIT );          
+          int h = pDlg->GetDlgItemInt( IDC_CVD_IMPROVE_POLY_PARAM_EDIT );
           if(( bNeedRegion || bNeedBPline ) && ( nMode & CM_IMPROVE ))
           {
             int n = p0->x;
@@ -2968,12 +2974,12 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
             POSITION pos;
             CWaitCursor wc;
 
-            int NP = ( npl - 1 ) * 2; 
+            int NP = ( npl - 1 ) * 2;
             int bDD = 0;
 
             for( pos = rgns.GetHeadPosition() ; !bDD && pos ;
                  NP += rgns.GetNext( pos )->pPoly->x, bDD = NP >= 65536 );
-          
+
             if( bDD )
               nMode |= CM_SEPARATE_POLY;
 
@@ -2984,67 +2990,67 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
             {
               // splitting by inners
               while( rgnc = mrgn.RemoveHead())
-              {              
-                pDlg->SetDecomp( mrgn.Size(), ssl.Size());
-								if( rgnc->SplitByInner( irgn, mrgn ))
-								  delete rgnc;
-								else
-									ssl.AddRgn( rgnc );
-              }
-              
-							// updating crosses
-							for( RegionDef** ppr = irgn.GetHeadPtr() ; *ppr ; )
               {
- 								RegionDef* pr = *ppr;
+                pDlg->SetDecomp( mrgn.Size(), ssl.Size());
+                if( rgnc->SplitByInner( irgn, mrgn ))
+                  delete rgnc;
+                else
+                  ssl.AddRgn( rgnc );
+              }
+
+              // updating crosses
+              for( RegionDef** ppr = irgn.GetHeadPtr() ; *ppr ; )
+              {
+                RegionDef* pr = *ppr;
                 RgnPool trgn;
                 pDlg->SetDecomp( irgn.Size(), ssl.Size());
                 while( rgnc = ssl.RemoveHead())
-								{
-									if( rgnc->SubtractCrossed( pr, trgn ))
+                {
+                  if( rgnc->SubtractCrossed( pr, trgn ))
                     delete rgnc;
-									else
-										trgn.AddRgn( rgnc );
-								}
+                  else
+                    trgn.AddRgn( rgnc );
+                }
                 ssl = trgn;
                 if( pr->pPoly->y )
-								{
-									*ppr = pr->pNext;
-									irgn.DecSize();
+                {
+                  ppr = &pr->pNext;
+                  irgn.DecSize();
                   delete pr;
-								}
-								else
-									ppr = &pr->pNext;
+                }
+                else
+                  ppr = &pr->pNext;
               }
 
               // splitting by size
               if( decomposeSize )
-							{
+              {
                 decomposeSize = max( 64, decomposeSize );
                 while( rgnc = ssl.GetNext())
                   if( rgnc->pPoly->x > decomposeSize && rgnc->Split( ssl ))
                     delete rgnc;
                   else
                     mrgn.AddRgn( rgnc );
-							}
-							else
-								mrgn = ssl;
+              }
+              else
+                mrgn = ssl;
 
-							while( rgnc = irgn.RemoveHead())
+              while( rgnc = irgn.RemoveHead())
                 mrgn.AddRgn( rgnc );
             }
-						else
-						{
-							// updating inners
+            else
+            {
+              // updating inners
               while( rgnc = mrgn.RemoveHead())
-							{ 
-							  rgnc->SubtractInner( irgn );
+              {
+                rgnc->SubtractInner( irgn );
                 pDlg->SetDecomp( ssl.Size(), mrgn.Size());
                 ssl.AddRgn( rgnc );
-							}
+              }
 
-							mrgn = ssl;
+              mrgn = ssl;
 
-							while( rgnc = irgn.RemoveHead())
+              while( rgnc = irgn.RemoveHead())
                 mrgn.AddRgn( rgnc );
             }
 
@@ -3071,13 +3077,13 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
                 box |= *pp;
                 ksi_add_point( ksi_lst, *pp++ );
               }
-            
+
               ksi_add_item( ksi_def, KSI_LIST2( keyFplg, ksi_lst ));
               ksi_def = MakePost( ksi_def, mid, i == 0 ? SN : 0, pcf, nSub, dlm, box.CenterPoint(), fontSize );
               ksi_def_lst = ksi_cons( ksi_def, ksi_def_lst );
- 
+
               if( --NPL && bHasMid )
-                mndstr << entryNumber++ << dlm << mid << std::endl;
+                mndstr << entryNumber++ << dlm << mid << endl;
             }
             delete rgnc;
           }
@@ -3103,7 +3109,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
         }
       }
       break;
-      
+
       case KW_PLINE :
       {
         int npl = 1;
@@ -3138,7 +3144,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
               x = atof( b );
             mifstr >> b;
             y = atof( b );
-            
+
             if( x == 0 || y == 0 )
               continue;
             else
@@ -3156,7 +3162,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
             for( i = 0 ; i < np ; ++i )
             {
               ksi_add_point( ksi_lst, pnts[i] );
-              box |= pnts[i]; 
+              box |= pnts[i];
             }
           }
 
@@ -3172,13 +3178,13 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
           ksi_def_lst = ksi_cons( ksi_def, ksi_def_lst );
           if( nl && bHasMid )
           {
-            mndstr << entryNumber++ << dlm << mid << std::endl;
+            mndstr << entryNumber++ << dlm << mid << endl;
             mifstr >> npt;
           }
         }
         break;
       }
-      
+
       case KW_LINE :
       {
         char b[64];
@@ -3214,14 +3220,14 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
         ksi_def_lst = ksi_cons( ksi_def, ksi_def_lst );
         break;
       }
-      
+
       case KW_TEXT :
       {
         ksi_def = MakePref( classNumber, statusNumber, tableNumber, entryNumber, nNode );
         char t[1024], r[1024];
         char* p1;
         char* p2;
-        
+
         do
         {
           mifstr.getline( t, sizeof t );
@@ -3229,7 +3235,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
           p2 = strrchr( t, '\"' );
         }
         while( !mifstr.eof() && !( p1 && p2 && p1 < p2 ));
-        
+
         if( mifstr.eof())
           continue;
 
@@ -3266,7 +3272,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
               *pw++ = *pr;
           }
         *pw++ = 0;
-        
+
         double x0, y0, x1, y1, an = 0;
         double* pc[] = { &x0, &y0, &x1, &y1 };
 
@@ -3282,7 +3288,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
 
         if( kwn >= 0 )
           continue;
-        
+
         do
         {
           mifstr >> tst;
@@ -3300,12 +3306,12 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
           rx = pcf[0][0] < 0;
           ry = pcf[1][1] < 0;
         }
-        
+
         double W = x1 - x0, H = y1 - y0, h = H / ns;
 //        double lh = h * .1, hh = h * .9;
         double lh = 0, hh = h;
         double a = Deg2Rad( an ), si = ::sin( a ), co = ::cos( a );
-        
+
         double xs0 = x0 + hh * si;
         double ys0 = y1 - hh * co;
         double xs1 = x0 + lh * si;
@@ -3320,9 +3326,9 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
 
         CPoint b0( rx ? t3 : ry ? t0 : t1 );
         CPoint b1( rx ? t0 : ry ? t3 : t2 );
-        
-        ksi_obj ksi_tl = 
-          KSI_LIST3( keyText, 
+
+        ksi_obj ksi_tl =
+          KSI_LIST3( keyText,
                      KSI_LIST3( keyPoly, KsiPoint( b0 ), KsiPoint( b1 )),
                      ksi_cons( keyString, ksi_str02string( r )));
         ksi_add_item( ksi_def, ksi_tl );
@@ -3366,7 +3372,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
         int dx = abs( p1.x - p0.x );
         int dy = abs( p1.y - p0.y );
         int r = max( dx, dy ) / 2;
-        
+
         ksi_add_point( ksi_lst, p0 );
         ksi_add_point( ksi_lst, p1 );
 
@@ -3381,7 +3387,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
         p1.x = sx + r * cos( a1 );
         p1.y = sy + r * sin( a1 );
         ksi_add_point( ksi_lst, p1 );
-        
+
         ksi_add_item( ksi_def, KSI_LIST2( keyArc , ksi_lst ));
         ksi_def = MakePost( ksi_def, mid, SN, pcf, nSub, dlm, CPoint( sx, sy ), fontSize );
         ksi_def_lst = ksi_cons( ksi_def, ksi_def_lst );
@@ -3412,7 +3418,7 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
       }
       case KW_COLLECTION :
         mifstr >> ColCnt;
-        continue;        
+        continue;
     }
 
     pDlg->SetReport( nTotal++, nObj, nErr );
@@ -3420,12 +3426,12 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
     while( KSI_PLIST_P( ksi_def_lst ))
     {
       ksi_def = KSI_CAR( ksi_def_lst );
-//KsiCall( "tk-box", ksi_def, 0 ); 
-      ksi_def_lst = KSI_CDR( ksi_def_lst ); 
+//KsiCall( "tk-box", ksi_def, 0 );
+      ksi_def_lst = KSI_CDR( ksi_def_lst );
       ksi_obj ksi_dff = KsiCall( "update-lord-object", ksi_def, 0 );
       int cr = KSI_PLIST_P( ksi_dff ) ?
         UpdateKsiObjDef( ksi_dff, ksi_log, ksi_nil, mMode, nNode,
-                         ksi_false, ksi_false, ksi_false, 0, 0, 0, log ) :
+                         ksi_false, ksi_false, ksi_false, 0, 0, log ) :
         PutError( ksi_def, ksi_log, 2 );
       if( cr == -R_BADSTREAM )
         r = R_BADSTREAM;
@@ -3433,11 +3439,11 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
       if( cr < 0 )
         ++nErr;
       else
-			{
+      {
         nObj += cr;
-				if( bHasMid )
-          mndstr << entryNumber++ << dlm << mid << std::endl;
-			}
+        if( bHasMid )
+          mndstr << entryNumber++ << dlm << mid << endl;
+      }
 
       pDlg->SetReport( nTotal, nObj, nErr );
     }
@@ -3453,35 +3459,35 @@ MapUpdater::MIF2GPL( CConvDlg* pDlg,
   return r;
 }
 //=====================================================================
-ResultCode 
-MapUpdater::OutputLog( std::ofstream& out, int oldEntry, void* pSrc )
+ResultCode
+MapUpdater::OutputLog( ofstream& out, int oldEntry, void* pSrc )
 {
   static char dlm[] = ";";
 
   SYSTEMTIME st;
   GetSystemTime( &st );
   char date[1024];
-  sprintf( date, "%02d.%02d.%04d %02d:%02d", 
-           st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute );
+  sprintf_s( date, "%02d.%02d.%04d %02d:%02d",
+             st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute );
 
   ksi_obj ksiObj = ConvertObject( HR.Version, &pSrc, 1 );
   ksi_obj ksiVar = KsiCall( "unwrap", KSI_MK_SINT( pDrh->GetClass()),
                             KSI_MK_SINT( pDrh->GetStatus()), ksiObj, 0 );
   ksi_obj ksiNum = ksi_assv_ref( ksiVar, ksi_str02sym( "number" ));
 
-  out << pDrh->GetTable() << dlm                                  //TableNumber
-      << pDrh->GetEntry() << dlm                                  //TableObject 
+  out << pDrh->GetTable() << dlm                                  //TableNumber//TableNumber
+      << pDrh->GetEntry() << dlm                                  //TableObject
       << pDrh->GetClass() << dlm;                                 //GraphicsClass
   if( KSI_STR_P( ksiNum ))                                        //Numobj;
   {
     char t[1024];
-    strcpy( t, KSI_STR_PTR( ksiNum ));
+    strcpy_s( t, KSI_STR_PTR( ksiNum ));
     for( char* p = t ; p = strchr( p, '\n' ) ; *p++ = ' ' );
-    out << '\"' << t << '\"' << dlm;                          
+    out << '\"' << t << '\"' << dlm;
   }
   else
-    out << pDrh->GetEntry() << dlm;                                
-  out << dlm                                                       //Text1  
+    out << pDrh->GetEntry() << dlm;
+  out << dlm                                                       //Text1
       << dlm                                                       //Text2
       << date << dlm                                               //CreationTime
       << "?" << dlm                                                //Username
@@ -3493,13 +3499,13 @@ MapUpdater::OutputLog( std::ofstream& out, int oldEntry, void* pSrc )
       << "Конвертация" << dlm                                      //CmdName
       << "?" << dlm                                                //TableName
       << date << dlm                                               //CreationTime
-      << oldEntry << std::endl;                                         //TableObjectOld
+      << oldEntry << endl;                                         //TableObjectOld
 
   return R_OK;
 }
 //=====================================================================
-ResultCode 
-MapUpdater::CreateLog( char const* errPath, std::ofstream& out )
+ResultCode
+MapUpdater::CreateLog( char const* errPath, ofstream& out )
 {
   static char hd[] = "tab_id;obj_id;cls_id;numobj;par1;par2;"
                      "datemodif;username;comm;prdel;uzel;cmdid;"
@@ -3508,10 +3514,10 @@ MapUpdater::CreateLog( char const* errPath, std::ofstream& out )
   char buf1[_MAX_PATH], buf2[_MAX_FNAME], buf3[_MAX_FNAME], buf4[_MAX_FNAME];
   _splitpath( errPath, buf1, buf2, buf3, buf4 );
   _makepath( logPath, buf1, buf2, buf3, ".log" );
-  out.open( logPath, std::ios::out| std::ios::trunc, std::filebuf::sh_read );
+  out.open( logPath, ios::out|ios::trunc, SH_DENYWR );
   ResultCode r = out.bad() ? TraceError( MapNumber, R_NOFILE, logPath ) : R_OK;
   if( r == R_OK )
-    out << hd << std::endl;
+    out << hd << endl;
   return r;
 }
 //=====================================================================
@@ -3519,7 +3525,7 @@ int
 MapUpdater::CreatePosTab( IdentDirectHashTab * pIdTab, int bDelMode, int bIdentMode )
 {
   ResultCode r = R_OK;
-  for( std::streampos inPos = sizeof( DataFileHeadRec ) ;
+  for( streampos inPos = sizeof( DataFileHeadRec ) ;
        r == R_OK && inPos < HR.FreePos ; inPos += pDrh->GetSize())
   {
     r = GetRecord( inPos );
@@ -3537,7 +3543,7 @@ MapUpdater::CreatePosTab( IdentDirectHashTab * pIdTab, int bDelMode, int bIdentM
       ++pSrc;
 
   int l = pDst - pIdTab->m_pTab;
-  
+
   pSrc = pIdTab->m_pTab;
 
   for( int bs = 1 ; bs < l ; bs <<= 1 )

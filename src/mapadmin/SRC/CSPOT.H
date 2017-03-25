@@ -11,7 +11,7 @@ public:
   CSpot( CPoint p, int r = 0 ) : CPoint( p ), m_Radius( r ) {}
 
   int GetRadius() const { return m_Radius; }
-	CPoint CenterPoint() const { return *this; }
+  CPoint CenterPoint() const { return *this; }
   int DetectRect( CRect const& rect, int angle, int w = 0, int* pDist = 0 ) const;
   int DetectBar( CRect const& rect, int angle, int* pDist = 0 ) const;
   int DetectEllipse( CRect const& rect, int w, int* pDist = 0 ) const;
@@ -23,9 +23,9 @@ public:
   int DetectPolyline( CPoint const* points, int nPoints, int wl, int wh, int* pDist = 0 ) const;
   int DetectLine( CPoint const* line, int wl, int wh, int* pDist = 0 ) const;
   int DetectPolygon( CPoint const* points, int nPoints, int* pDist = 0 ) const;
-	int StrictPolyDetect( CPoint const* points, int nPoints, int* pDist ) const;
-	CRect Inflate( CRect& r ) const; 
-	operator CRect() const;
+  int StrictPolyDetect( CPoint const* points, int nPoints, int* pDist ) const;
+  CRect Inflate( CRect& r ) const;
+  operator CRect() const;
 };
 //=====================================================================
 #endif

@@ -75,9 +75,8 @@ CDrawContainer::RemoveHead()
 CVisiblePrim*
 CDrawContainer::FindIndex( int nIndex )
 {
-	CVisiblePrim* pPrim;
-  for( pPrim = m_pHead ; pPrim && --nIndex >= 0 ;
-       pPrim = pPrim->GetNext());
+  CVisiblePrim* pPrim;
+  for( pPrim = m_pHead ; pPrim && --nIndex >= 0 ; pPrim = pPrim->GetNext());
   return pPrim;
 }
 //=====================================================================
@@ -217,8 +216,8 @@ CDrawContainer::CalcBoundBox( CBox& box )
 int
 CDrawContainer::Detected( CSpot const& spot, int bStrict, int* pDist )
 {
-	int i;
-  for( i = m_nCount ; --i >= 0 ; )
+  int i = m_nCount;
+  while( --i >= 0 )
   {
     CVisiblePrim* p = FindIndex( i );
     int hr = m_bHR || m_bTHR && p->GetType() == KEY_TEXT;
@@ -239,8 +238,8 @@ CDrawContainer::GetRing( CSpot const& spot, CRect* rct )
     int hr = m_bHR || m_bTHR && p->GetType() == KEY_TEXT;
     if(( hr ? p->IsHigVisible() : p->IsLowVisible()) &&
        ( !p->IsSelVisible() || IsSelected() || m_bSAS ) &&
-			 p->GetRing( spot, rct ))
-			return 1;
+       p->GetRing( spot, rct ))
+      return 1;
   }
   return 0;
 }
@@ -253,15 +252,15 @@ CDrawContainer::GetAngle( CSpot const& spot, int* pAngle, int* pDist )
     int hr = m_bHR || m_bTHR && p->GetType() == KEY_TEXT;
     if(( hr ? p->IsHigVisible() : p->IsLowVisible()) &&
        ( !p->IsSelVisible() || IsSelected() || m_bSAS ))
-		{
-			int d = *pDist;
-			int a;
+    {
+      int d = *pDist;
+      int a;
       if( p->Detected( spot, 0, &d ) && p->GetAngle( spot, &a ))
-			{
-				*pDist = d;
-				*pAngle = a;
-			}
-		}
+      {
+        *pDist = d;
+        *pAngle = a;
+      }
+    }
   }
 }
 //=====================================================================
@@ -379,13 +378,13 @@ CDrawObject::CDrawObject( CDrawObject* p ):
 CLegend const*
 CDrawObject::SetLegend( CLegend const* pLg )
 {
-	CLegend const* tLg = m_pLegend;
-	m_pLegend = pLg;
-	return tLg;
+        CLegend const* tLg = m_pLegend;
+        m_pLegend = pLg;
+        return tLg;
 }
 //=====================================================================
-CDrawObject::CDrawObject( CIdent id, int node,
-                          time_t time, clock_t clock, CDrawContainer* p ):
+CDrawObject::CDrawObject( CIdent id, int node, long time, long clock, 
+                          CDrawContainer* p ):
   m_Node( node ),
   m_Ident( id ),
   m_Time( time ),
@@ -465,7 +464,7 @@ CDrawObject::UnselectSpecial( int bRemove )
   m_pLegend = 0;
   if( !bRemove )
     CalcBoundBox();
-	if( m_pActualCont )
+  if( m_pActualCont )
     m_pActualCont->ResetSelectFlag();
 }
 //=====================================================================
@@ -476,15 +475,15 @@ CDrawObject::SetSpecSelection( CLegend const* pLegend, DiagItem* pItem )
   m_pDiagItem = 0;
 
   if( m_pLegend = pLegend )
-	{
+  {
     int n = pLegend->GetSize();
     if( n && pItem )
-		{
+    {
       m_pDiagItem = new DiagItem[n];
       for( int i = n ; --i >= 0 ; m_pDiagItem[i].Create( &pItem[i] ));
-		}
+    }
     CalcBoundBox();
-	}
+  }
 }
 //=====================================================================
 void
@@ -566,7 +565,7 @@ CDrawObject::Draw( CDC* pDC )
 int
 CDrawObject::Detected( CSpot const& spot, int bStrict, int* pDist )
 {
-  if( !spot.Inflate( GetBoundBox()).PtInRect( spot ))
+	if( !spot.Inflate( GetBoundBox()).PtInRect( spot ))
     return 0;
 /*
   if( !bStrict )
@@ -581,8 +580,8 @@ CDrawObject::Detected( CSpot const& spot, int bStrict, int* pDist )
     return m_pActualCont->m_nCount;
 
   int hr = PresetHR();
-  int r = m_pScaledCont ? m_pScaledCont->Detected( spot, bStrict, pDist ) : 
-	                        m_pActualCont->Detected( spot, bStrict, pDist );
+  int r = m_pScaledCont ? m_pScaledCont->Detected( spot, bStrict, pDist ) :
+                          m_pActualCont->Detected( spot, bStrict, pDist );
   RestoreHR( hr );
 
   return r;
@@ -598,11 +597,11 @@ void
 CDrawObject::GetAngle( CSpot const& spot, int* pAngle, int* pDist )
 {
   if( spot.Inflate( GetBoundBox()).PtInRect( spot ))
-	{
+  {
     int hr = PresetHR();
     m_pActualCont->GetAngle( spot, pAngle, pDist );
     RestoreHR( hr );
-	}
+  }
 }
 //=====================================================================
 int
@@ -680,7 +679,7 @@ CDrawObject::DrawToPoint( CSpot const& spot, CPoint* pPoint, int mode )
 CVisiblePrim*
 CDrawObject::GetItem( int n )
 {
-	CVisiblePrim* p;
+  CVisiblePrim* p;
   for( p = n >= 0 ? m_pActualCont->GetHead() : 0 ; p && --n >= 0 ; p = p->GetNext());
   return p;
 }
@@ -732,6 +731,7 @@ CDrawObject::SetPoly( CPoint const* points, int pn )
 {
   SHAPE_NDX* pSh = &m_ShapeNdx[Class()];
   int n = pSh->ndx;
+  
   CVisiblePrim* p;
   for( p = n >= 0 ? m_pOriginCont->GetHead() : 0 ; p && --n >= 0 ; p = p->GetNext());
 
@@ -754,7 +754,7 @@ CDrawContainer::TranslateToMap( TGstream* pDst, int nShp )
   if( r == R_OK )
     r = WriteData( &par.length, sizeof par.length, pDst );
 
-	for( CVisiblePrim* pPrim = m_pHead ; r == R_OK && pPrim ; pPrim = pPrim->GetNext(), --nShp )
+  for( CVisiblePrim* pPrim = m_pHead ; r == R_OK && pPrim ; pPrim = pPrim->GetNext(), --nShp )
     r = pPrim->TranslateToMap( pDst, nShp == 0 ? PF_SHAPE : 0 );
   return r;
 }
@@ -762,22 +762,31 @@ CDrawContainer::TranslateToMap( TGstream* pDst, int nShp )
 int
 CDrawObject::TranslateToMap( TGstream* pDst, int )
 {
+  SHAPE_NDX* pSh = &m_ShapeNdx[Class()];
+
   CBaseDataRec* pDrh = pView->GetDataRecHeadPtr();
-  std::streampos begPos = pDst->tellp();
+  streampos begPos = pDst->tellp();
   pDrh->SetMagic( OBJMAGIC );
   pDrh->SetIdent( Ident());
   pDrh->SetNode( m_Node );
-  pDrh->SetBox( *((Rect*)&GetOriginBox()));
+  pDrh->SetBox( *((RECT*)&GetOriginBox()));
   pDrh->SetTime( GetTime());
   pDrh->SetClock( GetClock());
+
   int r = WriteData( pDrh->GetRecPtr(), pDrh->GetRecSize(), pDst );
+
   if( r == R_OK )
-	{
-    SHAPE_NDX* pSh = &m_ShapeNdx[Class()];
-    r = m_pOriginCont->TranslateToMap( pDst, pSh->shape == SH_NOTHING ? -1 : pSh->ndx );
-	}
+    r = m_pOriginCont->TranslateToMap(pDst, pSh->shape == SH_NOTHING ? -1 : pSh->ndx);
+
   if( r == R_OK )
-    *((int*)( pDst->str() + begPos + pDrh->SizeOffset())) = pDst->tellp() - begPos;
+  {
+    streampos endPos = pDst->tellp();
+    pDrh->SetSize( endPos - begPos );
+    pDst->seekp( begPos );
+    r = WriteData( pDrh->GetRecPtr(), pDrh->GetRecSize(), pDst );
+    pDst->seekp( endPos );
+  }
+
   return r == R_OK;
 }
 //=====================================================================
@@ -789,7 +798,7 @@ CDrawObject::IsEqual( CDrawObject* pObj )
 
   TGstream Dst;
   m_pOriginCont->TranslateToMap( &Dst );
-  int l = Dst.tellp();
+  streamoff l = Dst.tellp();
   pObj->m_pOriginCont->TranslateToMap( &Dst );
   char* p = Dst.str();
   return l == Dst.tellp() - l && !memcmp( p, p + l, l );
@@ -810,9 +819,8 @@ CDrawObject::InitShapeNdx( int n )
   if( KSI_TRUE_P( ksi_map ))
   {
     ksi_obj ksi_fmp = ksi_false;
-	int k;
-    for( k = CELEM( key ) ; KSI_FALSE_P( ksi_fmp ) && --k >= 0 ;
-         ksi_fmp = ksi_memq( key[k], ksi_map ));
+    int k;
+    for( k = CELEM( key ) ; KSI_FALSE_P( ksi_fmp ) && --k >= 0 ; ksi_fmp = ksi_memq( key[k], ksi_map ));
     if( KSI_TRUE_P( ksi_fmp ))
     {
       pSh->shape = SH[k];
@@ -844,20 +852,20 @@ CDrawObject::IsHostLink( CDrawObject* pObj, LINK_TYPE lt )
     return 0;
 
   ksi_obj ksi_list = KsiCall( "get-target-class-list", KSI_MK_SINT( Class()), 0 );
-	ksi_obj ksi_mem = ksi_memv( KSI_MK_SINT(pObj->Class()), ksi_list );
-	if( KSI_FALSE_P( ksi_mem ))
-		return 0;
+  ksi_obj ksi_mem = ksi_memv( KSI_MK_SINT(pObj->Class()), ksi_list );
+  if( KSI_FALSE_P( ksi_mem ))
+    return 0;
 
   SHAPE_TYPE hsht = this->GetShapeType();
   SHAPE_TYPE tsht = pObj->GetShapeType();
 
-	return hsht == SH_POINT && tsht == SH_POLYLINE ? 
-		       /*lt == LT_BEGIN || lt == LT_END*/ 1 :
-	       hsht == SH_POLYLINE && tsht == SH_POLYLINE ? 
-					 lt == LT_BEGIN || lt == LT_END :
-	       hsht == SH_POLYLINE && tsht == SH_POINT ? 
+  return hsht == SH_POINT && tsht == SH_POLYLINE ?
+           lt == LT_BEGIN || lt == LT_END/* 1*/ :
+         hsht == SH_POLYLINE && tsht == SH_POLYLINE ?
+           lt == LT_BEGIN || lt == LT_END :
+         hsht == SH_POLYLINE && tsht == SH_POINT ?
            ( lt == LT_BEGIN || lt == LT_END ) ^
- 					 KSI_FALSE_P( KsiCall( "is-only-insertable?", KSI_MK_SINT( pObj->Class()), 0 )) : 1;
+           KSI_FALSE_P( KsiCall( "is-only-insertable?", KSI_MK_SINT( pObj->Class()), 0 )) : 1;
 }
 //=====================================================================
 LINK_TYPE
@@ -872,41 +880,41 @@ CDrawObject::IsLinkedTo( CDrawObject* pObj )
   /*static*/ ksi_obj key_end = ksi_str02key( "end" );
   /*static*/ ksi_obj key_undef = ksi_str02key( "undef" );
 
-	int t0 = Class();
-	int t1 = pObj->Class();
+  int t0 = Class();
+  int t1 = pObj->Class();
 
-	ksi_obj cls[] = { KSI_MK_SINT( t0 ), KSI_MK_SINT( t1 ) };
+  ksi_obj cls[] = { KSI_MK_SINT( t0 ), KSI_MK_SINT( t1 ) };
   ksi_obj img0 = *this;
   ksi_obj img1 = *pObj;
-	ksi_obj env0 = KsiCall( "unwrap", cls[0], ksi_zero, img0, 0 );
-	ksi_obj env1 = KsiCall( "unwrap", cls[1], ksi_zero, img1, 0 );
+  ksi_obj env0 = KsiCall( "unwrap", cls[0], ksi_zero, img0, 0 );
+  ksi_obj env1 = KsiCall( "unwrap", cls[1], ksi_zero, img1, 0 );
   ksi_obj env[] = { env0, env1 };
 
-	for( int t = 0 ; t < 2 ; ++t )
-	{
-		int q = t^1;
+  for( int t = 0 ; t < 2 ; ++t )
+  {
+    int q = t^1;
     ksi_obj proc = ksi_apply_3_with_catch( FMP, cls[t], cls[q], CPL );
-		if( !KSI_PLIST_P( proc ) || KSI_LIST_LEN( proc ) < 3 )
-			continue;
+    if( !KSI_PLIST_P( proc ) || KSI_LIST_LEN( proc ) < 3 )
+      continue;
 
-		proc = KSI_CAR( KSI_CDR( KSI_CDR( proc )));
-		ksi_obj val = ksi_apply_2_with_catch( proc, env[t], env[q] );
-		if( !KSI_PAIR_P( val ))
-			continue;
-		
-		val = t == 0 ? KSI_CAR( val ) : KSI_CDR( val );
+    proc = KSI_CAR( KSI_CDR( KSI_CDR( proc )));
+    ksi_obj val = ksi_apply_2_with_catch( proc, env[t], env[q] );
+    if( !KSI_PAIR_P( val ))
+      continue;
 
-		if( KSI_EQ_P( val, key_begin ))
-			return LT_BEGIN;
+    val = t == 0 ? KSI_CAR( val ) : KSI_CDR( val );
 
-		if( KSI_EQ_P( val, key_end ))
-			return LT_END;
+    if( KSI_EQ_P( val, key_begin ))
+      return LT_BEGIN;
 
-		if( KSI_EQ_P( val, key_undef ))
-			return LT_UNDEF;
-	}
-	
-	int nh, sh;
+    if( KSI_EQ_P( val, key_end ))
+      return LT_END;
+
+    if( KSI_EQ_P( val, key_undef ))
+      return LT_UNDEF;
+  }
+
+  int nh, sh;
   CPoint* ph = this->GetAnyPoints( &sh, &nh );
   if( !ph )
     return LT_NOTHING;
@@ -952,7 +960,7 @@ SplitNum( int fs, int ss )
 {
   if( ss == 0 )
     return 1;
-
+  
   int n;
   for( n = 1 ; fs / n > ss ; ++n );
   return n;
@@ -974,11 +982,11 @@ using namespace Gdiplus;
 int
 CDrawObject::IsAccessable()
 {
-	if( m_BoundBox.IsRectEmpty())
-		return 0;
+  if( m_BoundBox.IsRectEmpty())
+    return 0;
 
-	if( !IsSublayer())
-		return 1;
+  if( !IsSublayer())
+    return 1;
 
   int bf = 0;
   for( int i = 3 ; !bf && --i >= 0 ; )
@@ -1206,15 +1214,15 @@ CDrawObject::DrawSubl( CDC* pDC )
   pDC->LPtoDP( &sr );
 
   int sdc = SetTM(  pDC );
-	
+
   int srw = sr.Width();
   int srh = sr.Height();
 
   int bss = IsSublayerStatic();
-	int nh = bss ? 1 : SplitNum( H, SS );
+        int nh = bss ? 1 : SplitNum( H, SS );
   int nw = bss ? 1 : SplitNum( W, SS );
 
-  int bSuc;
+  int bSuc = 1;
   if( nw > 1 || nh > 1 )
   {
     for( i = nh ; bSuc && --i >= 0 ; )
@@ -1237,71 +1245,71 @@ CDrawObject::DrawSubl( CDC* pDC )
         MultiByteToWideChar( CP_ACP, MB_PRECOMPOSED, spn, -1, wbuf, _MAX_PATH );
 
         Bitmap* pBmp = Bitmap::FromFile( wbuf, 1 );
-  			if( !pBmp )
-					continue;
-  
+                        if( !pBmp )
+                                        continue;
+
         int H = pBmp->GetHeight();
         int W = pBmp->GetWidth();
-				CBitmap bmp;
-      	bmp.CreateCompatibleBitmap( pDC, W, H );
-    	  CMemDC memDC( pDC, 1 );
-    		memDC.SelectObject( &bmp );
+                                CBitmap bmp;
+        bmp.CreateCompatibleBitmap( pDC, W, H );
+          CMemDC memDC( pDC, 1 );
+                memDC.SelectObject( &bmp );
         Graphics Grh( memDC.m_hDC );
         Grh.SetPageUnit( UnitPixel );
-				bSuc = Grh.DrawImage( pBmp, 0, 0, W, H ) == Ok;
-				if( bSuc )
-				{
-  				if( ang )
-					{
+        bSuc = Grh.DrawImage( pBmp, 0, 0, W, H ) == Ok;
+        if( bSuc )
+        {
+          if( ang )
+          {
             CPoint pp[] =
-						{
+            {
               TurnPoint( dr.TopLeft(), sr.TopLeft(), ang ),
               TurnPoint( CPoint( dr.right, dr.top ), sr.TopLeft(), ang ),
               TurnPoint( CPoint( dr.left, dr.bottom ), sr.TopLeft(), ang ),
               TurnPoint( dr.BottomRight(), sr.TopLeft(), ang )
-						};
+            };
             CBox box;
             for( int k = 4 ; --k >= 0 ; box |= CPoint( pp[k].x, pp[k].y ));
             if( Intersect( &cr, &box ))
-						{
+            {
               CBitmap msk;
-			  			pDC->PlgBlt( pp, &memDC, 0, 0, W, H, msk, 0, 0 );
-						}
-					}
+               pDC->PlgBlt( pp, &memDC, 0, 0, W, H, msk, 0, 0 );
+            }
+          }
           else
           if( Intersect( &cr, &dr ))
-		  			pDC->StretchBlt( dr.left, dr.top, dr.Width(), dr.Height(), &memDC, 0, 0, W, H, SRCCOPY );
-				}
+            pDC->StretchBlt( dr.left, dr.top, dr.Width(), dr.Height(), &memDC, 0, 0, W, H, SRCCOPY );
+        }
         delete pBmp;
       }
     }
   }
   else
-	{
+  {
     CBitmap bmp;
-  	bmp.CreateCompatibleBitmap( pDC, W, H );
-	  CMemDC memDC( pDC, 1 );
-		memDC.SelectObject( &bmp );
+    bmp.CreateCompatibleBitmap( pDC, W, H );
+    CMemDC memDC( pDC, 1 );
+    memDC.SelectObject( &bmp );
     Graphics Grh( memDC.m_hDC );
     Grh.SetPageUnit( UnitPixel );
     bSuc = Grh.DrawImage( pBmp, 0, 0, W, H ) == Ok;
-		if( bSuc )
-		{
-  		if( ang )
-			{
+    if( bSuc )
+    {
+      if( ang )
+      {
         CPoint pp[] =
-				{
+        {
           sr.TopLeft(),
           TurnPoint( CPoint( sr.right, sr.top ),   sr.TopLeft(), ang ),
           TurnPoint( CPoint( sr.left, sr.bottom ), sr.TopLeft(), ang )
-				};
+        };
         CBitmap msk;
-  			pDC->PlgBlt( pp, &memDC, 0, 0, W, H, msk, 0, 0 );
-			}
+        pDC->PlgBlt( pp, &memDC, 0, 0, W, H, msk, 0, 0 );
+      }
       else
-	  		pDC->StretchBlt( sr.left, sr.top, srw, srh, &memDC, 0, 0, W, H, SRCCOPY );
-		}
-	}
+        pDC->StretchBlt( sr.left, sr.top, srw, srh, &memDC, 0, 0, W, H, SRCCOPY );
+    }
+  }
 
   pDC->RestoreDC( sdc );
   delete pBmp;
@@ -1353,6 +1361,6 @@ CDrawObject::operator<( CDrawObject& pObj )
 {
   CPoint p0( GetOriginBox().CenterPoint());
   CPoint p1( pObj.GetOriginBox().CenterPoint());
-  return p0.y < p1.y || p0.y == p1.y && p0.x < p1.x; 
-}				
+  return p0.y < p1.y || p0.y == p1.y && p0.x < p1.x;
+}
 //========================================================================

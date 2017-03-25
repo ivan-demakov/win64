@@ -129,7 +129,7 @@ RgnPool::Connect()
     int bs2 = bs * 16;
 
     int in = FindPointToPoint( pp0 + 1, pp0->x, pp1 + 1, pp1->x, nn, 1024, bs2, bs );
-    int i, n0, n1;
+    int n0, n1, i;
 
     for( i = nTry * 4 ; i < in ; ++i )
     {
@@ -141,8 +141,8 @@ RgnPool::Connect()
           prg1->IsCrossedByLine( p0, p1 ))
         continue;
 
-	  RegionDef* tsp;
-      for(tsp = pPool ; tsp ; tsp = tsp->pNext )
+      RegionDef* tsp;
+      for( tsp = pPool ; tsp ; tsp = tsp->pNext )
         if( tsp->IsCrossedByLine( p0, p1 ))
           break;
 
@@ -164,8 +164,8 @@ RgnPool::Connect()
     }
     else
     {
-		RegionDef** ppr;
-      for(ppr = &pPool ; *ppr ; ppr = &(*ppr)->pNext );
+      RegionDef** ppr;
+      for( ppr = &pPool ; *ppr ; ppr = &(*ppr)->pNext );
       (*ppr) = prg1;
       ++PoolSize;
 
@@ -384,12 +384,13 @@ RegionDef::Split( CPoint c, RgnPool& rst, int bHorz )
   CPoint* pp0 = pPoly + 1;
   int n0 = pPoly->x;
 
-  int i, i0 = -1, i1 = -1;
+  int i0 = -1, i1 = -1;
   int x0, x1;
   int y0, y1;
   
   CPoint p1, p0( pp0[0] );
-  for( i = n0 ; --i >= 0 ; )
+  int i = n0;
+  while( --i >= 0 )
   {
     p1 = p0;
     p0 = pp0[i];

@@ -73,8 +73,8 @@ CSelectTraceMode::IsTraceClass( int t )
 int
 CSelectTraceMode::InTrace( CTabIdent id )
 {
-	int i;
-  for( i = m_Trace.GetSize() ; --i >= 0 && m_Trace[i]->m_ObjId != id ; );
+  int i = m_Trace.GetSize();
+  while( --i >= 0 && m_Trace[i]->m_ObjId != id );
   return i;
 }
 //=====================================================================
@@ -306,8 +306,8 @@ CSelectTraceMode::Open()
   {
     TGstream buf;
     CTabIdent* pTi = new CTabIdent[m_Trace.GetSize()];
-	int i, n;
-    for( i = m_Trace.GetSize(), n = 0 ; --i >= 0 ; )
+    int i = m_Trace.GetSize(), n = 0;
+    while( --i >= 0 )
       if( !m_pOwner->GetObjectPtr( m_Trace[i]->m_ObjId ))
         pTi[n++] = m_Trace[i]->m_ObjId;
 
@@ -487,10 +487,10 @@ CSelectTraceMode::OnLButtonDown( UINT &flags, CPoint &loc )
   if( pObj && !pObj->Table())
   {
     char buf[512];
-    sprintf( buf, "Объект '%s' не может быть включён в схему кабеля,\n"
-                  "так как он не учетён в БД.\n\n"
-                  "Проверьте и сохраните его параметры.",
-                  m_pOwner->m_pObjDef->GetName( pObj->Class()));
+    sprintf_s( buf, "Объект '%s' не может быть включён в схему кабеля,\n"
+                    "так как он не учетён в БД.\n\n"
+                    "Проверьте и сохраните его параметры.",
+               m_pOwner->m_pObjDef->GetName( pObj->Class()));
     ErrBox( buf );
     bFound = 0;
   }

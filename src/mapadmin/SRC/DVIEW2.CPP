@@ -59,23 +59,21 @@ CObjLinkNode::HasTemp()
 int
 CObjLinkNode::HasOutNode( int bDel )
 {
-	int r = 0;
+  int r = 0;
   for( CObjLinkNode* p = m_pRoot ; p ; p = p->m_pNextNode )
-	{
-		CDrawObject* pObj = p->m_pObj;
-		int n = pObj->Node();
-		CConductor* pCnd = pView->GetConductor();
-		int i;
-		for(int i = pCnd->m_nNodes ; --i >= 0 ; )
-			if( pCnd->m_pCurrentNodeList[i] == n )
-				break;
-		if( i < 0 )
-		{
-			r |= 1;
-			if( bDel )
-			  pView->HideObject( pObj->Ident(), 1 );			
-		}
-	}
+  {
+    CDrawObject* pObj = p->m_pObj;
+    int n = pObj->Node();
+    CConductor* pCnd = pView->GetConductor();
+    int i = pCnd->m_nNodes;
+    while( --i >= 0 && pCnd->m_pCurrentNodeList[i] != n );
+    if( i < 0 )
+    {
+      r |= 1;
+      if( bDel )
+        pView->HideObject( pObj->Ident(), 1 );
+    }
+  }
   return r;
 }
 //=====================================================================
@@ -94,7 +92,7 @@ CObjLinkNode::Add( CDrawObject* pObj, CDrawObject* pHostObj )
   for( int n = pView->GetTargetsGlobal( pObj, &tl ) ; --n >= 0 ; )
   {
     CDrawObject* pSubObj = tl.RemoveHead();
-    for( CObjLinkNode* p = m_pRoot ; p && p->m_pObj != pSubObj ; p = p->m_pNextNode );
+    for( p = m_pRoot ; p && p->m_pObj != pSubObj ; p = p->m_pNextNode );
     if( !p )
       Add( pSubObj, pObj );
     else
@@ -212,7 +210,7 @@ CMapView::BeginCoedition( CDrawObject* pHostObj, CBuildMode* pMode )
   {
     Beep( 440, 400 );
     ErrBox( "Попытка редактирования закрытого объекта другого тех. узла" );
-		BreakeCoedition();
+    BreakeCoedition();
     RemoveMode( pMode );
     return;
   }
@@ -300,12 +298,9 @@ CMapView::EndCoedition( CDrawObject* pObj )
   CDrawObject* pIns = 0;
 
   ClearSelection( 0, 0 );
-  int bHostChng = 0;
-  POSITION pos;
-
-#ifdef _FULL_PROJECT
 
   int bCh = 0;
+  POSITION pos;
 
   for( pos = m_LastEditList.GetHeadPosition() ; !bCh && pos ; )
   {
@@ -318,7 +313,7 @@ CMapView::EndCoedition( CDrawObject* pObj )
   m_Conductor.Create( pObj );
   int i = m_Conductor.GetLinkSize();
   int hn = m_LastHostList.GetCount();
-  bHostChng = hn && i != hn;
+  int bHostChng = hn && i != hn;
 
   while( !bCh && --i >= 0 )
   {
@@ -352,8 +347,6 @@ CMapView::EndCoedition( CDrawObject* pObj )
       ReloadAll();
     return;
   }
-
-#endif //_FULL_PROJECT
 
   pObj->SetStatus(( pObj->Status() & 0x7f ) | ( IsHiResolution() ? 0x80 : 0 ));
 
@@ -497,8 +490,8 @@ CMapView::EndCoedition( CDrawObject* pObj )
       CBuildMode::SetContext();
       CMenu popup;
       popup.CreatePopupMenu();
-      CMapDoc* pDoc = GetDocument();
-      pDoc->SetContextMenu( 1 );
+        CMapDoc* pDoc = GetDocument();
+            pDoc->SetContextMenu( 1 );
       pDoc->MakePopupMenu( &popup, ClassArr, nClass, IDM_CONTEXT_BEGIN );
       if( popup.GetMenuItemCount())
       {
@@ -515,8 +508,7 @@ CMapView::EndCoedition( CDrawObject* pObj )
     CDrawObject* pObj0 = m_ClipData.GetObjectPtr( CBuildMode::GetContextId());
     if( pObj0 )
     {
-		int i;
-      for( i = m_Conductor.GetLinkSize() ;
+      for( int i = m_Conductor.GetLinkSize() ;
            --i >= 0 && m_Conductor.GetTable( i ) != pObj0->TabIdent() ; );
       if( i < 0 )
         m_Conductor.AddLink( pObj0->TabIdent());
@@ -600,7 +592,7 @@ CMapView::EndCoedition( CDrawObject* pObj )
           while( !RemList.IsEmpty())
             RemoveObject( RemList.RemoveHead());
 
-          
+
                                         SaveToStore( AddList, 1, 1 );
 
           m_Conductor.Create( pNew );
@@ -723,13 +715,30 @@ CMapView::FindObjectCoord( CTabIdent id, CString& dst )
 }
 //=====================================================================
 int
+CMapView::GetObjectCoord( CTabIdent id, int bYcoord )
+{
+  CSmartObjPtr ptr = 0;
+  CDrawObject* pObj = GetObjectPtr( id );
+  if( !pObj )
+    ptr = pObj = ExtractMapObj( id );
+
+  if( !pObj )
+    return -1;
+
+	CPoint* pPoint = pObj->GetAnyPoints();
+  if( !pPoint )
+    return -1;
+
+  return bYcoord ? pPoint->y : pPoint->x;
+}
+//=====================================================================
+int
 CMapView::CalcShowScale( CDrawObject* pObj, int bFull )
 {
   int t = pObj->Class();
   int ns = App.GetProfileInt( "General", "FindScaleFactor", 2 );
 
-  CPoint c( GetCenter());
-	Point tp( c.x, c.y );
+  CPoint tp( GetCenter());
   int mas = m_pObjDef->GetMaxLimit( t ) / ns;
   int mis = m_pObjDef->GetMinLimit( t );
   int s = MerkatorData.TrueScale( m_AltScale, tp );
@@ -836,16 +845,15 @@ CMapView::FindObject( CTabIdent id, int bClearSelection, int bShowFull )
     SlowMove( cn, s );
 
   if( !pObl )
-		delete pObj;
+    delete pObj;
 
-	pObj = GetObjectPtr( id );
+  pObj = GetObjectPtr( id );
 
   if( !pObj )
-	{
-//		pObj = ExtractMapObj( id );
-//		m_ClipData.AddObject( pObj );
-    return 0;
-	}
+  {
+    pObj = ExtractMapObj( id );
+    m_ClipData.AddObject( pObj );
+  }
 
   CShortTraceMode* pSTM = (CShortTraceMode*)GetMode( IDM_SHORTTRACE_MODE );
   if( pSTM )
@@ -853,7 +861,7 @@ CMapView::FindObject( CTabIdent id, int bClearSelection, int bShowFull )
 
   if( bClick )
     StartBlinking( pObj );
-	else
+  else
     SelectObject( pObj, 1 );
 
   ShowSelectedNum();
@@ -863,9 +871,7 @@ CMapView::FindObject( CTabIdent id, int bClearSelection, int bShowFull )
 //=====================================================================
 void
 CMapView::OnExtFind()
-{ 
-//  SetForegroundWindow();
-
+{
   int m = m_Conductor.GetFindMode();
   if( m >= 0 && m <= 3 )
     FindObject( m_Conductor.GetFindId(), m & 1, m & 2 );
@@ -943,9 +949,10 @@ CMapView::SelectObjectSpecial( CTabIdent id, int ndx, DiagItem* pItem,
 {
   CLegend const* pLegend = GetLegend( ndx );
   if( !pLegend )
-		pLegend = GetLegend( 0 );
+                pLegend = GetLegend( 0 );
 
-  if( pItem && !pLegend->GetSize())
+  int ls = pLegend->GetSize();
+        if( pItem && ls == 0 )
     return 0;
 
   CDrawObject* pObj = GetObjectPtr( id );
@@ -958,8 +965,26 @@ CMapView::SelectObjectSpecial( CTabIdent id, int ndx, DiagItem* pItem,
     m_ClipData.AddObject( pObj );
   }
 
+  pObj->SetSpecSelection( pLegend, pItem );
+
   if( !m_pSTM && bClearSelection )
     ClearSelection( 0, 1 );
+
+  int bSb = 0;
+
+  if( m_pSTM )
+  {
+    UnselObj();
+    if( m_pSTM->InTrace( pObj ) < 0 )
+      SelectObject( pObj, 1, 1 );
+    bSb = 1;
+  }
+  else
+  {
+    SelectObject( pObj, 1, 1 );
+    if( m_SelectList.GetCount() > 1 )
+      bSb = 1;
+  }
 
   if( bShow )
   {
@@ -967,30 +992,11 @@ CMapView::SelectObjectSpecial( CTabIdent id, int ndx, DiagItem* pItem,
     CPoint* pPnt = pObj->GetAnyPoints( &tp, &np );
     int s = CalcShowScale( pObj, 0 );
     CPoint cn( pPnt && tp == SH_POLYLINE ? *pPnt : pObj->GetBoundBox().CenterPoint());
-    SlowMove( cn, s );
-  }
 
-  pObj = GetObjectPtr( id );
+    SetScale( s, cn, 1 );
+    UpdateWindow();
 
-  if( !pObj )
-    return 0;
-
-  pObj->SetSpecSelection( pLegend, pItem );
-
-//  if( bShow )
-//    UpdateWindow();
-
-  if( m_pSTM )
-  {
-    UnselObj();
-    if( m_pSTM->InTrace( pObj ) < 0 )
-      SelectObject( pObj, 1, bShow );
-    StartBlinking( pObj );
-  }
-  else
-  {
-    SelectObject( pObj, 1, bShow );
-    if( bShow && m_SelectList.GetCount() > 1 )
+    if( bSb )
       StartBlinking( pObj );
   }
 
@@ -1143,8 +1149,11 @@ CMapView::TestObjects( CTabIdArray const& tb0, CTabIdArray const& tb1, TGstream&
   {
     CTabIdArray const& src = n ? tb1 : tb0;
     for( int i = src.GetSize() ; --i >= 0 ; )
-      if( !GetObjectPtr( src[i] ))
-        dst.Add( src[i] );
+    { 
+      CTabIdent id(src[i]);
+      if( !GetObjectPtr( id ))
+        dst.Add( id );
+    }
   }
 
   int nObj = dst.GetSize();
@@ -1588,7 +1597,7 @@ CMapView::RemoveTempObj( int nCode )
   {
     ASSERT( m_pCutObj0 );
     ASSERT( m_pCutIns );
-    
+
     if( m_pCutObj0 )
     {
       CTabIdent id( m_pCutObj0->Table(), -1 );
@@ -1623,7 +1632,7 @@ CMapView::RemoveTempObj( int nCode )
     m_pCutObj0 = m_pCutObj1 = m_pCutIns = 0;
     m_bCutOut = 0;
   }
-    
+
   CTabIdent id( m_Conductor.GetTable().Table(), -1 );
   CDrawObject* pObj = GetObjectPtr( id );
   if( !pObj )
@@ -1793,7 +1802,7 @@ CMapView::OnRemCutInCmd()
     pTgt[0]->SetIdent( id );
     pTgt[0]->SetPoly( pl, nl );
     m_ClipData.AddObject( pTgt[0] );
-                m_bCutOut = 1;
+    m_bCutOut = 1;
   }
   else
   {
@@ -1802,7 +1811,7 @@ CMapView::OnRemCutInCmd()
     if( m_Conductor.DeclareEvent( CE_OBJ_DELETE ))
     {
       delete pItem;
-                        delete pl;
+      delete pl;
       return;
     }
 
@@ -1813,7 +1822,7 @@ CMapView::OnRemCutInCmd()
     if( m_Conductor.DeclareEvent( CE_OBJ_PARAM  ))
     {
       delete pItem;
-                        delete pl;
+      delete pl;
       delete pNew;
       return;
     }
@@ -1891,13 +1900,13 @@ CMapView::MakeCutIn( CDrawObject* pIns, CDrawObject* pCut, CObjList& lst )
     id.SetStatus( pCut->Status() & 0x7f | ( IsHiResolution() ? 0x80 : 0 ));
     pObp[0]->SetIdent( id );
 
-                m_pCutIns = pIns;
+    m_pCutIns = pIns;
     m_pCutObj0 = pCut;
     AddObject( pObp[0], 1 );
     AddObject( pObp[1], 0 );
-                m_bCutIn = 1;
+    m_bCutIn = 1;
   }
-        else
+  else
   if( bCancel)
   {
     delete pObp[0];
@@ -1920,7 +1929,7 @@ CMapView::TestCutIn( CDrawObject* pIns )
 {
   CObjList lst;
   CDrawObject* pObj0 = 0;
-  if( TestCutIn( pIns, pObj0, &lst, 0 ) && 
+  if( TestCutIn( pIns, pObj0, &lst, 0 ) &&
                   ( GetProjectSLEnable() || AskBox( "Сделать врезку?" ) == IDYES ))
   {
     ClearSelection();
@@ -2067,7 +2076,7 @@ CMapView::CreatePointObject()
   {
     CString nm = m_Conductor.GetParams()[i];
     CString vl = m_Conductor.GetParams()[i+1];
-	char** pn;
+    char** pn;
     for( pn = ipn ; *pn && nm.CompareNoCase( *pn ) ; ++pn );
     if( *pn )
       ksi_param = ksi_cons( cons_with_sym( nm, atoi( vl )), ksi_param );
@@ -2092,7 +2101,7 @@ CMapView::CreateLineObject()
 {
   if( m_Conductor.GetLinkSize() != 2 )
     return 0;
-        
+
   CTabIdent id0 = m_Conductor.GetTable( 0 );
   CTabIdent id1 = m_Conductor.GetTable( 1 );
 
@@ -2120,10 +2129,9 @@ CMapView::CreateLineObject()
     return 0;
 
   CIdent id( m_Conductor.GetIdent());
-        ksi_obj ksi_vars = ksi_nil;
+  ksi_obj ksi_vars = ksi_nil;
 
-  int i;
-  for( i = m_Conductor.GetParamSize() ; --i >= 0 ; )
+  for( int i = m_Conductor.GetParamSize() ; --i >= 0 ; )
   {
     ksi_obj ksi_par = cons_with_sym( m_Conductor.GetParamName( i ), m_Conductor.GetParamValue( i ));
     ksi_vars = ksi_cons( ksi_par, ksi_vars );
@@ -2138,11 +2146,11 @@ CMapView::CreateLineObject()
   struct { char* Name; int Val; }
   m[] = { "tx", cp.x, "ty", cp.y, "ta", ang };
 
-  for( i = CELEM( m ) ; --i >= 0 ; )
+  for( int i = CELEM( m ) ; --i >= 0 ; )
     ksi_vars = ksi_cons( cons_with_sym( m[i].Name, m[i].Val ), ksi_vars );
 
   ksi_obj val =  KsiCall( "create-object", KSI_MK_SINT( id.Class()), id.Status(), ksi_vars, 0 );
-        
+
   CDrawObject* pObj = new CDrawObject( val, id, GetConductor()->GetNode());
   if( !pObj )
     return 0;

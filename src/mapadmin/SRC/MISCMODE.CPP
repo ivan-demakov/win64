@@ -174,6 +174,8 @@ CSetReisMode::OnRButtonDown( UINT& flags, CPoint& loc )
   return AM_RREMOVE | AM_RDONE;
 }
 //=====================================================================
+using namespace Trig;
+
 int
 CSetReisMode::OnLButtonDown( UINT& flags, CPoint& loc )
 {
@@ -191,17 +193,17 @@ CSetReisMode::OnLButtonDown( UINT& flags, CPoint& loc )
     else
       Beep( 440, 500 );
   }
-	else
-	{
-		if( m_nMode & 2 )
-		{
+  else
+  {
+    if( m_nMode & 2 )
+    {
       m_pOwner->SetCrossAngle( atan2( m_pOwner->GetPosition() - m_PrevPoint ));
       m_pOwner->ShowAngle();
-		}
-		else
+    }
+    else
       m_PrevPoint = m_pOwner->GetPosition();
-		m_nMode ^= 2;
-	}
+    m_nMode ^= 2;
+  }
 
   return AM_RDONE;
 }
@@ -215,7 +217,7 @@ CSetReisMode::OnLButtonDblClk( UINT& flags, CPoint& loc )
 int
 CSetReisMode::OnMouseMove( UINT& flags, CPoint& loc )
 {
-	if( m_nMode & 2 ) 
+        if( m_nMode & 2 )
   {
     m_pOwner->SetCrossAngle( atan2( m_pOwner->GetPosition() - m_PrevPoint ));
     m_pOwner->ShowAngle();
@@ -313,9 +315,9 @@ CGridMode::Draw( CDC* pDC )
   if( MerkatorData.TrueMerkator())
   {
     CPoint c( m_Xg.cx, m_Yg.cx );
-		Point p0( c.x, c.y );
-		Point p1( pView->m_Clip.left, pView->m_Clip.top );
-		Point p2( pView->m_Clip.right, pView->m_Clip.bottom );
+    CPoint p0( c.x, c.y );
+    CPoint p1( pView->m_Clip.left, pView->m_Clip.top );
+    CPoint p2( pView->m_Clip.right, pView->m_Clip.bottom );
 
     m_SCF = MerkatorData.ScaleFactor( p0 );
     double ltf = MerkatorData.ScaleFactor( p1 );
@@ -388,13 +390,13 @@ CCoordGridMode::Draw( CDC* pDC )
 
   if( bMerk )
   {
-    MerkatorData.Prj2Pol( Point( box.left, box. top ), plt );
-    MerkatorData.Prj2Pol( Point( box.right, box.bottom ), prb );
+    MerkatorData.Prj2Pol( CPoint( box.left, box. top ), plt );
+    MerkatorData.Prj2Pol( CPoint( box.right, box.bottom ), prb );
     double dLat = fabs( plt.lat - prb.lat ) / Deg;
     double dLon = fabs( plt.lon - prb.lon ) / Deg;
     int pov = min( log10( dLat ), log10( dLon ));
     dgs = Deg * pow( 10., pov );
-    sprintf( fm, "%%1.%df\xb0", pov >= 0 ? 0 : -pov );
+    sprintf_s( fm, "%%1.%df\xb0", pov >= 0 ? 0 : -pov );
   }
   else
   if( m_Scale != m_pOwner->GetAltScale())
@@ -443,14 +445,14 @@ CCoordGridMode::Draw( CDC* pDC )
     {
       for( double lon = int( plt.lon / dgs ) * dgs ; lon < prb.lon ; lon += dgs )
       {
-        Point pp;
+        CPoint pp;
         MerkatorData.Pol2Prj( Polar( plt.lat, lon ), pp );
         if( bdl )
           DrawLine( pDC, pp.x, box.top, pp.x, box.bottom );
         else
         if( bShowTxt )
         {
-          int bl = sprintf( b, fm, lon / Deg );
+          int bl = sprintf_s( b, fm, lon / Deg );
           int w = pDC->GetTextExtent( b, bl ).cx;
           pDC->SetTextAlign( TA_CENTER | TA_TOP | TA_NOUPDATECP );
           pDC->TextOut( pp.x, box.top, b, bl );
@@ -471,7 +473,7 @@ CCoordGridMode::Draw( CDC* pDC )
         if( bShowTxt )
         {
           int v = abs( r.left );
-          int bl = sprintf( b, "%1.3f", r.left * 1e-5 );
+          int bl = sprintf_s( b, "%1.3f", r.left * 1e-5 );
           int w = pDC->GetTextExtent( b, bl ).cx;
           if( l == 0 || ( rx ? pp.x + w <= l : pp.x - w >= l ))
           {
@@ -496,7 +498,7 @@ CCoordGridMode::Draw( CDC* pDC )
     {
       for( double lat = int( prb.lat / dgs ) * dgs ; lat <= plt.lat ; lat += dgs )
       {
-        Point pp;
+        CPoint pp;
         MerkatorData.Pol2Prj( Polar( lat, prb.lon ), pp );
         if( bdl )
           DrawLine( pDC, box.left, pp.y, box.right, pp.y );
@@ -504,7 +506,7 @@ CCoordGridMode::Draw( CDC* pDC )
         if( bShowTxt )
         {
           int v = abs( r.top );
-          int bl = sprintf( b, fm, lat / Deg );
+          int bl = sprintf_s( b, fm, lat / Deg );
           pDC->SetTextAlign( TA_CENTER | TA_TOP | TA_NOUPDATECP );
           pDC->TextOut( box.left, pp.y, b, bl );
           pDC->SetTextAlign( TA_CENTER | TA_BOTTOM | TA_NOUPDATECP );
@@ -523,7 +525,7 @@ CCoordGridMode::Draw( CDC* pDC )
         else
         if( bShowTxt )
         {
-          int bl = sprintf( b, "%1.3f", r.top * 1e-5 );
+          int bl = sprintf_s( b, "%1.3f", r.top * 1e-5 );
           int w = pDC->GetTextExtent( b, bl ).cx;
           if( t == 0 || ( ry ? pp.y + w <= t : pp.y - w >= t ))
           {
@@ -564,11 +566,11 @@ CScaleBase::SetRB()
   CRectMode::SetRB( m_pOwner->GetPosition());
   int dx = abs( Width());
   int dy = abs( Height());
-	if( m_nCursor == IDC_DECSCALE )
-	{
+        if( m_nCursor == IDC_DECSCALE )
+        {
     dx = max( dx, m_pOwner->GetWindowSize().cx / m_pOwner->m_DimScaleRatio / 2 );
     dy = max( dy, m_pOwner->GetWindowSize().cy / m_pOwner->m_DimScaleRatio / 2 );
-	}
+        }
   CSize const& vs = m_pOwner->GetViewportSize();
   int w = ::MulDiv( vs.cx, dy, vs.cy );
   int h = ::MulDiv( vs.cy, dx, vs.cx );

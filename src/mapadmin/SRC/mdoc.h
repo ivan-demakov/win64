@@ -9,7 +9,7 @@
 class CGraphData;
 class CMapView;
 //=====================================================================
-typedef int (CObjDef::*ODF)( UINT, int*  ) const;
+typedef int (CObjDef::*ODF)( UINT, int* ) const;
 //=====================================================================
 class CMapDoc : public CDocument
 {

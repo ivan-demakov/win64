@@ -866,18 +866,8 @@ CAbstractDialog::OnOK()
   MS.ClsInf.SetMaxScaleLimit( m_ClassNumber, m_IsMaxShowAlways ? 0 : m_MaxShowLimit );
   MS.ClsInf.SetParentNum( m_ClassNumber, m_ParentNumber );
 
-  int ind = m_ClassNumber >> 3, msk = 1 << ( m_ClassNumber & 7 );
-
-  if( m_ClassLoad )
-  {
-    m_pView->m_LoadMap[ind] |= msk;
-    m_pView->m_ShowMap[ind] |= msk;
-  }
-  else
-  {
-    m_pView->m_LoadMap[ind] &= ~msk;
-    m_pView->m_ShowMap[ind] &= ~msk;
-  }
+  SetBit( m_pView->m_LoadMap, m_ClassNumber, m_ClassLoad );
+  SetBit( m_pView->m_ShowMap, m_ClassNumber, m_ClassLoad);
 
   MS.SetLoadMap( m_pView->m_LoadMap );
 
@@ -979,7 +969,7 @@ CAbstractDialog::OnOK()
     if( bAbstract2concret )
     {
       CBmpDefArray* pBDA = pDocument->GetBmpDefArray( 1 );
-	  int i;
+      int i;
       for( i = pBDA->GetSize() ; --i >= 0 && pBDA->GetAt( i )->GetBmpId() != ref ; );
       if( i >= 0 )
       {
@@ -987,7 +977,7 @@ CAbstractDialog::OnOK()
         pBDA->RemoveAt( i );
       }
       char szEntry[64];
-      sprintf( szEntry, "%d", ref );
+      sprintf_s( szEntry, "%d", ref );
       App.WriteProfileString( CIconParamDialog::SectName( 0 ), szEntry, 0 );
       ref = pBDA->GetFreeId();
     }
@@ -997,8 +987,8 @@ CAbstractDialog::OnOK()
                                  CIconParamDialog::GetBmpName(),
                                  CIconParamDialog::GetScaleSingle());
 
-	int i;
-	for( i = pBDA->GetSize() ; --i >= 0 && !( *pBDA->GetAt( i ) == *pBmp ) ; );
+    int i = pBDA->GetSize();
+    while( --i >= 0 && !( *pBDA->GetAt( i ) == *pBmp ));
     if( i >= 0 )
     {
       pBmp->SetBmpId( ref = pBDA->GetAt( i )->GetBmpId());
@@ -1009,9 +999,9 @@ CAbstractDialog::OnOK()
       pBDA->Add( pBmp );
 
     char szEntry[64], szValue[256];
-    sprintf( szEntry, "%d", ref );
-    sprintf( szValue, "%s %d",
-             CIconParamDialog::GetBmpName(),
+    sprintf_s( szEntry, "%d", ref );
+    sprintf_s( szValue, "%s %d",
+             (LPCSTR)CIconParamDialog::GetBmpName(),
              CIconParamDialog::GetScaleSingle());
     App.WriteProfileString( CIconParamDialog::SectName( m_bConcretClass ), szEntry, szValue );
     m_KsiParamList = ksi_assv_set_x( m_KsiParamList, keyIconref, KSI_MK_SINT( ref ));
@@ -1174,7 +1164,7 @@ CAbstractDialog::OnOK()
       pmw->SetProgress( MS.GetPosScan());
 
       ++total;
-      char* pSrc = buf.str();
+      char* pSrc = (char*)buf.str();
       CBaseDataRec* pDrh = m_pView->GetDataRecHeadPtr();
       memcpy( pDrh->GetBriefPtr(), pSrc, pDrh->GetBriefSize());
       pSrc += pDrh->GetBriefSize();
@@ -1216,7 +1206,7 @@ CAbstractDialog::OnOK()
     }
     pmw->HideProgress();
     char m[256];
-    sprintf( m, "Изменено объектов: %d из %d.", succ, total );
+    sprintf_s( m, "Изменено объектов: %d из %d.", succ, total );
     InfBox( m );
   }
 
@@ -1241,7 +1231,7 @@ CAbstractDialog::OnOK()
           break;
         long ps = MS.GetPosScan();
         pmw->SetProgress( ps );
-        char* pSrc = buf.str();
+        char* pSrc = (char*)buf.str();
         CBaseDataRec* pDrh = m_pView->GetDataRecHeadPtr();
         memcpy( pDrh->GetBriefPtr(), pSrc, pDrh->GetBriefSize());
         if( bParCh[pDrh->GetClass()] )
@@ -1358,16 +1348,15 @@ CSubdialog::IsUserClass()
 int
 CSubdialog::GetFreeClass( int bFromBegin )
 {
+  int t;
   if( bFromBegin )
   {
-	  int t;
-    for(t = 0 ; ++t < CLASS_RANGE && ( m_pObjDef->IsClass( t ) || IsObject( t )) ; );
+    for( t = 0 ; ++t < CLASS_RANGE && ( m_pObjDef->IsClass( t ) || IsObject( t )) ; );
     return t < CLASS_RANGE ? t : -1;
   }
   else
   {
-	  int t;
-    for(t = CLASS_RANGE ; --t >= 0  && ( m_pObjDef->IsClass( t ) || IsObject( t )) ; );
+    for( t = CLASS_RANGE ; --t >= 0  && ( m_pObjDef->IsClass( t ) || IsObject( t )) ; );
     return t;
   }
 }
@@ -1486,7 +1475,7 @@ CIconParamDialog::OnInitDialog()
   m_Ref = -1;
   GetParam( "icon-ref", &m_Ref );
   char cref[_MAX_FNAME+_MAX_EXT];
-  sprintf( cref, "%d", m_Ref );
+  sprintf_s( cref, "%d", m_Ref );
 
   m_IconParam = App.GetProfileString( SectName( CAbstractDialog::IsClassConcret()), cref );
   sscanf( m_IconParam, "%s", cref );
@@ -1739,9 +1728,9 @@ CColorCombo::AddColor( COLORREF clr )
   if( clr == -1 )
     return;
 
-  int i, n = GetCount();
+  int n = GetCount(), i = n;
 
-  for( i = n ; --i >= 0 && GetItemData( i ) != clr ; );
+  while( --i >= 0 && GetItemData( i ) != clr );
   if( i < 0 )
   {
     InsertString( i = n - 1, 0 );
@@ -1757,7 +1746,7 @@ CColorCombo::PicColor( COLORREF clr )
   if( clr != -1 )
     for( int i = GetCount() ; --i >= 0 ; )
     {
-      int t = abs( GetItemData( i ) - clr );
+      int t = abs( int( GetItemData( i ) - clr ));
       if( t < d )
       {
         d = t;
@@ -1796,8 +1785,8 @@ CColorCombo::DrawItem( LPDRAWITEMSTRUCT lpDIS )
 static COLORREF
 CalcBWColor( COLORREF clr )
 {
-	int s;
-  for(s = 0 ; clr ; s += clr & 0xff, clr >>= 8 );
+  int s;
+  for( s = 0 ; clr ; s += clr & 0xff, clr >>= 8 );
   int c = s / 3;
   return c | ( c << 8 ) | ( c << 16 );
 }
@@ -2001,7 +1990,7 @@ CLineStyleList::Init( int initVal )
 {
   CRect r;
   GetClientRect( &r );
-  int i, s = 0;
+  int s = 0, i;
   for( i = 0 ; CLineParamDialog::m_StyleKey[i].m_Str ; ++i )
   {
     int t = CLineParamDialog::m_StyleKey[i].m_Key;
@@ -2015,7 +2004,7 @@ CLineStyleList::Init( int initVal )
     {
       SetItemData( AddString( 0 ), t );
       if( initVal == t )
-         s = i;
+        s = i;
       ++i;
     }
 
@@ -2205,8 +2194,7 @@ CLineParamDialog::OnInitDialog()
   bp = GetParam( "polyline-style", &ls );
   m_LineStyleIndex = m_LineStyleList.Init( ls[0] == 't' ? atoi( LPCTSTR( ls ) + 1 ) : m_StyleKey->Translate( ls ));
 
-	CPoint t( pView->GetCenter());
-	m_Scale = CAbstractDialog::GetLimitScale( MerkatorData.TrueScale( pView->GetAltScale(), Point( t.x, t.y )));
+	m_Scale = CAbstractDialog::GetLimitScale( MerkatorData.TrueScale( pView->GetAltScale(), pView->GetCenter()));
 	
 	m_Width = GetLineWidth( -1 );
 
@@ -2333,7 +2321,7 @@ CPolygonStyleList::Init(  int initVal )
 {
   CRect r;
   GetClientRect( &r );
-  int ns, s = 0;
+  int s = 0, ns;
   for( ns = 0 ; CPolygonParamDialog::m_HatchKey[ns].m_Str ; ++ns )
   {
     int v = CPolygonParamDialog::m_HatchKey[ns].m_Key;

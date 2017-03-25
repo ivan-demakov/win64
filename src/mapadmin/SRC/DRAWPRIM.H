@@ -82,13 +82,14 @@ public:
   virtual void CalcBoundBox( CBox& box ) = 0;
   virtual void SetSelectFlag( unsigned char flags ) { SetFlags( flags, SF_STATUS_MASK ); }
   virtual int Detected( CSpot const& spot, int bStrict = 0, int* pDist = 0 ) { return 0; }
-	virtual int GetRing( CSpot const& spot, CRect* rect ){ return 0; }
-  virtual int GetAngle( CSpot const& spot, int* pAngle ) { return 0; }		
+  virtual int GetRing( CSpot const& spot, CRect* rect ){ return 0; }
+  virtual int GetAngle( CSpot const& spot, int* pAngle ) { return 0; }
   virtual int GetType() { return KEY_NOTHING; }
   virtual int TranslateToMap( TGstream* pDst, int t = 0 ) = 0;
   virtual CPoint* GetPoint( int* pnPnt )    { return 0; }
   virtual CPoint* GetPolyline( int* pnPnt ) { return 0; }
   virtual CPoint* GetPolygon( int* pnPnt )  { return 0; }
+  virtual CPoint* GetPolypoints( int* pnPnt ) { return 0; }
   virtual char const* GetText()             { return 0; }
   virtual CVisiblePrim* MakeCopy() = 0;
 
@@ -312,7 +313,7 @@ public:
   CRing( CRing const* p ):
     CEllipse( p )
   {}
-	int GetRing( CSpot const& spot, CRect* rect ){ *rect = *this; return 1; }
+  int GetRing( CSpot const& spot, CRect* rect ){ *rect = *this; return 1; }
   int TranslateToMap( TGstream* pDst, int t = 0 );
   operator ksi_obj();
 };
@@ -495,6 +496,7 @@ public:
 
   void Draw( CDC* pDC );
   CPoint* GetPolyline( int* pnPnt ) { return 0; }
+  CPoint* GetPolypoints( int* pnPnt ) { return CPolyline::GetPolyline( pnPnt ); }
   int TranslateToMap( TGstream* pDst, int t = 0 );
   operator ksi_obj();
 };
@@ -513,6 +515,7 @@ public:
   int Detected( CSpot const& spot, int bStrict = 0, int* pDist = 0 );
   int GetAngle( CSpot const& spot, int* pAngle );
   CPoint* GetPolyline( int* pnPnt ) { return 0; }
+  CPoint* GetPolypoints( int* pnPnt ) { return CPolyline::GetPolyline( pnPnt ); }
   int TranslateToMap( TGstream* pDst, int t = 0 );
   void Draw( CDC* pDC );
   operator ksi_obj();

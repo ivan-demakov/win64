@@ -11,6 +11,7 @@
   #include "mapmole.h"
 #else
   #include "tgmapmole.h"
+  #include "tgmapcliv1.h"
 #endif
 #include "dwin.h"
 #include "cspot.h"
@@ -24,19 +25,21 @@
 static char BASED_CODE THIS_FILE[] = __FILE__;
 #endif
 //=====================================================================
+using namespace Trig;
+
 int
 CMeasureMode::OnSetCursor()
 {
-	if( m_nMode == 2 )
-		return 0;
-  
-	SetCursor( App.LoadCursor( IDC_DRAW ));
-	return 1;
+  if( m_nMode == 2 )
+    return 0;
+
+  SetCursor( App.LoadCursor( IDC_DRAW ));
+  return 1;
 }
 //=====================================================================
 void
 CMeasureMode::ClearAll()
-{ 
+{
   if( m_pPoly && m_nPointNum )
   {
     CalcClipRect( m_CurPoint, m_pPoly[m_nPointNum-1] );
@@ -57,9 +60,6 @@ CMeasureMode::Term( int bDestroy )
 {
   if( !bDestroy )
   {
-    if( m_bSelect || m_nID == IDM_UNRECTPLAN_MODE )
-      SaveRegion();
-
     ClearAll();
     m_pOwner->ShowSelectedNum();
   }
@@ -69,8 +69,8 @@ CMeasureMode::Term( int bDestroy )
 int
 CMeasureMode::Restore( CMapView* pView )
 {
-  static UINT mm[] = 
-  { 
+  static UINT mm[] =
+  {
     IDM_LINE_MEASURE_MODE, IDM_SQUARE_MEASURE_MODE,
     IDM_SELECT_POLY_MODE, IDM_UNRECTPLAN_MODE, 0
   };
@@ -82,12 +82,12 @@ CMeasureMode::Restore( CMapView* pView )
   {
     CDrawObject* pObj = pView->GetObjectPtr( pMM->m_ExtId );
 
-		pMM->m_pPoly = pObj->GetPolygon( &pMM->m_nPointNum );
+                pMM->m_pPoly = pObj->GetPolygon( &pMM->m_nPointNum );
     pMM->m_bDrawFinal = pMM->m_pPoly != 0;
     if( !pMM->m_bSquare && !pMM->m_pPoly )
       pMM->m_pPoly = pObj->GetPolyline( &pMM->m_nPointNum );
   }
-  
+
   pMM->ResetClipRect();
   pMM->CalcSum();
   return 1;
@@ -122,7 +122,7 @@ CMeasureMode::OnLButtonDown( UINT& flags, CPoint& loc )
     CReisMode::SetActive( 0, 0 );
     m_nMode = 2;
   }
-  
+
   m_bPolylineFound = 0;
 
   if( flags & MK_SHIFT )
@@ -175,7 +175,7 @@ CMeasureMode::OnLButtonDown( UINT& flags, CPoint& loc )
   }
 
   CalcSum();
-  
+
   return AM_RDONE;
 }
 //=====================================================================
@@ -186,22 +186,32 @@ CMeasureMode::OnRButtonDown( UINT& flags, CPoint& loc )
     return AM_RREMOVE | AM_RDONE;
 
   OnLButtonDown( flags, loc );
-  
-  CRect r( m_ClipRect );    
+
+  CRect r( m_ClipRect );
   CalcClipRect( m_Polyline[0], m_Polyline[m_nPointNum-1] );
   m_ClipRect |= r;
 
   CalcSum();
   m_nMode = 1;
   m_bDrawFinal = m_bSquare;
-  return m_nID == IDM_UNRECTPLAN_MODE ? AM_RREMOVE | AM_RDONE : AM_RDONE;
+
+  if( m_nID && ( m_bSelect || m_nID == IDM_UNRECTPLAN_MODE ))
+	{
+    SaveRegion();
+	  pView->HideObject( CIdent( 0, 0, 0 ), 1 );
+	}
+
+  return AM_RREMOVE | AM_RDONE;
 }
 //=====================================================================
 int
 CMeasureMode::OnChar( UINT& flags, UINT& key_code )
 {
   if( key_code == VK_ESCAPE )
+	{
+		m_nID = 0;
     return AM_RREMOVE | AM_RDONE;
+	}
 
   if( key_code == VK_BACK )
   {
@@ -247,34 +257,34 @@ CMeasureMode::DrawSegments( CDC* pDC, CPoint* lp, int n )
   for( ; --n >= 0 ; ++lp )
   {
     pDC->Ellipse( CRect( lp[0] - RS, RS + RS ));
-		if( n )
-		{
+    if( n )
+    {
       CRect r( lp[0], lp[1] );
       CPoint cp( r.CenterPoint());
       int a = atan2( r.Size());
       int ang = a > 900 ? a - 1800 : a < -900 ? a + 1800 : a;
       double co = cos( ang ), si = sin( ang );
 
-			Point p0( lp[0].x, lp[0].y );
-			Point p1( lp[1].x, lp[1].y );
+      CPoint p0( lp[0].x, lp[0].y );
+      CPoint p1( lp[1].x, lp[1].y );
       int len = MerkatorData.Dist( p0, p1 ) * SmInUnit + 5;
-    
+
       int lip = len / 100, ldp = len % 100 / 10;
       char b[80];
-      int bl = ldp && len < 10000 ? sprintf( b, "%d.%d", lip, ldp ) :
-                                    sprintf( b, "%d", lip + ( ldp >= 50 ));
+      int bl = ldp && len < 10000 ? sprintf_s( b, "%d.%d", lip, ldp ) :
+                                    sprintf_s( b, "%d", lip + ( ldp >= 50 ));
       CSize ext( pDC->GetTextExtent( b, bl ));
       int rw = ext.cx + fs.cy + fs.cy;
-    
-      if( rw <= dist( r.TopLeft(), r.BottomRight()))    
+
+      if( rw <= dist( r.TopLeft(), r.BottomRight()))
       {
         XFORM tf = { co, -si, si, co, cp.x, cp.y };
         SetWorldTransform( pDC->GetSafeHdc(), &tf );
         int x1 = -rw /2, y1 = -h0, x2 = x1 + rw, y2 = h0, r = h0 * 2;
-        pDC->RoundRect( x1, y1, x2, y2, r, r );      
+        pDC->RoundRect( x1, y1, x2, y2, r, r );
         pDC->TextOut( 0, fs.cy, b, bl );
         SetIdenticalTransform( pDC );
-			}
+      }
     }
   }
   pDC->SetBkMode( oldBkMode );
@@ -285,8 +295,8 @@ static int
 DupNum( CPoint* p, int n )
 {
   CPoint* pp = p++;
-  int i;
-  for(i = 0 ; ++i < n && *pp != *p++ ; );
+  int i = 0;
+  while( ++i < n && *pp != *p++ );
   return i < n ? i : 0;
 }
 //=====================================================================
@@ -294,8 +304,8 @@ void
 CMeasureMode::DrawLoop( CDC* pDC, CPoint* pp, int pn )
 {
   int d1 = DupNum( pp, ++pn );
-  CPoint* ps;
-  for( ps = pp ; --pn > 0 ; )
+  CPoint* ps = pp;
+  while( --pn > 0 )
   {
     int d0 = d1 - 1;
     d1 = DupNum( ++pp, pn );
@@ -318,8 +328,8 @@ CalcLoopLength( CPoint* pp, int pn )
     return S;
 
   int d1 = DupNum( pp, ++pn );
-  CPoint* ps;
-  for( ps = pp ; --pn > 0 ; )
+  CPoint* ps = pp;
+  while( --pn > 0 )
   {
     int d0 = d1 - 1;
     d1 = DupNum( ++pp, pn );
@@ -340,15 +350,15 @@ CMeasureMode::PutHint( int bDraw )
     return;
 
   double Length1 = 0, Length2 = 0;
-	if( bDraw && m_nPointNum )
-	{
-    Point p0( m_CurPoint.x, m_CurPoint.y );
-		Point p1( m_Polyline[m_nPointNum-1].x, m_Polyline[m_nPointNum-1].y );
-		Point p2( m_Polyline[0].x, m_Polyline[0].y );
+  if( bDraw && m_nPointNum )
+  {
+    CPoint p0( m_CurPoint.x, m_CurPoint.y );
+    CPoint p1( m_Polyline[m_nPointNum-1].x, m_Polyline[m_nPointNum-1].y );
+    CPoint p2( m_Polyline[0].x, m_Polyline[0].y );
     Length1 = ( .5 + MerkatorData.Dist( p0, p1 ) * SmInUnit ) *1e-2;
     Length2 = ( .5 + MerkatorData.Dist( p0, p2 ) * SmInUnit ) *1e-2;
-	}
-	
+  }
+
   CString CurHint, tmp;
   if( m_bSquare && m_nPointNum >= 2 )
   {
@@ -359,8 +369,8 @@ CMeasureMode::PutHint( int bDraw )
       CurHint.Format( "Площадь = %d.%dкв.км, ", S/1000, S%1000 );
     else
       CurHint.Format( "Площадь = %dкв.м, ", S );
-  
-		double Length = m_Length + Length1 + Length2;
+
+    double Length = m_Length + Length1 + Length2;
     if( Length < 100 )
       tmp.Format( "%1.1fм", Length );
     else
@@ -369,18 +379,18 @@ CMeasureMode::PutHint( int bDraw )
     else
       tmp.Format( "%1.3fкм", Length/1000 );
 
-		CurHint += "Периметр: ";
-  	CurHint += tmp;
+    CurHint += "Периметр: ";
+    CurHint += tmp;
 
-	  if( bDraw )
-		{
-		 	tmp.Format( ", Сегменты: %1.1fм, %1.1fм", Length1, Length2 );
-	  	CurHint += tmp;
-		}
+    if( bDraw )
+    {
+      tmp.Format( ", Сегменты: %1.1fм, %1.1fм", Length1, Length2 );
+      CurHint += tmp;
+    }
   }
   else
-	{
-		double Length = m_Length + Length1 ;
+  {
+    double Length = m_Length + Length1 ;
     if( Length < 100 )
       tmp.Format( "%1.1fм", Length );
     else
@@ -389,12 +399,12 @@ CMeasureMode::PutHint( int bDraw )
     else
       tmp.Format( "%1.3fкм", Length/1000 );
     CurHint.Format( "%s = %s", m_bSquare ? "Периметр" : "Длина", tmp );
-  	if( bDraw )
-		{
+    if( bDraw )
+    {
       tmp.Format( ", Сегмент: %1.1fм", Length1 );
-	  	CurHint += tmp;
-		}
-	}
+      CurHint += tmp;
+    }
+  }
   ReportHint( CurHint );
 }
 //=====================================================================
@@ -448,10 +458,10 @@ CMeasureMode::Draw( CDC* pDC )
     }
     if( m_bSquare && m_nPointNum >= 2 )
     {
-			pDC->MoveTo( m_Polyline[0] );
+      pDC->MoveTo( m_Polyline[0] );
       pDC->LineTo( m_CurPoint );
-		}
-		PutHint( 1 );
+    }
+    PutHint( 1 );
   }
 
   m_bDrawFinal &= m_nMode == 1;
@@ -473,24 +483,24 @@ CMeasureMode::CalcSum()
 
   CWaitCursor wc;
 
-  m_Length = 
+  m_Length =
     m_pPoly == m_Polyline ? CalcLength( m_pPoly, m_nPointNum ) :
     m_bPolylineFound      ? CalcLength( m_pPoly, m_nPointNum ) :
                             CalcLoopLength( m_pPoly, m_nPointNum );
 
   if( m_pPoly == m_Polyline && !m_bSquare && m_nPointNum )
-	{
-    Point p0( m_CurPoint.x, m_CurPoint.y );
-		Point p1( m_Polyline[m_nPointNum-1].x, m_Polyline[m_nPointNum-1].y );
+  {
+    CPoint p0( m_CurPoint.x, m_CurPoint.y );
+    CPoint p1( m_Polyline[m_nPointNum-1].x, m_Polyline[m_nPointNum-1].y );
     m_Length += MerkatorData.Dist( p0, p1 );
-	}
+  }
 
   m_Length = m_Length * SmInUnit / 100.;
 
   if( m_bSquare )
     m_Square = CalcSquare();
 
-	PutHint( 0 );
+  PutHint( 0 );
 }
 //=====================================================================
 static double
@@ -503,7 +513,7 @@ CalcS( CPoint* poly, int nPointNum )
 
   int i, j, bFound = 0;
   for( j = nPointNum ; --j > 0 && !bFound ; )
-    for( i = 0 ; i < j && !bFound ; bFound = poly[i++] == poly[j] );      
+    for( i = 0 ; i < j && !bFound ; bFound = poly[i++] == poly[j] );
 
   if( bFound )
   {
@@ -525,13 +535,11 @@ CalcS( CPoint* poly, int nPointNum )
 
     for( int c = nPnt ; --c >= 0 && !bFound ; )
     {
-      double ds = MerkatorData.Sq3( Point( p[0].x, p[0].y ), 
-				                            Point( p[1].x, p[1].y ),
-																		Point( p[2].x, p[2].y ));
-      
-      if( !ds || ds > 0 == bCW && 
-                 !IsAnyPointInTriangle( poly, nPnt, p ) &&
-                 !IsLineCrossPolygon( p[0], p[2], poly, nPnt ))
+      double ds = MerkatorData.Sq3( p[0], p[1], p[2] );
+
+      if( !ds || ds > 0 == bCW &&
+          !IsAnyPointInTriangle( poly, nPnt, p ) &&
+          !IsLineCrossPolygon( p[0], p[2], poly, nPnt ))
       {
         S += ds;
         bFound = 1;
@@ -539,19 +547,19 @@ CalcS( CPoint* poly, int nPointNum )
       else
       if( bFound )
         break;
-      
+
       if( !bFound )
       {
         i0 = i1;
         p[0] = p[1];
       }
-      i1 = i2; 
+      i1 = i2;
       p[1] = p[2];
       i2 = ( i2 + 1 ) % nPnt;
       p[2] = poly[i2];
     }
 
-    int in = i0 < i1; 
+    int in = i0 < i1;
     int np = ( in ? 0 : nPnt ) + i1 - i0 - 1;
     if( !np )
       break;
@@ -565,7 +573,7 @@ CalcS( CPoint* poly, int nPointNum )
 double
 CMeasureMode::CalcSquare()
 {
-  if( m_nPointNum > 3 && 
+  if( m_nPointNum > 3 &&
      ( IsSelfCrossPolygon( m_pPoly, m_nPointNum ) ||
        !Clockwise( m_pPoly, m_nPointNum )))
   {
@@ -587,6 +595,7 @@ m2s( int m )
 void
 CMeasureMode::SaveRegion()
 {
+  pView->DrawRegion( m_pPoly, m_nPointNum, RGB( 176, 176, 176 ));
   if( m_nPointNum < 3 ||
       ( !Clockwise( m_pPoly, m_nPointNum ) ||
         IsSelfCrossPolygon( m_pPoly, m_nPointNum )))
@@ -594,6 +603,26 @@ CMeasureMode::SaveRegion()
     ErrBox( "Некорректный регион!" );
     return;
   }
+
+#ifdef _FULL_PROJECT
+  if( GetProjectSLEnable() && m_nID == IDM_SELECT_POLYGON_MODE )
+  {
+    CString mifCoordList;
+    mifCoordList.Format( "Region 1\n%d\n", m_nPointNum );
+    
+		for( int i = 0 ; i < m_nPointNum ; ++i )
+    {
+      CString q;
+      CPoint p( m_pPoly[i] );
+      q.Format( "%d %d\n", p.x, p.y );
+      mifCoordList += q;
+    }
+		BSTR str = mifCoordList.AllocSysString();
+		CTGMapCliV1::FireSetObjectCoord( -1, -1, str );
+		SysFreeString( str );
+    return;
+  }
+#endif
 
   if( m_nID == IDM_UNRECTPLAN_MODE )
   {
@@ -603,14 +632,14 @@ CMeasureMode::SaveRegion()
     delete pPoly;
     return;
   }
-  
+
   CString path( App.GetProjectFilePath( "region.txt" ));
   UINT rsm = FileExist( path ) ? AskBox( "Добавить к существующему?", 1 ) : IDNO;
   if( rsm == IDCANCEL )
     return;
 
-  UINT fom = rsm == IDYES ? std::ios::app : std::ios::out | std::ios::trunc;
-  std::ofstream polyFile;
+  UINT fom = rsm == IDYES ? ios::app : ios::out | ios::trunc;
+  ofstream polyFile;
   polyFile.open( path, fom );
   if( !polyFile.good())
   {
@@ -620,20 +649,20 @@ CMeasureMode::SaveRegion()
 
   int bnc = m_pPoly[0] != m_pPoly[m_nPointNum-1];
 
-  polyFile << "Region 1" << std::endl
-           << ( m_nPointNum + bnc ) << std::endl;
+  polyFile << "Region 1" << endl
+           << ( m_nPointNum + bnc ) << endl;
 
   for( int i = 0 ; i < m_nPointNum ; ++i )
     polyFile << m2s( m_pPoly[i].x )
-             << " " 
+             << " "
              << m2s( m_pPoly[i].y )
-             << std::endl;
+             << endl;
 
   if( bnc )
     polyFile << m2s( m_pPoly[0].x )
-             << " " 
+             << " "
              << m2s( m_pPoly[0].y )
-             << std::endl;
+             << endl;
 
   polyFile.close();
 
@@ -658,76 +687,75 @@ CLinkMeasureMode::OnLButtonDown( UINT &flags, CPoint &loc )
     if( !pObj )
       return AM_RDONE;
 
-		int pn;
+    int pn;
     CPoint* pPoly = pObj->GetPolyline( &pn );
-		int nt = pn + m_nPointNum;
-		if( !pObj || !pPoly || nt > MAX_POINT_NUM )
+    int nt = pn + m_nPointNum;
+    if( !pObj || !pPoly || nt > MAX_POINT_NUM )
     {
       Beep( 440, 400 );
       return AM_RDONE;
     }
 
-		if( m_nPointNum )
-		{
-			int d00 = dist( m_Polyline[0], pPoly[0] );
-			int d01 = dist( m_Polyline[0], pPoly[pn-1] );
-			int d10 = dist( m_Polyline[m_nPointNum-1], pPoly[0] );
-			int d11 = dist( m_Polyline[m_nPointNum-1], pPoly[pn-1] );
-			int dm = min( min( d00, d01 ), min( d10, d11 ));
-			if( dm == d00 )
-			{
-				ReversePoly( m_Polyline, m_nPointNum );
-				memcpy( m_Polyline + m_nPointNum, pPoly, pn * sizeof( CPoint ));
-			}
-			else
-			if( dm == d11 )
-			{
-			  memcpy( m_Polyline + m_nPointNum, pPoly, pn * sizeof( CPoint ));
-				ReversePoly( m_Polyline + m_nPointNum, pn );
-			}
-			else
-			if( dm == d01 )
-			{
-				ReversePoly( m_Polyline, m_nPointNum );
-			  memcpy( m_Polyline + m_nPointNum, pPoly, pn * sizeof( CPoint ));
-				ReversePoly( m_Polyline + m_nPointNum, pn );
-			}
-			else
-			  memcpy( m_Polyline + m_nPointNum, pPoly, pn * sizeof( CPoint ));
+    if( m_nPointNum )
+    {
+      int d00 = dist( m_Polyline[0], pPoly[0] );
+      int d01 = dist( m_Polyline[0], pPoly[pn-1] );
+      int d10 = dist( m_Polyline[m_nPointNum-1], pPoly[0] );
+      int d11 = dist( m_Polyline[m_nPointNum-1], pPoly[pn-1] );
+      int dm = min( min( d00, d01 ), min( d10, d11 ));
+      if( dm == d00 )
+      {
+        ReversePoly( m_Polyline, m_nPointNum );
+        memcpy( m_Polyline + m_nPointNum, pPoly, pn * sizeof( CPoint ));
+      }
+      else
+      if( dm == d11 )
+      {
+        memcpy( m_Polyline + m_nPointNum, pPoly, pn * sizeof( CPoint ));
+        ReversePoly( m_Polyline + m_nPointNum, pn );
+      }
+      else
+      if( dm == d01 )
+      {
+        ReversePoly( m_Polyline, m_nPointNum );
+        memcpy( m_Polyline + m_nPointNum, pPoly, pn * sizeof( CPoint ));
+        ReversePoly( m_Polyline + m_nPointNum, pn );
+      }
+      else
+        memcpy( m_Polyline + m_nPointNum, pPoly, pn * sizeof( CPoint ));
 
+      CPoint p0 = m_Polyline[m_nPointNum-1];
+      while( --pn >= 0 )
+      {
+        CPoint p1 = *pPoly++;
+        CalcClipRect( p0, p1 );
+        m_pOwner->ShowBox( m_ClipRect );
+        p0 = p1;
+      }
 
-			CPoint p0 = m_Polyline[m_nPointNum-1]; 
-			while( --pn >= 0 )
-			{
-				CPoint p1 = *pPoly++;
-				CalcClipRect( p0, p1 );
-				m_pOwner->ShowBox( m_ClipRect );
-				p0 = p1;
-			}
-
-			m_nPointNum = nt;
-		}
-		else
-		{
-			m_nMode = 2;
-			m_nPointNum = pn;
-			memcpy( m_Polyline, pPoly, pn * sizeof( CPoint ));
-		}
-		m_CurPoint = m_Polyline[m_nPointNum-1];
+      m_nPointNum = nt;
+    }
+    else
+    {
+      m_nMode = 2;
+      m_nPointNum = pn;
+      memcpy( m_Polyline, pPoly, pn * sizeof( CPoint ));
+    }
+    m_CurPoint = m_Polyline[m_nPointNum-1];
   }
   else
   {
     m_ClipRect.SetRect( 0, 0, -1, -1 );
     m_CurPoint = loc;
-		
+
     if( m_nPointNum < MAX_POINT_NUM )
     {
-  		m_nMode = 2;
+      m_nMode = 2;
       CReisMode::SetPrevPoint( loc );
       m_Polyline[m_nPointNum++] = loc;
       CalcClipRect( m_Polyline[m_nPointNum-2], m_Polyline[m_nPointNum-1] );
     }
-		else
+    else
     {
       Beep( 440, 400 );
       return AM_RDONE;
@@ -735,7 +763,7 @@ CLinkMeasureMode::OnLButtonDown( UINT &flags, CPoint &loc )
   }
 
   CalcSum();
-  
+
   return AM_RDONE;
 }
 //=====================================================================
@@ -762,7 +790,7 @@ void
 CLinkMeasureMode::CalcSum()
 {
   m_Length = CalcLength( m_pPoly, m_nPointNum ) * SmInUnit * 1e-2;
-	PutHint( 0 );
+  PutHint( 0 );
 }
 //=====================================================================
 //=====================================================================
@@ -797,60 +825,60 @@ CFindDistanceMode::OnLButtonDown( UINT &flags, CPoint &loc )
     if( m_nMode < 3 )
     {
       m_pOwner->SelectObject( pObj, 1 );
-			if( m_nMode == 1 )
-				m_Id0 = pObj->TabIdent();
-			else
-			if( m_nMode == 2 )
-			{
-				CDrawObject* pObj0 = m_pOwner->GetObjectPtr( m_Id0 );
-				if( !pObj0 )
-				{
-					ErrBox( "Пропал первый объект!" );
-					m_pOwner->SelectObject( pObj, 0 );
-					return AM_RDONE;
-				}
-				LINK_TYPE lt = pObj->IsLinkedTo( pObj0 );
-				if( lt == LT_NOTHING || lt == LT_UNDEF )
-				{
-					ErrBox( "Второй объект не связан с первым!" );
-					m_pOwner->SelectObject( pObj, 0 );
-					return AM_RDONE;
-				}
-				m_Id1 = pObj->TabIdent();
-			}
+      if( m_nMode == 1 )
+        m_Id0 = pObj->TabIdent();
+      else
+      if( m_nMode == 2 )
+      {
+        CDrawObject* pObj0 = m_pOwner->GetObjectPtr( m_Id0 );
+        if( !pObj0 )
+        {
+          ErrBox( "Пропал первый объект!" );
+          m_pOwner->SelectObject( pObj, 0 );
+          return AM_RDONE;
+        }
+        LINK_TYPE lt = pObj->IsLinkedTo( pObj0 );
+        if( lt == LT_NOTHING || lt == LT_UNDEF )
+        {
+          ErrBox( "Второй объект не связан с первым!" );
+          m_pOwner->SelectObject( pObj, 0 );
+          return AM_RDONE;
+        }
+        m_Id1 = pObj->TabIdent();
+      }
       ++m_nMode;
     }
-		if( m_nMode == 3 )
-		{
-			CSetDistDialog dlg( "Расстояние до точки", "fuflo" );
-			if( dlg.DoModal() == IDOK )
-			{
-				++m_nMode;
-				m_Dist = dlg.GetDist();
-       	CDrawObject* pObj0 = m_pOwner->GetObjectPtr( m_Id0 );
-	      if( pObj0 )
-				{
+    if( m_nMode == 3 )
+    {
+      CSetDistDialog dlg( "Расстояние до точки", "fuflo" );
+      if( dlg.DoModal() == IDOK )
+      {
+        m_nMode;
+        m_Dist = dlg.GetDist();
+        CDrawObject* pObj0 = m_pOwner->GetObjectPtr( m_Id0 );
+        if( pObj0 )
+        {
 #ifdef _TabIdentHashTab_
-					TabIdentHashTab IdList;
+          TabIdentHashTab IdList;
 #else
-         	CTabIdList IdList;
+          CTabIdList IdList;
 #endif // _TabIdentHashTab_
-					{
-						CWaitCursor wc;
+          int r;
+          {
+            CWaitCursor wc;
             ReportHint( "Выполняется поиск точки. Пожалуйста, подождите..." );
-					  FindPoint( pObj0, IdList );
-					}
-	        if( !m_pSolution )
+            FindPoint( pObj0, IdList );
+          }
+          if( !m_pSolution )
             ErrBox( "Не найдена точка на заданном удалении!" );
-					else
-	        if( m_nSolution )
+          else
+          if( m_nSolution )
             ErrBox( "Найдена первая точка из нескольких!" );
-				}
-			}
-			else
-				return AM_RDONE | AM_RREMOVE;
-		}	
-		
+        }
+      }
+      else
+        return AM_RDONE | AM_RREMOVE;
+    }
   }
   return AM_RDONE;
 }
@@ -858,7 +886,7 @@ CFindDistanceMode::OnLButtonDown( UINT &flags, CPoint &loc )
 int
 CFindDistanceMode::Term( int bDestroy )
 {
-	delete m_pSolution;
+  delete m_pSolution;
   m_pOwner->ClearSelection();
   return 0;
 }
@@ -876,96 +904,96 @@ CFindDistanceMode::FindPoint( CDrawObject* pCurr, TabIdentHashTab& IdList )
 CFindDistanceMode::FindPoint( CDrawObject* pCurr, CTabIdList & IdList )
 #endif // _TabIdentHashTab_
 {
-	int obn = pCurr->Entry();
-		
+  int obn = pCurr->Entry();
+
 #ifdef _TabIdentHashTab_
-	IdList.Add( pCurr->TabIdent());
+  IdList.Add( pCurr->TabIdent());
 #else
-	IdList.AddHead( pCurr->TabIdent());
+  IdList.AddHead( pCurr->TabIdent());
 #endif // _TabIdentHashTab_
 
-	int nt, pn;
-	CPoint* pPnt = pCurr->GetAnyPoints( &nt, &pn );
-	if( nt == SH_POINT || nt == SH_POLYLINE && m_nPointNum + pn <= MAX_POINT_NUM )
-	{
-		if( m_nPointNum )
-		{
-			int d00 = dist( m_Polyline[0], pPnt[0] );
-			int d01 = dist( m_Polyline[0], pPnt[pn-1] );
-			int d10 = dist( m_Polyline[m_nPointNum-1], pPnt[0] );
-			int d11 = dist( m_Polyline[m_nPointNum-1], pPnt[pn-1] );
-			int dm = min( min( d00, d01 ), min( d10, d11 ));
-			if( dm == d00 )
-			{
-				ReversePoly( m_Polyline, m_nPointNum );
-				memcpy( m_Polyline + m_nPointNum, pPnt, pn * sizeof( CPoint ));
-			}
-			else
-			if( dm == d11 )
-			{
-			  memcpy( m_Polyline + m_nPointNum, pPnt, pn * sizeof( CPoint ));
-				ReversePoly( m_Polyline + m_nPointNum, pn );
-			}
-			else
-			if( dm == d01 )
-			{
-				ReversePoly( m_Polyline, m_nPointNum );
-				memcpy( m_Polyline + m_nPointNum, pPnt, pn * sizeof( CPoint ));
-				ReversePoly( m_Polyline + m_nPointNum, pn );
-			}
-			else
-			  memcpy( m_Polyline + m_nPointNum, pPnt, pn * sizeof( CPoint ));
+  int nt, pn;
+  CPoint* pPnt = pCurr->GetAnyPoints( &nt, &pn );
+  if( nt == SH_POINT || nt == SH_POLYLINE && m_nPointNum + pn <= MAX_POINT_NUM )
+  {
+    if( m_nPointNum )
+    {
+      int d00 = dist( m_Polyline[0], pPnt[0] );
+      int d01 = dist( m_Polyline[0], pPnt[pn-1] );
+      int d10 = dist( m_Polyline[m_nPointNum-1], pPnt[0] );
+      int d11 = dist( m_Polyline[m_nPointNum-1], pPnt[pn-1] );
+      int dm = min( min( d00, d01 ), min( d10, d11 ));
+      if( dm == d00 )
+      {
+        ReversePoly( m_Polyline, m_nPointNum );
+        memcpy( m_Polyline + m_nPointNum, pPnt, pn * sizeof( CPoint ));
+      }
+      else
+      if( dm == d11 )
+      {
+        memcpy( m_Polyline + m_nPointNum, pPnt, pn * sizeof( CPoint ));
+        ReversePoly( m_Polyline + m_nPointNum, pn );
+      }
+      else
+      if( dm == d01 )
+      {
+        ReversePoly( m_Polyline, m_nPointNum );
+        memcpy( m_Polyline + m_nPointNum, pPnt, pn * sizeof( CPoint ));
+        ReversePoly( m_Polyline + m_nPointNum, pn );
+      }
+      else
+        memcpy( m_Polyline + m_nPointNum, pPnt, pn * sizeof( CPoint ));
 
-			m_nPointNum += pn;
-		}
-		else
-		{
-			m_nPointNum = pn;
-			memcpy( m_Polyline, pPnt, pn * sizeof( CPoint ));
-		}	
-	}
-	int L = CalcLength( m_Polyline, m_nPointNum );
-	if( L < m_Dist )
-	{
+      m_nPointNum += pn;
+    }
+    else
+    {
+      m_nPointNum = pn;
+      memcpy( m_Polyline, pPnt, pn * sizeof( CPoint ));
+    }
+  }
+  int L = CalcLength( m_Polyline, m_nPointNum );
+  if( L < m_Dist )
+  {
     CObjList lst;
-		if( IdList.GetCount() == 1 )
-			lst.AddHead( m_pOwner->GetObjectPtr( m_Id1 ));
-		else
-		{
-  	  m_pOwner->GetTargetsGlobal( pCurr, &lst );
-	    m_pOwner->GetHostsGlobal( pCurr, &lst );
-		}
+    if( IdList.GetCount() == 1 )
+      lst.AddHead( m_pOwner->GetObjectPtr( m_Id1 ));
+    else
+    {
+      m_pOwner->GetTargetsGlobal( pCurr, &lst );
+      m_pOwner->GetHostsGlobal( pCurr, &lst );
+    }
     while( !lst.IsEmpty())
-		{
-	    CDrawObject* pNxt = lst.RemoveHead();
-	    if( !IdList.Find( pNxt->TabIdent()) && FindPoint( pNxt, IdList ))
-				return 1;
-		}
-	}
-	else
-	if( !m_pSolution )
-	{
-		m_SolutionSize = m_nPointNum;
-		m_pSolution = new CPoint[m_nPointNum];
-		memcpy( m_pSolution, m_Polyline, m_nPointNum * sizeof( CPoint ));
-	  while( L > m_Dist )
-			L = CalcLength( m_pSolution, --m_SolutionSize );
-		CPoint p0( m_pSolution[m_SolutionSize-1] );
-		CPoint p1( m_pSolution[m_SolutionSize] );
-		m_pSolution[m_SolutionSize++] = StepByLine( p0, p1, m_Dist - L );
-		m_nMode = 5;  	  
+    {
+      CDrawObject* pNxt = lst.RemoveHead();
+      if( !IdList.Find( pNxt->TabIdent()) && FindPoint( pNxt, IdList ))
+        return 1;
+    }
+  }
+  else
+  if( !m_pSolution )
+  {
+    m_SolutionSize = m_nPointNum;
+    m_pSolution = new CPoint[m_nPointNum];
+    memcpy( m_pSolution, m_Polyline, m_nPointNum * sizeof( CPoint ));
+    while( L > m_Dist )
+      L = CalcLength( m_pSolution, --m_SolutionSize );
+    CPoint p0( m_pSolution[m_SolutionSize-1] );
+    CPoint p1( m_pSolution[m_SolutionSize] );
+    m_pSolution[m_SolutionSize++] = StepByLine( p0, p1, m_Dist - L );
+    m_nMode = 5;
     m_pOwner->ClearSelection();
-	}
-	else
-		m_nSolution = 1;
+  }
+  else
+    m_nSolution = 1;
 
 #ifdef _TabIdentHashTab_
-	IdList.Remove( pCurr->TabIdent());
+  IdList.Remove( pCurr->TabIdent());
 #else
-	IdList.RemoveHead();
+  IdList.RemoveHead();
 #endif // _TabIdentHashTab_
-	m_nPointNum -= pn;
-	return m_nSolution;
+  m_nPointNum -= pn;
+  return m_nSolution;
 }
 //=====================================================================
 void
@@ -979,10 +1007,10 @@ CFindDistanceMode::Draw( CDC* pDC )
   };
 
   if( m_nMode <= 3 )
-	{
+  {
     ReportHint( m[m_nMode-1] );
-		return;
-	}
+    return;
+  }
 
   static COLORREF clr = RGB( 255, 0, 0 );
   static COLORREF bck = RGB( 255, 255, 255 );
@@ -1012,7 +1040,7 @@ CFindDistanceMode::Draw( CDC* pDC )
 //=====================================================================
 #ifdef _TabIdentHashTab_
 enum
-{ 
+{
   START_SIZE = 8192,
   LINK_SIZE_LIMIT = 8
 };
@@ -1031,7 +1059,7 @@ TabIdentHashTab::FindPos( CTabIdent const& id )
   pItem* ppos = m_pHead;
   while( *ppos && (*ppos)->m_Id < id )
     ppos = &(*ppos)->m_pNext;
-  
+
   return ppos;
 }
 //=====================================================================
@@ -1045,7 +1073,7 @@ TabIdentHashTab::Remove( CTabIdent const& id )
   pItem pFnd = *ppos;
   if( !pFnd || pFnd->m_Id != id )
     return 0;
-  
+
   *ppos = pFnd->m_pNext;
   delete pFnd;
 
@@ -1067,7 +1095,7 @@ TabIdentHashTab::Add( CTabIdent const& id )
     m_pTab = new pItem[m_nSize];
     if( !m_pTab )
       return 0;
-  
+
     memset( m_pTab, 0, m_nSize * sizeof pItem );
     if( pOld )
     {
@@ -1119,7 +1147,7 @@ void
 TabIdentHashTab::Clear()
 {
   if( m_pTab )
-  { 
+  {
     for( pItem* cp = m_pTab + m_nSize ; --cp >= m_pTab ; )
       while( *cp )
       {

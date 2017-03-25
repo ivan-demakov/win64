@@ -46,7 +46,8 @@ CBaseLawDialog::InsertTreeNode( HTREEITEM parent, int type, int bSub )
   for( int k = 1 ; k < n ; ++k )
 	{
     int t = types[k];
-		int l, r = m_pObjDef->GetMenuRange( t );
+		int r = m_pObjDef->GetMenuRange( t );
+    int l;
 		for( l = k ; --l >= 0 && m_pObjDef->GetMenuRange( types[l] ) > r ; types[l+1] = types[l] );
 		types[l+1] = t;
 	}
@@ -63,7 +64,7 @@ CBaseLawDialog::InsertTreeNode( HTREEITEM parent, int type, int bSub )
 HTREEITEM
 CBaseLawDialog::FindTreeNode( HTREEITEM node, int type )
 {
-	HTREEITEM fnode;
+  HTREEITEM fnode;
   for( fnode = 0 ; !fnode && node ; node = m_pClassTree->GetNextSiblingItem( node ))
     fnode = m_pClassTree->GetItemData( node ) == type ? 
       node : FindTreeNode( m_pClassTree->GetChildItem( node ), type );
@@ -262,13 +263,8 @@ CLoadLawDialog::ExpandCheck( HTREEITEM hItem, int bCheck )
   item.mask  = TVIF_PARAM ;
   m_pClassTree->GetItem( &item );
   int type = item.lParam;
-  int off = type >> 3;
-  int msk = 1 << ( type & 7 );
-  int ch = bCheck >= 0 ? bCheck : ( m_TmpTab[off] & msk );
-  if( ch )
-    m_TmpTab[off] |= msk;
-  else
-    m_TmpTab[off] &= ~msk;
+  int ch = bCheck >= 0 ? bCheck : GetBit( m_TmpTab, type );
+  SetBit( m_TmpTab, type, ch );
   m_pClassTree->SetCheck( hItem, ch );
 
   for( hItem = m_pClassTree->GetChildItem( hItem ) ; hItem ;

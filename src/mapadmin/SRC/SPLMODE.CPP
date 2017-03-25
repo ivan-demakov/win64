@@ -70,8 +70,8 @@ MakeFilled( CPoint* pPnt, int nPnt, CPoint* pRgn, int nRgn, ksi_obj fb_color, ks
   ksi_obj ksi_pls = ksi_nil;
   for( CPoint p0, p1 ; lh.GetHead( p0, p1 ) ; )
   {
-	ksi_obj ksi_pll;
-    for(ksi_obj ksi_pll = KSI_LIST2( KsiPoint( p0 ), KsiPoint( p1 ));;)
+    ksi_obj ksi_pll = KSI_LIST2(KsiPoint(p0), KsiPoint(p1));
+    for(;;)
     {
 
       CPoint np;
@@ -135,9 +135,8 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
 
     if( bSel )
     {
-		int i;
-      for(i = CELEM( kt ) ;
-           --i >= 0 && _stricmp( kt[i][0], KSI_KEY_PTR( type )) ; );
+      int i = CELEM( kt ); 
+      while( --i >= 0 && _stricmp( kt[i][0], KSI_KEY_PTR( type )));
       if( i >= 0 )
       {
         ksi_set_car_x( prim, type = ksi_str02key( kt[i][1] ));
@@ -171,14 +170,20 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
       ksi_set_car_x( val, ksi_str02key( "strings" ));
       for( ksi_obj itl = KSI_CDR( val ) ; KSI_PLIST_P( itl ) ; itl = KSI_CDR( itl ))
       {
-        ksi_obj itm = KSI_CAR( itl );
-        ksi_obj vec = KSI_CDR( itm );
-        CPoint p( ksi_num2int( KSI_VEC_REF( vec, 0 )),
-                  ksi_num2int( KSI_VEC_REF( vec, 1 )));
-        int a = ksi_num2int( KSI_VEC_REF( vec, 2 ));
+        ksi_obj vec = KSI_CAR( itl );
+        ksi_obj ppr = KSI_VEC_REF( vec, 0 );
+        CPoint p( ksi_num2int( KSI_CAR( ppr )), ksi_num2int( KSI_CDR( ppr )));
+        int a = ksi_num2int( KSI_VEC_REF( vec, 1 ));
         p = TurnPoint( p - box.TopLeft(), -a );
-        KSI_VEC_REF( vec, 0 ) = ksi_int2num( p.x );
-        KSI_VEC_REF( vec, 1 ) = ksi_int2num( p.y );
+
+				char str[] = { ksi_num2int( ksi_char2integer( KSI_VEC_REF( vec, 2 ))), 0 };
+				ksi_obj new_vec = ksi_make_vector( ksi_four, ksi_zero );
+				KSI_VEC_REF( new_vec, 0 ) = ksi_int2num( p.x );
+				KSI_VEC_REF( new_vec, 1 ) = ksi_int2num( p.y );
+				KSI_VEC_REF( new_vec, 2 ) = KSI_VEC_REF( vec, 1 );
+				KSI_VEC_REF( new_vec, 3 ) = ksi_str02string( str );
+
+				ksi_set_car_x( itl, ksi_cons( ksi_str02key( "string" ), new_vec ));
       }
 
       ksi_obj crd = ksi_make_vector( ksi_two, ksi_zero );
@@ -259,13 +264,15 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
     //poly
     ksi_obj pll = ksi_assv_ref( item, keyPoly );
 
+		int nPnt;
+    CPoint* pPnt = 0;
     if( KSI_TRUE_P( pll ))
-    {
-      int nPnt;
-      CPoint* pPnt;
-      ( pPnt = pPrim->GetPolygon( &nPnt )) ||
-      ( pPnt = pPrim->GetPolyline( &nPnt ));
+		 ( pPnt = pPrim->GetPolygon( &nPnt )) ||
+		 ( pPnt = pPrim->GetPolyline( &nPnt )) ||
+		 ( pPnt = pPrim->GetPolypoints( &nPnt ));
 
+    if( pPnt )
+    {
       // polygon
       if(( !pObj->IsSelected() || bSpc ) &&
           KSI_TRUE_P( ksi_memv( type, KSI_LIST3( keyOplg, keySplg, keyFplg ))))
@@ -278,7 +285,7 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
         }
       }
 
-      if( KSI_EQV_P( type, keyFplg ))
+      if( KSI_EQ_P( type, keyFplg ))
       {
         if( !pObj->IsSelected())
           continue;
@@ -303,8 +310,11 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
 
       ksi_obj lns = ksi_nil;
 
+      if( KSI_EQ_P( type, keyFootnote ))
+				type = keyPolyline;
+
       // polyline
-      if( KSI_TRUE_P( ksi_memv( type, KSI_LIST2( keyPolyline, keyFootnote ))))
+      if( KSI_EQ_P( type, keyPolyline ))
       {
         CViewDC dc( pView );  
 
@@ -348,7 +358,7 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
                 {
                   ksi_obj p0 = KsiPoint( t0 );
                   ksi_obj p1 = KsiPoint( t1 - t0 );
-				  ksi_obj l;
+                  ksi_obj l;
                   for( l = lns ; KSI_PLIST_P( l ) && !KSI_EQV_P( w, KSI_CAR( KSI_CAR( l ))) ; l = KSI_CDR( l ));
                   if( KSI_NULL_P( l ))
                     lns = ksi_cons( KSI_LIST3( w, p0, p1 ), lns );
@@ -370,7 +380,7 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
             new_item = ksi_assv_set_x( new_item, keyStrok, nst );
             new_item = ksi_assv_set_x( new_item, keyPoly,  KSI_CDR( itm ));
             new_item = ksi_assv_set_x( new_item, keyAngle, ksi_zero );
-            new_item = ksi_assv_set_x( new_item, keyCoord, ksi_make_vector( ksi_three, ksi_zero ));
+            new_item = ksi_assv_set_x( new_item, keyCoord, ksi_make_vector( ksi_two, ksi_zero ));
             new_item = ksi_cons( keyLines, new_item );
             KsiAppend( cont, new_item );
           }
@@ -394,7 +404,7 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
 
           item = ksi_assv_set_x( item, keyPoly, lns );
           item = ksi_assv_set_x( item, keyAngle, ksi_zero );
-          item = ksi_assv_set_x( item, keyCoord, ksi_make_vector( ksi_three, ksi_zero ));
+          item = ksi_assv_set_x( item, keyCoord, ksi_make_vector( ksi_two, ksi_zero ));
           type = keyLines;
         }
       }
@@ -413,7 +423,7 @@ CStreetPlanMode::MakeKsiCont( CDrawContainer* pObj, int bHR, int bGrayScale, CPo
         
         item = ksi_assv_set_x( item, keyPoly, lns );
         item = ksi_assv_set_x( item, keyAngle, ksi_zero );
-        item = ksi_assv_set_x( item, keyCoord, ksi_make_vector( ksi_three, ksi_zero ));
+        item = ksi_assv_set_x( item, keyCoord, ksi_make_vector( ksi_two, ksi_zero ));
       }
     }
     KsiAppend( cont, ksi_cons( type, item ));
@@ -444,27 +454,9 @@ CStreetPlanMode::OutObj( CDrawObject* pObj, int sc, ksi_obj ksi_port,
 int
 CStreetPlanMode::SavePlan( CPoint* pRgn, int nRgn )
 {
-  CIntAssocMap* pct = &pView->GetDocument()->m_ViewColorTab;
-  int const c = 176;
-  static int k = -1;
-  if( pct->TranslateKey( k ) < 0 )
-  {
-    k = pct->FindFreeKey();
-    pct->Add( k, RGB( c, c, c ));
-  }
-  pView->GetLayer( 0 )->SetVisible( 1 );
+  pView->DrawRegion( pRgn, nRgn, RGB( 176, 176, 176 ), 0 );
   CIdent id( 0, 0, 0 );
-  pView->HideObject( id, 1 );
-  CDrawContainer* pc = new CDrawContainer;
-  COutlinedPolygon* pl = new COutlinedPolygon(
-    CFillItem( CForeBackItem( k, -1 ), BS_HATCHED, HS_DIAGCROSS ),
-    CStrokItem( 0, PS_SOLID, 0 ), nRgn, pRgn );
-  pl->SetFlags( SF_LOW_VISIBLE | SF_HIG_VISIBLE, SF_STATUS_MASK );
-  pc->AddTail( pl );
-  CDrawObject* pObj = new CDrawObject( id, 0, 0, 0, pc );
-  pObj->CalcBoundBox();
-  delete pView->m_ClipData.AddObject( pObj );
-  pView->ShowObjectBox( pObj );
+  CDrawObject* pObj = pView->GetObjectPtr( id );
 
   if( AskBox( "Сохранить фрагмент?" ) != IDYES )
   {
@@ -487,8 +479,7 @@ CStreetPlanMode::SavePlan( CPoint* pRgn, int nRgn )
   pView->GetDocument()->CreateLayers( &data );
 
   CRect r0( 0, 0, 0, 0 );
-	CPoint tc( box.CenterPoint());
-  sc /= MerkatorData.ScaleFactor( Point( tc.x, tc.y ));
+  sc /= MerkatorData.ScaleFactor( box.CenterPoint());
   pView->LoadFromStore( &data, box, r0, sc, r0, sc );
 	pView->AddLoadStaticSublayer( &data, sc, box ); 
 
@@ -586,7 +577,7 @@ CStreetPlanMode::SavePlan( CPoint* pRgn, int nRgn )
 #else
     CString splPath( GetProjectWriteDir() + "plan.spl" );
 #endif;
-	std::ofstream splFile( splPath, std::ios::out | std::ios::trunc, std::filebuf::sh_read | std::filebuf::sh_write );
+    ofstream splFile( splPath, ios::out | ios::trunc, SH_DENYRW );
     if( !splFile.good())
     {
       ErrBox( "Невозможно открыть файл\n"
@@ -724,11 +715,10 @@ CStreetPlanMode::SavePlan( int R )
     return SavePlan( rgn, 4 );
   }
 
-  CList< CPoint*, CPoint*& > rgl;
+  CList< CPoint*, CPoint*& > rgl0, rgl1, *pRg0 = &rgl0, *pRg1 = &rgl1, *tmp;
 
   CObjList ptl, pll;
-  POSITION pos;
-  for(pos = pView->m_SelectList.GetHeadPosition() ; pos ; )
+  for( POSITION pos = pView->m_SelectList.GetHeadPosition() ; pos ; )
   {
     CDrawObject* pObj = pView->m_SelectList.GetNext( pos );
     int ntp = SH_NOTHING;
@@ -739,10 +729,9 @@ CStreetPlanMode::SavePlan( int R )
         pll.AddHead( pObj );
   }
 
-  POSITION pos0;
-  for(pos0 = ptl.GetTailPosition() ; pos0 ; )
+  for( POSITION pos0 = ptl.GetTailPosition() ; pos0 ; )
   {
-    pos = pos0;
+    POSITION pos = pos0;
     CDrawObject* pOb0 = ptl.GetPrev( pos0 );
     CPoint* pPt0 = pOb0->GetAnyPoints();
     int bf = 0;
@@ -773,70 +762,54 @@ CStreetPlanMode::SavePlan( int R )
     CPoint* pRgn = new CPoint[nsp+1];
     pRgn->x = nsp;
     memcpy( pRgn + 1, spg, nsp * sizeof( CPoint ));
-    rgl.AddHead( pRgn );
+    rgl0.AddHead( pRgn );
   }
 
-  POSITION pos1;
-  for( pos0 = rgl.GetHeadPosition(); pos0 ; )
+  POSITION pos0 = rgl0.GetHeadPosition(), pos1;
+  while( pos0 )
   {
-    CPoint* p0 = rgl.GetAt( pos0 );
+    CPoint* p0 = rgl0.GetAt( pos0 );
     pos1 = pos0;
-    for( rgl.GetNext( pos1 ) ; pos1 ; rgl.GetNext( pos1 ))
+    for( rgl0.GetNext( pos1 ) ; pos1 ; rgl0.GetNext( pos1 ))
     {
-      CPoint* p1 = rgl.GetAt( pos1 );
+      CPoint* p1 = rgl0.GetAt( pos1 );
       if( IsPolygonCrossPolygon( p0+1, p0->x, p1 + 1, p1->x ))
       {
         CPoint* p2 = SmartConnectPolygons( p0 + 1, p0->x, p1 + 1, p1->x );
         delete p0;
         delete p1;
-        rgl.RemoveAt( pos1 );
-        rgl.SetAt( pos0, p2 );
+        rgl0.RemoveAt( pos1 );
+        rgl0.SetAt( pos0, p2 );
         break;
       }
     }
     if( !pos1 )
-      rgl.GetNext( pos0 );
+      rgl0.GetNext( pos0 );
   }
 
-  while( rgl.GetCount() > 1 )
-  {
-    CPoint* p0 = rgl.RemoveHead();
-    CPoint* p1;
-    POSITION s = 0;
-    int n[2];
-    int d = 0x7fffffff;
-    for( POSITION ps1 = rgl.GetHeadPosition() ; ps1 ; rgl.GetNext( ps1 ))
-    {
-      CPoint* t1 = rgl.GetAt( ps1 );
-      int ni[2];
-      if( FindPointToPoint( p0 + 1, p0->x, t1 + 1, t1->x, &ni ))
-      {
-        int t = dist( p0[ni[0]+1], t1[ni[1]+1] );
-        if( t < d )
-        {
-          d = t;
-          p1 = t1;
-          s = ps1;
-          n[0] = ni[0];
-          n[1] = ni[1];
-        }
-      }
-    }
-    if( s )
-    {
-      CPoint* p2 = SubConPolygons( p0 + 1, p0->x, p1 + 1, p1->x, n[0], n[1] );
-      rgl.RemoveAt( s );
+  while( pRg0->GetCount() >= 2 )
+	{
+    while( pRg0->GetCount() >= 2 )
+		{
+		  CPoint* p0 = pRg0->RemoveHead();
+		  CPoint* p1 = pRg0->RemoveHead();
+      CPoint* p2 = SmartConnectPolygons( p0 + 1, p0->x, p1 + 1, p1->x );
       delete p0;
       delete p1;
-      rgl.AddHead( p2 );
-    }
-    else
-      rgl.AddTail( p0 );
-  }
-
-  CPoint* pRgn = rgl.RemoveHead();
-  int r = SavePlan( pRgn+1, pRgn->x );
-  delete pRgn;
+		  pRg1->AddHead( p2 );
+		}
+		if( pRg0->GetCount())
+		{
+			CPoint* p0 = pRg0->RemoveHead();
+	    pRg1->AddHead( p0 );
+		}
+	  tmp = pRg0;
+	  pRg0 = pRg1;
+	  pRg1 = tmp;
+	}
+	CPoint* p0 = pRg0->RemoveHead();
+  int r = SavePlan( p0+1, p0->x );
+  delete p0;
   return r;
 }
 //=====================================================================

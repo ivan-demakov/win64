@@ -7,13 +7,11 @@
 #define _SPCTREE_H_
 //=====================================================================
 #include <stdlib.h>
-#include <fstream>
+//#include <fstream.h>
 #include "rcode.h"
-#include "ptrect.h"
+//#include "ptrect.h"
 #include "poslist.h"
 #include "ident.h"
-
-
 //=====================================================================
 #define MAGICNEST 0x5453454eL // код начала записи гнезда
 #define MAGICPOOL 0x4c4f4f50L // код начала записи списка
@@ -26,20 +24,41 @@
 class SpcObj;
 class BranchPtr;
 //=====================================================================
-struct SelectParam
+struct SelectParam : public RECT // габарит 
 {
-  Rect          Box;      // габарит 
   int           Limit;    // масштаб
   long*         pNodes;   // список узлов
   PositionList* pPosList; // список указателей файла
-  SelectParam( Rect b, int l, long* pn, PositionList* pp ) :
-    Box( b ), Limit( l ), pNodes( pn ), pPosList( pp )
-  {}
+  SelectParam( RECT b, int l, long* pn, PositionList* pp ) :
+    Limit( l ), pNodes( pn ), pPosList( pp )
+  {
+    top  = b.top;
+    left = b.left;
+    right = b.right;
+    bottom = b.bottom;  
+  }
+  int IsRectNull() { return left == 0 && top == 0 && right == 0 && bottom == 0; }
 };
 //=====================================================================
-// абстракный базовай класс элементов пространственной структуры
-class SpcTree : public Rect
+// абстракный базовый класс элементов пространственной структуры
+class SpcTree : public RECT // габарит 
 {
+public:
+  SpcTree( RECT b )
+  {
+    top  = b.top;
+    left = b.left;
+    right = b.right;
+    bottom = b.bottom;  
+  }
+  SpcTree() { SetBoxNull(); }
+  int  IsBoxNull() { return left == 0 && top == 0 && right == 0 && bottom == 0; }
+  int  InsideBox( RECT const& b );
+  int  IntersectBox( RECT const& b );
+  void SetBoxNull() { left = top = right = bottom = 0; }
+  void CopyBox( SpcTree* pItem );
+  void AddBox( RECT const& b );
+
 public:
   virtual ~SpcTree(){}
 
@@ -52,25 +71,25 @@ public:
   int SelectSide( SpcObj const* pObj );
 
   // удаление объекта из структуры
-  virtual int RemoveObject( SpcObj const *pObj, SpcTree** ppRoot ) = 0;
+  virtual int RemoveObject( SpcObj const *pObj, SpcTree** ppRoot ) { return 0; }
 
   // добавление объекта в структуру
-  virtual int AddObject( SpcObj *pObj, SpcTree** ppRoot = 0 ) = 0;
+  virtual int AddObject( SpcObj *pObj, SpcTree** ppRoot = 0 ) { return 0; }
 
   // изменение параметров отображени€
-  virtual int ReplaceObject( SpcObj const* pObj ) = 0;
+  virtual int ReplaceObject( SpcObj const* pObj ) { return 0; }
 
   // пространственное выделение группы объектов
-  virtual int SelectObjects( SelectParam* pSp, int bInside ) = 0;
+  virtual int SelectObjects( SelectParam* pSp, int bInside ) { return 0; }
 
   // сохранение элемента пространственной структуры в файле
-  virtual ResultCode Save( std::ofstream& Ot ) = 0;
+  virtual ResultCode Save( ofstream& Ot ) { return R_OK; }
 
   // загрузка элемента пространственной структуры из файла
-  virtual ResultCode Load( std::ifstream& In ) = 0;
+  virtual ResultCode Load( ifstream& In ) { return R_OK; }
 
   // сохранение типа элемента
-  static  ResultCode Save( long magic, std::ofstream& Ot );
+  static  ResultCode Save( long magic, ofstream& Ot );
 
   // сохранение полной структуры в заданном файле
   static ResultCode Save( char const* path, BranchPtr* pRoot );
@@ -79,7 +98,7 @@ public:
   static ResultCode Load( char const* path, BranchPtr* pRoot );
 
   // загрузка типа и габарита элемента
-  static ResultCode Load( SpcTree** pRoot, std::ifstream& In );
+  static ResultCode Load( SpcTree** pRoot, ifstream& In );
 
   static int IsValidNode( int Node, SelectParam* pSp );
 
@@ -97,15 +116,16 @@ public:
 };
 //=====================================================================
 // элемент списка пространственных описателей
-class SpcObj : public Rect
+class SpcObj : public SpcTree
 {
 public:
-  SpcObj( Rect const& box, std::streampos off,
+  SpcObj( RECT const& b, 
+          streampos off,
           int minLimit = 0, 
           int maxLimit = 0, 
           int node = 0, 
           SpcObj* pNxt = 0 ) :
-    Rect( box ),
+    SpcTree( b ),
     Offset( off ),
     MinLim( minLimit ), 
     MaxLim( maxLimit ),
@@ -124,7 +144,7 @@ public:
     { SpcTree::operator delete( p ); }
 #endif //_USE_HEAP_
 
-  std::streampos Offset;  // смещение
+  streampos Offset;  // смещение
   int       MinLim;  // нижн€€  граница отображени€
   int       MaxLim;  // верхн€€ граница отображени€
   int       Node;    // код узла
@@ -144,8 +164,8 @@ public:
   int Split( SpcTree** ppRoot );
   SpcObj* GetHead() { return pPool; }
 
-  ResultCode Load(std::ifstream& In );
-  ResultCode Save(std::ofstream& Ot);
+  ResultCode Load( ifstream& In );
+  ResultCode Save( ofstream& Ot);
 
 private:
   int PoolSize;  // размер списка
@@ -157,8 +177,7 @@ class BranchPtr
 public:
   BranchPtr() : pBranch( 0 ) {}
   ~BranchPtr() { delete pBranch; }
-  operator Rect()  { return pBranch ? *pBranch : Rect(); } 
-  int IsRectNull() { return !pBranch || pBranch->IsRectNull(); }
+  int IsBoxNull() { return !pBranch || pBranch->IsBoxNull(); }
   int Split( SpcTree** ppRoot )
   {
     return pBranch ? pBranch->Split( ppRoot ) : 1;
@@ -183,11 +202,11 @@ public:
   { 
     return &pBranch; 
   }
-  ResultCode Load(std::ifstream& In )
+  ResultCode Load( ifstream& In )
   {
     return SpcTree::Load( &pBranch, In );
   }
-  ResultCode Save(std::ofstream& Ot )
+  ResultCode Save( ofstream& Ot )
   {
     return pBranch ? pBranch->Save( Ot ) : SpcTree::Save( MAGICEMPT, Ot );
   }
@@ -203,7 +222,7 @@ public:
     { SpcTree::operator delete( p ); }
 #endif //_USE_HEAP_
 
-private:
+public:
   SpcTree* pBranch;
 };
 //=====================================================================
@@ -219,8 +238,8 @@ public:
   int SelectObjects( SelectParam* pSp, int bInside );
   int NoBranches( SpcTree** ppRoot );
 
-  ResultCode Load(std::ifstream& In );
-  ResultCode Save(std::ofstream& Ot );
+  ResultCode Load( ifstream& In );
+  ResultCode Save( ofstream& Ot );
 
 private:
   BranchPtr Br[NB]; // ветви
@@ -232,12 +251,12 @@ class SpaceTree
 public:
   SpaceTree();
   ~SpaceTree();
-  int   AddObject( Rect const& box, std::streampos off,
+  int   AddObject( RECT const& box, streampos off,
                    int minLimit, int maxLimit, int node, int bSort );
-  int   ReplaceObject( Rect const& box, std::streampos off,
+  int   ReplaceObject( RECT const& box, streampos off,
                        int minLimit, int maxLimit, int node );
-  int   RemoveObject( Rect const& box, std::streampos pos );
-  int   SelectObjects( Rect const& box, int limit, long* pNodes, PositionList& rPosList );
+  int   RemoveObject( RECT const& box, streampos pos );
+  int   SelectObjects( RECT const& box, int limit, long* pNodes, PositionList& rPosList );
   void  Clear();
   int   Sort();
   char* GetPath();

@@ -21,6 +21,8 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 //=====================================================================
+using namespace Trig;
+
 CTrig::CTrigTabGenerator TG;
 double CTrig::TrigTab[901];
 //=====================================================================
@@ -52,7 +54,7 @@ Rad2Deg( double angle )
 }
 //=====================================================================
 double
-sin( int angle )
+Trig::sin( int angle )
 {
   int negative = angle < 0;
   angle = abs( angle ) % i3600;
@@ -66,9 +68,9 @@ sin( int angle )
 }
 //=====================================================================
 double
-cos( int angle )
+Trig::cos( int angle )
 {
-  return sin( angle + i900 );
+  return Trig::sin( angle + i900 );
 }
 //=====================================================================
 int
@@ -85,7 +87,7 @@ hipo( int s1, int s2 )
 }
 //=====================================================================
 int
-atan2( int vCos, int vSin )
+Trig::atan2( int vCos, int vSin )
 {
   if( !vSin )
     return 0;
@@ -104,6 +106,12 @@ atan2( int vCos, int vSin )
       return vSin < 0 ? ( vCos < 0 ? a - i1800 : -a ):
                         ( vCos < 0 ? i1800 - a :  a );
   }
+}
+//=====================================================================
+int
+Trig::atan2( CSize s )
+{ 
+  return atan2( s.cx, -s.cy );
 }
 //=====================================================================
 CPoint
@@ -308,10 +316,9 @@ IsLineCrossPolygon( CPoint p00, CPoint p01, CPoint const* p, int n )
 int
 IsPolylineMatchPolyline( CPoint const* p0, int n0, CPoint const* p1, int n1, CPoint* pCrosPoint )
 {
-  for( int i = n0 ; --i >= 0 ; )
+  for( int j, i = n0 ; --i >= 0 ; )
   {
     CPoint p( p0[i] );
-	int j;
     for( j = n1 ; --j >= 0 && p1[j] != p ; );
     if( j >= 0 )
     {
@@ -420,8 +427,8 @@ IsPointInTriangle( CPoint c, CPoint const* tgl )
     return 0;
 
   CPoint p0, p1( tgl[2] );
-  int s, n;
-  for(s = 0, n = 3 ; --n >= 0 ; )
+  int s = 0;
+  for( int n = 3 ; --n >= 0 ; )
   {
     p0 = p1;
     p1 = *tgl++;
@@ -445,9 +452,9 @@ IsPointInPolygon( CPoint c, CPoint const* plg, int n, int bWithBound, int d )
   static int const rm[2][2] = {{0,1},{3,2}};
   CPoint p0( plg[n-1] );
   CSize pd( p0 - c );
-  int s, pt = rm[pd.cy<0][pd.cx<0];
-
-  for( s = 0 ; --n >= 0 ; )
+  int pt = rm[pd.cy<0][pd.cx<0];
+  int s = 0;
+  while( --n >= 0 )
   {
     if( c == p0 )
       return 2;
@@ -846,8 +853,8 @@ TrueCrossPoint( CPoint const* pp0, CPoint const* pp1, CPoint* pCrosPoint )
 int
 IsSelfCrossPolyline( CPoint const* p, int n )
 {
-	int i;
-  for(i = n ; --i > 0 && !IsLineCrossPolyline( p[i-1], p[i], p, n ) ; );
+  int i = n;
+  while( --i > 0 && !IsLineCrossPolyline( p[i-1], p[i], p, n ));
   return i > 0;
 }
 //=====================================================================
@@ -861,7 +868,7 @@ IsSelfCrossPolygon( CPoint const* p, int n )
 CPoint
 StepByLine( CPoint p0, CPoint p1, int l )
 {
-  int l0 = MerkatorData.Dist( Point( p0.x, p0.y ), Point( p1.x, p1.y ));
+  int l0 = MerkatorData.Dist( p0, p1 );
   return l0 < l ?
     p1 :
     p0 + CSize( MulDiv( p1.x - p0.x, l, l0 ), MulDiv( p1.y - p0.y, l, l0 ));
@@ -877,7 +884,7 @@ EdgePoint( CPoint p0, CPoint p1, int r )
 static int
 MakeArc( TGstream& dst, CPoint p0, CPoint p1, CPoint p2, int r, int b36 = 1 )
 {
-  r *= MerkatorData.ScaleFactor( Point( p1.x, p1.y ));
+  r *= MerkatorData.ScaleFactor( p1 );
 
   dcomplex v0( p1.x - p0.x, p1.y - p0.y );
   dcomplex v1( p2.x - p1.x, p2.y - p1.y );
@@ -1124,12 +1131,13 @@ SmartCloneLine( TGstream& dst, CPoint* pp, int n, int r )
 double
 CalcLength( CPoint* pp, int pn )
 {
-	double s;
-  for(s = 0 ; --pn > 0 ; s += MerkatorData.Dist( Point( pp[0].x, pp[0].y ), Point( pp[1].x, pp[1].y )), ++pp );
+  double s;
+  for( s = 0 ; --pn > 0 ; s += MerkatorData.Dist( pp[0], pp[1] ), ++pp );
   return s;
 }
 //=====================================================================
-void Polar::Create( double ltg, double ltm, double lts, double lng, double lnm, double lns )
+void
+Polar::Create( double ltg, double ltm, double lts, double lng, double lnm, double lns )
 {
   double const d = 60.0;
   double ltsg = ltg >= 0 ? 1 : -1;
@@ -1190,14 +1198,14 @@ Djordan( double* sp, int n, int m )
   ASSERT( m >= n );
   ASSERT( m <= 2*n );
   ASSERT( n <= D );
-  int i, s[D];
+  int s[D];
   double* ss = sp;
   double Dt = 1.;
-  for( i = 0 ; i < n ; ++i, sp += m )
+  for( int i = 0 ; i < n ; ++i, sp += m )
   {
-    int l, k;
+    int l;
     double mv = 0;
-    for( k = n ; --k >= 0 ; )
+    for( int k = n ; --k >= 0 ; )
       if( fabs( sp[k] ) > fabs( mv ))
         mv = sp[l=k];
 
@@ -1207,20 +1215,20 @@ Djordan( double* sp, int n, int m )
     Dt *= mv;
 
     s[i] = l;
-    for( k = m ; --k >= 0 ; sp[k] /= mv );
+    for( int k = m ; --k >= 0 ; sp[k] /= mv );
 
     double* pp = ss;
     for( int j = 0 ; j < n ; ++j, pp += m )
       if( j != i )
       {
         double dv = pp[l];
-        for( k = m ; --k >= 0 ; pp[k] -= sp[k] * dv );
+        for( int k = m ; --k >= 0 ; pp[k] -= sp[k] * dv );
       }
   }
 
   int ssz = ( m - n ) * sizeof( double );
   if( ssz )
-    for( i = n ; --i >= 0 ; memcpy( ss + i * m, ss + s[i] * m + n, ssz ));
+    for( int i = n ; --i >= 0 ; memcpy( ss + i * m, ss + s[i] * m + n, ssz ));
 
   return Dt;
 }
@@ -1332,16 +1340,15 @@ Triang( Polar p0, CPoint r0, Polar p1, CPoint r1, CPoint r2 )
 static int
 FindNext( CPoint* p, int n, int h )
 {
-	int k;
-  for(k = 1 ; k < n ; ++k )
+  int k;
+  for( k = 1 ; k < n ; ++k )
   {
     CSize s( p[k+1] - p[0] );
     if( !s.cx && !s.cy )
       continue;
 
     double l = hipo( s );
-	int i;
-    for( i = 1 ; i <= k ; ++i )
+    for( int i = 1 ; i <= k ; ++i )
     {
       CPoint tp( TurnPoint( p[i] - p[0], s.cx, s.cy, l ));
       if( abs( tp.y ) > h )
@@ -1615,7 +1622,7 @@ FindPointToPoint( CPoint* p0, int n0, CPoint* p1, int n1, int pi[][2], int ni, i
 
   if( ni > 1 )
   {
-	  int i;
+    int i;
     for( i = 0 ; i < ni && lh ; lh = lh->next, ++i )
     {
       pi[i][0] = lh->ni0;
@@ -1782,8 +1789,7 @@ FindNearesRepers( CPoint dp, RepInf* pRI, int nRep )
     tt.sPt = *psp;
     tt.pPt = pRep;
     tt.dis = dist( dp, *psp );
-
-	int i;
+    int i;
     for( i = n ; --i >= 0 && pRI[i].dis > tt.dis ; pRI[i+1] = pRI[i] );
     pRI[i+1] = tt;
     n += n < nRep;
@@ -1810,9 +1816,8 @@ FindNearesRepers( Polar dp, RepInf* pRI, int nRep )
     Point3d p1 = ::Pol2Dec( tt.pPt, R );
     double ang = ::acos(( p0.x * p1.x + p0.y * p1.y + p0.z * p1.z ) / R / R );
     tt.dis = R * ang;
-
-	int i;
-    for(i = n ; --i >= 0 && pRI[i].dis > tt.dis ; pRI[i+1] = pRI[i] );
+    int i;
+    for( i = n ; --i >= 0 && pRI[i].dis > tt.dis ; pRI[i+1] = pRI[i] );
     pRI[i+1] = tt;
     n += n < nRep;
   }
@@ -1829,12 +1834,7 @@ Pol2Dec( Polar mp )
   RepInf rt[N_REP+1];
   if( FindNearesRepers( mp, rt ) == N_REP )
   {
-    for( int i = N_REP ; --i >= 0 ; )
-		{
-			Point p( MerkatorData.Pol2Dec( rt[i].pPt ));
-      rt[i].dPt.x = p.x;
-      rt[i].dPt.y = p.y;
-		}
+    for( int i = N_REP ; --i >= 0 ; rt[i].dPt = MerkatorData.Pol2Dec( rt[i].pPt ));
 
     double mvxy[][5] =
     {
@@ -1845,7 +1845,7 @@ Pol2Dec( Polar mp )
 
     if( fabs( Djordan( mvxy[0], 3, 5 )) > 1e-6 )
     {
-      Point sp( MerkatorData.Pol2Dec( mp ));
+      CPoint sp( MerkatorData.Pol2Dec( mp ));
       p = CPoint( mvxy[0][0] * sp.x + mvxy[1][0] * sp.y + mvxy[2][0],
                   mvxy[0][1] * sp.x + mvxy[1][1] * sp.y + mvxy[2][1] );
     }
@@ -1866,12 +1866,7 @@ Dec2Pol( CPoint sp )
 
   MerkatorData.InitLocal( rt[0].pPt );
 
-  for( int i = N_REP ; --i >= 0 ; )
-	{
-		Point p( MerkatorData.Pol2Dec( rt[i].pPt ));
-    rt[i].dPt.x = p.x;
-    rt[i].dPt.y = p.y;
-	}
+  for( int i = N_REP ; --i >= 0 ; rt[i].dPt = MerkatorData.Pol2Dec( rt[i].pPt ));
 
   double mvxy[][5] =
   {
@@ -1882,8 +1877,8 @@ Dec2Pol( CPoint sp )
 
   if( fabs( Djordan( mvxy[0], 3, 5 )) > 1e-6 )
   {
-    Point p( mvxy[0][0] * sp.x + mvxy[1][0] * sp.y + mvxy[2][0],
-             mvxy[0][1] * sp.x + mvxy[1][1] * sp.y + mvxy[2][1] );
+    CPoint p( mvxy[0][0] * sp.x + mvxy[1][0] * sp.y + mvxy[2][0],
+              mvxy[0][1] * sp.x + mvxy[1][1] * sp.y + mvxy[2][1] );
     pp = MerkatorData.Dec2Pol( p );
   }
 
@@ -2174,8 +2169,7 @@ SmartClipLine( CPoint p0, CPoint p1, CPoint const* plg, int n, LItemHash* plh,
   tmp.SetSize( 2 );
   tmp[0] = 0;
   tmp[1] = dl;
-  int i;
-  for( i = n ; --i >= 0 ; )
+  for( int i = n ; --i >= 0 ; )
   {
     FPoint tp0( tp1 );
     tx = plg[i].x - p0.x;
@@ -2201,8 +2195,8 @@ SmartClipLine( CPoint p0, CPoint p1, CPoint const* plg, int n, LItemHash* plh,
     double x = tp0.fx - tp0.fy * ( tp1.fx - tp0.fx ) / ( tp1.fy - tp0.fy );
     if( x >= 1 && x <= dl - 1 )
     {
-		int k;
-      for(k = tmp.GetSize() ; --k >= 0 && tmp[k] > x ; );
+      int k = tmp.GetSize();
+      while( --k >= 0 && tmp[k] > x );
       tmp.InsertAt( k + 1, x );
     }
   }
@@ -2210,7 +2204,7 @@ SmartClipLine( CPoint p0, CPoint p1, CPoint const* plg, int n, LItemHash* plh,
   double x0 = .5 * tmp[1];
   CPoint t( p0.x + x0 * dx, p0.y + x0 * dy );
 
-  i = IsPointInPolygon( t, plg, n, 0 ) == bInside ? 1 : 2;
+  int i = IsPointInPolygon( t, plg, n, 0 ) == bInside ? 1 : 2;
 
   for( n = tmp.GetSize(); i < n ; i += 2 )
   {
@@ -2504,18 +2498,16 @@ PointHash::~PointHash()
 int
 PointHash::Find( CPoint pt )
 {
-	CPointItem* p;
-  for(p = m_Tab[HashFun(pt)] ;
-       p && p->m_Value != pt ; p = p->m_pAlter );
+  CPointItem* p;
+  for( p = m_Tab[HashFun(pt)] ; p && p->m_Value != pt ; p = p->m_pAlter );
   return p != 0;
 }
 
 void
 PointHash::Add( CPoint pt )
 {
-	CPointItem** pp;
-  for(pp = &m_Tab[HashFun(pt)] ;
-       *pp && (*pp)->m_Value != pt ; pp = &(*pp)->m_pAlter );
+  CPointItem** pp;
+  for(pp = &m_Tab[HashFun(pt)] ; *pp && (*pp)->m_Value != pt ; pp = &(*pp)->m_pAlter );
   if( !*pp )
     *pp = new CPointItem( pt );
 }
@@ -2619,7 +2611,7 @@ FindOnLine( CPoint* pt, int np, CPoint cp, int x0[2] )
     int x = p0.x;
     if( p0.y != p1.y )
       x += double( p1.x - p0.x ) / double( p1.y - p0.y ) * double( cp.y - p0.y );
-	int tn;
+    int tn;
     for( tn = cn++ ; --tn >= 0 && xp[tn] > x ; xp[tn+1] = xp[tn] );
     xp[tn+1] = x;
   }

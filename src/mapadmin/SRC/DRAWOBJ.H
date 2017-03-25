@@ -112,8 +112,8 @@ public:
   int        Node()               { return m_Node; }          
   CBox& GetBoundBox( )            { return m_BoundBox; }
   CBox& GetOriginBox()            { return m_OriginBox; }
-  clock_t GetClock()              { return m_Clock; }
-  time_t GetTime()                { return m_Time; }
+  long GetClock()                 { return m_Clock; }
+  long GetTime()                  { return m_Time; }
   void SetIdent( CIdent id )      { m_Ident = id; }
   void SetStatus( int s )         { m_Ident.SetStatus( s ); }
   void SetTable( int t )          { m_Ident.SetTable( t ); }
@@ -137,7 +137,7 @@ public:
   int  PresetHR();
   void RestoreHR( int hr );
   void SetSAS();
-  void SetTimeClock( time_t t, clock_t c ){ m_Time = t; m_Clock = c; }
+  void SetTimeClock( long t, long c ){ m_Time = t; m_Clock = c; }
   CBox& CalcBoundBox();
   int DrawToPoint( CSpot const& spot, CPoint* pPoint, int mode );
   CPoint* GetPoint( int* pnPnt = 0 );
@@ -191,8 +191,8 @@ private:
   CBox      m_OriginBox;
   CIdent    m_Ident;
   int       m_Node;
-  time_t    m_Time;
-  clock_t   m_Clock;
+  long      m_Time;
+  long      m_Clock;
   DiagItem* m_pDiagItem;
   CLegend const* m_pLegend;
   static    CDrawObject* m_pDrawnObject;

@@ -186,11 +186,14 @@ CGraphData::SetLayersRange( CObjDef* pObjDef )
 {
   pObjDef->MakeRange();
 
+	memset( m_pLayer, 0, sizeof m_pLayer );
 	m_nLayers = pObjDef->GetClsNum();
+	m_SubNum  = pObjDef->GetSubNum();
   for( int i = 0 ; i < m_nLayers ; ++i )
-		m_pLayer[i] = m_Layers + pObjDef->GetClassInRange( i );
-
-	m_SubNum = SUBLR_RANGE;
+	{
+		int t = pObjDef->GetClassInRange( i );
+		m_pLayer[i] = m_Layers + t;
+	}	
 
   m_pLayer[m_nLayers++] = &m_Layers[0];
 }
@@ -304,8 +307,7 @@ CGraphData::NextGlobalSearch()
     return 0;
 
   CDrawObject* pObj;
-  for( pObj = 0 ;
-       !( pObj = m_pLayer[m_LayerNum]->FindPrev( &m_SearchSpot )) && GetPrevLayer() ;
+  for( pObj = 0 ; !( pObj = m_pLayer[m_LayerNum]->FindPrev( &m_SearchSpot )) && GetPrevLayer() ;
        m_pLayer[m_LayerNum]->SetLast());
   return pObj;
 }
@@ -314,40 +316,26 @@ void
 CGraphData::SelectByRect( CRect const& rect, CObjList& list )
 {
   CWaitCursor wait;
-  for( int n = 2 ; --n >= 0 ; )
-    for( CLayer* pl = GetFirstLayer( n ) ; pl = GetNextLayer() ; pl->SelectByRect( rect, list ));       
+  for( CLayer* pl = GetFirstLayer( pView->SublDlgIsActive()) ; pl = GetNextLayer() ; pl->SelectByRect( rect, list ));       
 }
 //=====================================================================
 void
 CGraphData::SelectBySpot( CSpot const& spot, CObjList& list )
 {
-//  CWaitCursor wait;
-  for( int n = 2 ; --n >= 0 ; )
-    for( CLayer* pl = GetFirstLayer( n ) ; pl = GetNextLayer() ; pl->SelectBySpot( spot, list ));       
+  CWaitCursor wait;
+  for( CLayer* pl = GetFirstLayer( pView->SublDlgIsActive()) ; pl = GetNextLayer() ; pl->SelectBySpot( spot, list ));       
 }
 //=====================================================================
 CDrawObject*
 CGraphData::SelectBySpot( CSpot const& spot, int bStrict )
 {
   CWaitCursor wait;
- 	int dist = MAX_INT;
 
-	for( CLayer* pl = GetLastLayer( 0 ) ; ( pl = GetPrevLayer()) && dist ; )
-	{
-		CDrawObject* pf = pl->SelectBySpot( spot, bStrict, &dist );
-		if( pf )
-			return pf;
-	}
-/*
-  for( int n = 2 ; --n >= 0 ; )
-    for( CLayer* pl = GetLastLayer( n ) ; ( pl = GetPrevLayer()) && dist ; )
-		{
-			CDrawObject* pf = pl->SelectBySpot( spot, bStrict, &dist );
-			if( pf )
-				return pf;
-		}
-*/
-  return 0;
+ 	int dist = MAX_INT;
+	CDrawObject* pf = 0;
+	for( CLayer* pl = GetLastLayer( pView->SublDlgIsActive()) ; ( pl = GetPrevLayer()) && !pf && dist ;
+       pf = pl->SelectBySpot( spot, bStrict, &dist ));
+  return pf;
 }
 //=====================================================================
 CObjList&

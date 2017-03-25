@@ -35,7 +35,7 @@ enum
 //=====================================================================
 struct SelectInfo
 {
-  Rect rect;
+  RECT box;
   PositionList poslist;
 };
 //=====================================================================
@@ -60,6 +60,8 @@ struct CIconMap
   UINT     m_nSize;
 };
 //=====================================================================
+using namespace std; 
+
 class MapStore
 {
   friend class CMapView;
@@ -70,7 +72,7 @@ public:
   MapStore();
   ~MapStore();
 
-  ResultCode GetTimeClock( time_t* pTime, clock_t* pClock );
+  ResultCode GetTimeClock( long* pTime, long* pClock );
   ResultCode IsExisting( char const* iniPath = 0 );
   ResultCode CreateEmpty( char const* iniPath = 0 );
   ResultCode Init( char const* iniPath = 0 );
@@ -90,27 +92,27 @@ public:
   ResultCode GetYSize( long* pResult );
   ResultCode GetUniId( long* pResult );
   ResultCode SetLoadMap( char const* pMap );
-  ResultCode SelectObjects( Rect const& rect1, Rect const& rect2, Rect const& rect0,
+  ResultCode SelectObjects( RECT const& Rect1, RECT const& Rect2, RECT const& Rect0,
                             TGstream& dst, int limit, int compressFrom, int* pCnt );
-  ResultCode SelectObjects( Rect const& rect1, Rect const& rect2, int limit1,
-                            Rect const& rect0, int limit0,
+  ResultCode SelectObjects( RECT const& Rect1, RECT const& Rect2, int limit1,
+                            RECT const& Rect0, int limit0,
                             TGstream& dst, int compressFrom, int* pCnt );
   ResultCode SelectByObject( CTabIdent id, long nClass,
                              TGstream& dst, int* pCnt );
-  ResultCode SelectByRect( Rect rect, long nClass, TGstream& dst, int* pCnt );
-  ResultCode SelectByClass( Rect const& rect, long* pClassArray, long nClass,
+  ResultCode SelectByRect( RECT Rect, long nClass, TGstream& dst, int* pCnt );
+  ResultCode SelectByClass( RECT const& Rect, long* pClassArray, long nClass,
                             TGstream& dst, int* pCnt );
   ResultCode SelectObject( CTabIdent id, TGstream& dst, int* pCnt,
                            int bRemoved = 0 );
-  ResultCode GetObjectBox( CTabIdent id, Rect* rect );
+	ResultCode GetObjectBox( CTabIdent id, RECT* Rect, int* pClass );
   ResultCode StartClassScan( long nClass );
   ResultCode NextClassScan( CIdent* id, CTabIdent* pTid );
   ResultCode NextClassScan( TGstream& dst );
-  ResultCode ClipObjectsId( Point* pPnts, int nPnt, int nClass,
+  ResultCode ClipObjectsId( POINT* pPnts, int nPnt, int nClass,
                             TGstream& dst, int* pnId );
-  ResultCode ClipObjectsId( Point* pPnts, int nPnt, char classMap[],
+  ResultCode ClipObjectsId( POINT* pPnts, int nPnt, char classMap[],
                             TGstream& dst, int* pnId );
-  ResultCode AcountAllObjects( long* pTabl, Point* pRgn = 0, int nRgnSize = 0 );
+  ResultCode AcountAllObjects( long* pTabl, POINT* pRgn = 0, int nRgnSize = 0 );
   ResultCode SetValidNodeList( long* pNodes );
   ResultCode SetObjectNode( CTabIdent id, int node );
   ResultCode Squeeze();
@@ -133,36 +135,38 @@ protected:
   ResultCode SetModifiedFlag( int m = 1 );
   ResultCode CreateIndexes( int bSpace );
   ResultCode ExtractDataPath( char const* iniPath );
-  ResultCode AddObjectTostream( std::streampos pos, TGstream& dst, int* pCnt );
-  ResultCode AddObjectTostream( std::streampos pos, TGstream& dst, SelectInfo* pi0, SelectInfo* pi1, int* pCnt );
-  ResultCode GetHeadRecord( std::streampos pos, std::istream* pSrc = 0 );
-  ResultCode PutHeadRecord( std::streampos pos, std::ostream* pDst = 0 );
-  ResultCode GetRecord( std::streampos pos, std::istream* pSrc = 0 );
-  ResultCode PutRecord( std::streampos pos, std::ostream* pDst = 0 );
-  ResultCode PutRecordEmp( std::streampos pos, ClassType type = 0 );
-  ResultCode AddIndex( std::streampos pos, Rect const& box, int node,
+  ResultCode AddObjectToStream( streampos pos, TGstream& dst, int* pCnt );
+  ResultCode AddObjectToStream( streampos pos, TGstream& dst, SelectInfo* pi0, SelectInfo* pi1, int* pCnt );
+  ResultCode GetHeadRecord( streampos pos, istream* pSrc = 0 );
+  ResultCode PutHeadRecord( streampos pos, ostream* pDst = 0 );
+  ResultCode GetRecord( streampos pos, istream* pSrc = 0 );
+  ResultCode PutRecord( streampos pos, ostream* pDst = 0 );
+  ResultCode PutRecordEmp( streampos pos, ClassType type = 0 );
+  ResultCode AddIndex( streampos pos, RECT const& box, int node,
                        int type, CTabIdent tabid, int bSort );
   ResultCode NextClassScan();
-  void       RemoveIndex( std::streampos pos, Rect const& box, CTabIdent tabid );
+  void       RemoveIndex( streampos pos, RECT const& box, CTabIdent tabid );
   void       RemoveAllIndex();
   void       RemoveAll();
 
   CBaseDataRec* SelectDrh( int nVers );
 
 protected:
-  static int IsPointInPolygon( Point c, Point const* plg, int n );
-  static int HorCross( int l, int r, int y, Point p0, Point p1 );
-  static int VerCross( int t, int b, int x, Point p0, Point p1 );
+  static int IsPointInPolygon( POINT c, POINT const* plg, int n );
+  static int HorCross( int l, int r, int y, POINT p0, POINT p1 );
+  static int VerCross( int t, int b, int x, POINT p0, POINT p1 );
+  static RECT CalcBox( POINT const* pPnt, int nPnt );
+  static int Intersect( RECT const& r0, RECT const& r1 );
 
 private:
-  int IsObjectClipped( TGstream& dst );
+  int IsObjectClipped();
   int IsDataClipped( void** ppSrc );
-  int IsLineClipped( Point p0, Point p1 );
-  int IsPolygonClipped( Point const* pPoints, int nPoints, int w );
-  int IsPolylineClipped( Point const* pPoints, int nPoints, int w, int bnd = 0 );
-  int IsMultilineClipped( Point const* pPoints, int nPoints, int w );
-  int PointsClipped( Point const* pPoints, int nPoints, int w = 0 );
-  int IsTextClipped( Point tp, Point off, int angle, char const* pStr, int len, int height );
+  int IsLineClipped( POINT p0, POINT p1 );
+  int IsPolygonClipped( POINT const* pPoints, int nPoints, int w );
+  int IsPolylineClipped( POINT const* pPoints, int nPoints, int w, int bnd = 0 );
+  int PointsClipped( POINT const* pPoints, int nPoints, int w = 0 );
+  int IsTextClipped( POINT tp, POINT off, int angle, char const* pStr, int len, int height );
+  void InflateClip( int w );
 
   int IsObjectValid();
   int IsDataValid( void** ppSrc, void* pEndObj );
@@ -171,7 +175,7 @@ protected:
   int       MapNumber;
   char      DataPath[_MAX_PATH];
   char      InitPath[_MAX_PATH];
-  std::fstream   DataStream;
+  fstream   DataStream;
 
   IdentLinkedHashTab TabIdentIndex;
   
@@ -186,13 +190,13 @@ protected:
   long      nClassScan;
   long      pPosScan;
   long      pMaxPosScan;
-  Rect      Clip;
-  Point*    Space;
+  RECT      Clip;
+  POINT*    Space;
   int       SpaceLength;
   int       bClipping;
   long*     pNodes;
-  time_t    lastOpTime;
-  time_t    FlashInterval;
+  long      lastOpTime;
+  long      FlashInterval;
 
   GDataRec_0101   Drh_0101;
   GDataRec_0103   Drh_0103;
@@ -221,29 +225,16 @@ private:
 	void InitUserClassMap( char* fileName );
 	ResultCode SetClassRange( int const* pClassNum );
 	ResultCode TranslateObject( word mvb, CTabIdent id, TGstream& dst );
-	ResultCode TranslatePrim( void** ppSrc, word mvb, point*& pPoint, TGstream& dst );
-	void TranslatePoint( point* pPnt );
-	int  TranslatePolypoint( point* pPoints, int nPoints, point* pCp );
-#if 0
-	int  IsPrimDetected( char** ppSrc, Point pnt, int dst );
-  static int IsPointInEllipse( Point c, Rect r );
-  static int IsPointInRect( Point c, Rect* r, int ang );
-  static int IsPointOnRect( Point c, Rect* r, int ang, int d );
-  static int IsPointInSector( Point c, Rect r, int ang, int spn );
-  static int IsPointInChord( Point c, Rect r, int ang, int spn );
-  static int IsPointOnLine( Point c, Point p0, Point p1, int d );
-  static int IsPointOnPolyline( Point c, Point* pPnt, int nPnt, int d, int ps = 1 );
-	static int TestPie( Point pnt, Rect rct, int start, int delta, int dst );
-	static int TestChord( Point pnt, Rect rect, int start, int delta, int dst );
-	static int IsTextDetected( StringParam sp, char* string, int h, Rect box );
-#endif // 0
+	ResultCode TranslatePrim( void** ppSrc, word mvb, POINT*& pPOINT, TGstream& dst );
+	void TranslatePoint( POINT* pPnt );
+	int  TranslatePolypoint( POINT* pPoints, int nPoints, POINT* pCp );
   ResultCode GetGlobalRect( int x0, int y0, int x1, int y1, int w, int h, TGstream& dst );
   ResultCode GetGlobalGeoRect( double x0, double y0, double x1, double y1, int w, int h, TGstream& dst );
   ResultCode SelGlobalRect( int x0, int y0, int x1, int y1, int w, int h, TGstream& dst,
 		                        int sx0, int sy0, int sx1, int sy1 );
   ResultCode SelGlobalGeoRect( double x0, double y0, double x1, double y1, int w, int h, TGstream& dst,
 		                           double sx0, double sy0, double sx1, double sy1 );
-  ResultCode GetGeoObjectBox( CTabIdent id, double* pRect );
+  ResultCode GetGeoObjectBox( CTabIdent id, double* pRECT, int* pClass );
   ResultCode PRJ2XML( TGstream& dst );
   ResultCode ClsDef2XML( TGstream& dst, int lvl );
   ResultCode ClrDef2XML( TGstream& dst, int lvl );

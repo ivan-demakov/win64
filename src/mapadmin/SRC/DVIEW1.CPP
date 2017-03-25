@@ -255,7 +255,6 @@ CMapView::SetScale( int scale, CPoint center, int bMakeUndo )
 
   int rs = scale;
 
-	Point tp( center.x, center.y );
   int sc;
   CBuildMode* pBM = GetBuilding( 0 );
   if( pBM )
@@ -263,16 +262,16 @@ CMapView::SetScale( int scale, CPoint center, int bMakeUndo )
     int t = pBM->m_nID - IDM_CLASS_BEGIN;
     sc = m_pObjDef->GetMinLimit( t );
     if( sc )
-      rs = max( rs, MerkatorData.LogScale( sc, tp ));
+      rs = max( rs, MerkatorData.LogScale( sc, center));
     sc = m_pObjDef->GetMaxLimit( t );
     if( sc )
-      rs = min( rs, MerkatorData.LogScale( sc, tp ));
+      rs = min( rs, MerkatorData.LogScale( sc, center));
 
     pBM->SetTextCursor( 0 );
   }
 
-  int mas = MerkatorData.LogScale( MaxScale, tp );
-  int mis = MerkatorData.LogScale( MinScale, tp );
+  int mas = MerkatorData.LogScale( MaxScale, center );
+  int mis = MerkatorData.LogScale( MinScale, center );
   rs = max( mas, min( mis, rs ));
   int ss = rs;
 
@@ -280,18 +279,18 @@ CMapView::SetScale( int scale, CPoint center, int bMakeUndo )
   {
     int t = m_SelectList.GetNext( pos )->Class();
     if( sc = m_pObjDef->GetMinLimit( t ))
-      ss = max( ss, MerkatorData.LogScale( sc, tp ));
+      ss = max( ss, MerkatorData.LogScale( sc, center ));
     if( sc = m_pObjDef->GetMaxLimit( t ))
-      ss = min( ss, MerkatorData.LogScale( sc, tp ));
+      ss = min( ss, MerkatorData.LogScale( sc, center ));
   }
 
   static long ih = 0;
   if( !m_pSTM && !ih && !m_SelectList.IsEmpty() && !m_bFinding && rs != scale )
   {
     char b[256];
-    sprintf( b, "На плане выделены объекты,\n"
-                "не отображаемые в масштабе менее, чем 1 : %d.\n\n"
-                "Ограничить масштаб?", MerkatorData.TrueScale( ss, tp ));
+    sprintf_s( b, "На плане выделены объекты,\n"
+                  "не отображаемые в масштабе менее, чем 1 : %d.\n\n"
+                  "Ограничить масштаб?", MerkatorData.TrueScale( ss, center ));
     CInstrDlg dlg( &ih, b );
     if( DoModalDlg( &dlg, CE_ASK_DLG ) == IDOK )
       rs = ss;
@@ -370,8 +369,8 @@ CMapView::SetScale( int scale, CPoint center, int bMakeUndo )
   SetScrollPos( SB_HORZ, min( vp.x, mx - m_ViewportSize.cx ));
   SetScrollPos( SB_VERT, min( vp.y, my - m_ViewportSize.cy ));
   SetRedraw( 1 );
-  StartBlinking( m_pCurSelObj );
   Invalidate( 0 );
+  StartBlinking( m_pCurSelObj );
 
   CMainWin* pmw = (CMainWin*)AfxGetMainWnd();
   if( pmw )
@@ -447,19 +446,20 @@ CMapView::OnGoTo()
 {
   int s = GetTrueScale();
 
-	if( !m_pGotoDialog )
-	{
-		m_pGotoDialog = new CGotoDialog( Project2Grid( GetCenter()), s );
-		m_pGotoDialog->Create( IDD_GOTO_DIALOG, this );
-	}
+  if( !m_pGotoDialog )
+  {
+    m_pGotoDialog = new CGotoDialog();
+    m_pGotoDialog->Create( IDD_GOTO_DIALOG, this );
+  }
 
-	m_pGotoDialog->ShowWindow( m_pGotoDialog->IsWindowVisible() ? SW_HIDE : SW_SHOW );
+  m_pGotoDialog->SetPointScale( Project2Grid( GetCenter()), s );
+  m_pGotoDialog->ShowWindow( m_pGotoDialog->IsWindowVisible() ? SW_HIDE : SW_SHOW );
 }
 //========================================================================
 void
 CMapView::GoTo( CPoint c, int s )
 {
-  SetScale( MerkatorData.LogScale( s, Point( c.x, c.y )), c, 1 );
+  SetScale( MerkatorData.LogScale( s, c ), c, 1 );
   UpdateWindow();
   SetPosition( c );
 }
@@ -474,10 +474,27 @@ CMapView::OnIncScaleMode()
 void
 CMapView::OnMagnitMode( UINT cmd )
 {
-  if( !OnAppCommand( cmd ))
-    AddMode( new CMagnitMode( cmd ));
-	else
-		RemoveMode( cmd );
+	int msk = 1 << ( cmd - IDM_MAGNIT_MODE1 );
+	CMagnitMode* pMode = (CMagnitMode*)GetMode( IDM_MAGNIT_MODE1 );
+	if( !pMode )
+		AddMode( pMode = new CMagnitMode());
+
+	pMode->SetSelMode( msk );
+  if( !pMode->GetSelMode())
+    RemoveMode( pMode );
+}
+//========================================================================
+void
+CMapView::OnUpdateMagnitMode( CCmdUI* pCmdUI )
+{
+	int bCheck = 0;
+	CMagnitMode* pMode = (CMagnitMode*)GetMode( IDM_MAGNIT_MODE1 );
+	if( pMode )
+	{
+  	int msk = 1 << ( pCmdUI->m_nID - IDM_MAGNIT_MODE1 );
+		bCheck = ( pMode->GetSelMode() & msk ) != 0;
+	}
+	pCmdUI->SetCheck( bCheck );
 }
 //========================================================================
 void
@@ -506,6 +523,21 @@ CMapView::OnSubSelectMode()
 {
   if( !OnAppCommand( IDM_SUBSELECT_MODE ))
     AddMode( new CSubSelectMode );
+}
+//========================================================================
+void
+CMapView::InitQueryPolygon()
+{
+  static UINT mm[] =
+  {
+    IDM_LINE_MEASURE_MODE,
+    IDM_SQUARE_MEASURE_MODE,
+    IDM_SELECT_POLY_MODE,
+		IDM_SELECT_POLYGON_MODE,
+    0
+  };
+  RemoveMode( GetMode( mm ));
+	AddMode( new CMeasureMode( IDM_SELECT_POLYGON_MODE ));
 }
 //========================================================================
 void
@@ -613,6 +645,21 @@ CMapView::OnUpdateToolTipsCmd( CCmdUI* pCmdUI )
   pCmdUI->SetCheck( CMainWin::m_bToolTips );
 }
 //========================================================================
+//========================================================================
+void
+CMapView::OnTextShadowCmd()
+{
+  m_bTextShadow ^= 1;
+	m_bRedraw = 1;
+  InvalidateRect( 0, 0 );
+}
+//========================================================================
+void
+CMapView::OnUpdateTextShadowCmd( CCmdUI* pCmdUI )
+{
+  pCmdUI->SetCheck( m_bTextShadow );
+}
+//========================================================================
 void
 CMapView::OnUseGridCmd()
 {
@@ -644,24 +691,24 @@ CMapView::OnUpdateShowAsSeletedCmd( CCmdUI* pCmdUI )
 void
 CMapView::OnSelectLinkedCmd( UINT cmd )
 {
-	if( cmd == IDM_SELECT_LINKED )
-	{
+  if( cmd == IDM_SELECT_LINKED )
+  {
     m_bSelectLinked ^= 1;
-		m_bSelectAllLinked = 0;
-	}
-	else
-	{
+    m_bSelectAllLinked = 0;
+  }
+  else
+  {
     m_bSelectAllLinked ^= 1;
-		m_bSelectLinked = 0;
-	}
+    m_bSelectLinked = 0;
+  }
 }
 //========================================================================
 void
 CMapView::OnUpdateSelectLinkedCmd( CCmdUI* pCmdUI )
 {
-	if( pCmdUI->m_nID == IDM_SELECT_LINKED )
+  if( pCmdUI->m_nID == IDM_SELECT_LINKED )
     pCmdUI->SetCheck( m_bSelectLinked );
-	else
+  else
     pCmdUI->SetCheck( m_bSelectAllLinked );
 }
 //========================================================================
@@ -789,7 +836,7 @@ void
 CMapView::OnExtSetScale()
 {
   CPoint c( m_Conductor.GetPosition());
-  SetScale( m_Conductor.GetScale() * MerkatorData.ScaleFactor( Point( c.x, c.y )), c, 0 );
+  SetScale( m_Conductor.GetScale() * MerkatorData.ScaleFactor( c ), c, 0 );
 //  SetForegroundWindow();
 }
 //========================================================================
@@ -813,12 +860,12 @@ void
 CMapView::OnMeasureMode( UINT Id )
 {
   if( !OnAppCommand( Id ))
-		switch( Id )
-		{
-			case IDM_LINE_MEASURE_MODE : AddMode( new CLinkMeasureMode );   break;
-			case IDM_FIND_DIST_MODE :    AddMode( new CFindDistanceMode );  break;
-			default :                    AddMode( new CMeasureMode( Id  )); break;
-		}
+   switch( Id )
+   {
+     case IDM_LINE_MEASURE_MODE : AddMode( new CLinkMeasureMode );   break;
+     case IDM_FIND_DIST_MODE :    AddMode( new CFindDistanceMode );  break;
+     default :                    AddMode( new CMeasureMode( Id  )); break;
+   }
 }
 //========================================================================
 void
@@ -844,8 +891,8 @@ CMapView::QueryUserRights( int nMode, CAppMode* pMode )
 
   if( nMode == UR_BLDMODE )
     m_Conductor.Create(((CBuildMode*)pMode)->GetObjectIdent());
-	else
-	if( nMode == UR_SUBLAYER )
+        else
+        if( nMode == UR_SUBLAYER )
     m_Conductor.SetClass( SUBLAYER_CLASS + 1, 0 );
   else
   {
@@ -932,13 +979,13 @@ CMapView::OnUserRightsOk( UINT cmd )
 
   switch( m_nURMode )
   {
-	  case UR_DELETE:
+          case UR_DELETE:
       m_Undo.AddItem( new CUndoAddItem( this, 0, &m_SelectList ), this );
       ClearSelection( 1, 0 );
       break;
-	  case UR_SUBLAYER:
+          case UR_SUBLAYER:
       Invalidate( 0 );
-			m_pSublDlg->Activate();
+                        m_pSublDlg->Activate();
       m_pSublDlg->ShowWindow( SW_SHOW );
       break;
     case UR_MOVEMODE :
@@ -1019,7 +1066,7 @@ CMapView::OnUserRightsCancel()
     m.Format( "Вы не можете выполнить %s выделнных объектов, "
               "так как у Вас отсутствуют права на выполнение данной операции.",
               m_nURMode != UR_MOVEMODE ? "вращение" :
-             CMoveMode::CopyMode()    ? "копирование" : "перемещение" );
+              CMoveMode::CopyMode()    ? "копирование" : "перемещение" );
   }
 
   ErrBox( m );
@@ -1037,20 +1084,20 @@ CMapView::StartBuilding()
   ksi_obj ksi_param = ksi_nil;
   if( m_pSuspObj )
   {
-		int np;
+                int np;
     CPoint* pPnt = m_pSuspObj->GetPolyline( &np );
-		CPoint pt = pPnt ? pPnt[np-1] : m_Position;
-		ksi_obj ksi_img = *m_pSuspObj;
-		ksi_obj ksi_class = KSI_MK_SINT( m_pSuspObj->Class());
-		ksi_obj ksi_status = KSI_MK_SINT( m_pSuspObj->Status());
+                CPoint pt = pPnt ? pPnt[np-1] : m_Position;
+                ksi_obj ksi_img = *m_pSuspObj;
+                ksi_obj ksi_class = KSI_MK_SINT( m_pSuspObj->Class());
+                ksi_obj ksi_status = KSI_MK_SINT( m_pSuspObj->Status());
 
-		ksi_param = KsiCall( "make-building-context", ksi_class, ksi_status, ksi_img,
+                ksi_param = KsiCall( "make-building-context", ksi_class, ksi_status, ksi_img,
                          ksi_int2num( pt.x ), ksi_int2num( pt.y ),
                          KSI_MK_SINT( m_ObjectClass ), 0 );
 
     if( !KSI_PLIST_P( ksi_param ))
       ksi_param = KsiCall( "make-polyline-context", ksi_class, ksi_status, ksi_img, 0 );
-	}
+        }
   CBuildMode* pBM = new CBuildMode( IDM_CLASS_BEGIN + m_ObjectClass,
                                     CIdent( m_ObjectClass, 0, 0, 0 ),
                                     0, ksi_param, ksi_nil );
@@ -1075,7 +1122,7 @@ CMapView::OnObjCommand( UINT nID )
     popup.CreatePopupMenu();
     CMapDoc* pDoc = GetDocument();
     pDoc->SetContextMenu( 0 );
-    pDoc->MakePopupMenu( &popup, m_ObjectClass, IDM_OBJCTL_BEGIN, CObjDef::GetDerived );
+    pDoc->MakePopupMenu( &popup, m_ObjectClass, IDM_OBJCTL_BEGIN, &CObjDef::GetDerived );
     if( popup.GetMenuItemCount())
     {
       CPoint p;
@@ -1251,12 +1298,13 @@ CMapView::UpdateColorTab( COLORREF MonitorColor,
 
     if( bClear && !bConcret )
     {
-      ksi_obj lst, ksi_key = ksi_int2num( k );
-      for(lst = par_lst ; KSI_PLIST_P( lst ) ; lst = KSI_CDR( lst ))
+      ksi_obj ksi_key = ksi_int2num( k );
+      ksi_obj lst;
+      for( lst = par_lst ; KSI_PLIST_P( lst ) ; lst = KSI_CDR( lst ))
       {
         ksi_obj par = KSI_CAR( lst );
-		int i;
-        for( i = CELEM( clr_key ) ; --i >= 0 ; )
+        int i = CELEM(clr_key);
+        while( --i >= 0 )
           if( KSI_EQ_P( ksi_key, ksi_assv_ref( par, clr_key[i] )))
             break;
         if( i >= 0 )
@@ -1264,7 +1312,7 @@ CMapView::UpdateColorTab( COLORREF MonitorColor,
       }
       if( bClear && key < 0 && KSI_NULL_P( lst ))
       {
-        sprintf( szKey, "%d", k );
+        sprintf_s( szKey, "%d", k );
         App.WriteProfileString( sectName, szKey, 0 );
       }
     }
@@ -1274,8 +1322,8 @@ CMapView::UpdateColorTab( COLORREF MonitorColor,
   {
     key = pMCT->FindFreeKey();
 
-    sprintf( szKey, "%d", key );
-    sprintf( szCol, "0x%06lx 0x%06lx 0x%06lx", MonitorColor, PrinterColor, PrinterBWColor );
+    sprintf_s( szKey, "%d", key );
+    sprintf_s( szCol, "0x%06lx 0x%06lx 0x%06lx", MonitorColor, PrinterColor, PrinterBWColor );
     App.WriteProfileString( sectName, szKey, szCol );
 
     pMCT->Add( key, MonitorColor );
@@ -1347,7 +1395,7 @@ CMapView::OnSublayerAdm()
   if( SublDlgIsActive())
     m_pSublDlg->OnEndButtonClicked();
   else
-		QueryUserRights( UR_SUBLAYER );
+                QueryUserRights( UR_SUBLAYER );
 }
 //========================================================================
 void
@@ -1376,7 +1424,7 @@ Reper2Str( CDrawObject* pRpr )
   return rpt;
 }
 //========================================================================
-static enum REP_CMP
+enum REP_CMP
 {
   NO_ERR = 0,
   EQ_DEC = 1,
@@ -1420,14 +1468,14 @@ Test2Repers( CDrawObject* pRep0, CDrawObject* pRep1 )
 static CString
 RepRep( CDrawObject* pRpr )
 {
-	CString r;
+        CString r;
   CPoint* p = pRpr->GetAnyPoints();
   r.Format( "X=%-8d Y=%-8d %s", p->x, p->y, Reper2Str( pRpr ));
   return r;
 }
 //========================================================================
 int
-CMapView::Test1Reper( CDrawObject* pRep, std::ofstream* pFile, int nMode )
+CMapView::Test1Reper( CDrawObject* pRep, ofstream* pFile, int nMode )
 {
   static char* et[] =
   {
@@ -1437,7 +1485,7 @@ CMapView::Test1Reper( CDrawObject* pRep, std::ofstream* pFile, int nMode )
     "Перекос",
     "Неразличимость"
   };
-	CWaitCursor wc;
+        CWaitCursor wc;
 
   int s = 0;
   for( CDrawObject* pTst ; pTst = m_ReperList.GetNext() ; )
@@ -1445,16 +1493,16 @@ CMapView::Test1Reper( CDrawObject* pRep, std::ofstream* pFile, int nMode )
     REP_CMP e = Test2Repers( pRep, pTst );
     s += e != NO_ERR;
 
-		if( e != NO_ERR )
+                if( e != NO_ERR )
     {
       if( pFile )
-			{
+                        {
         CString rpt;
         rpt.Format( "%-48s %-48s %s\n", RepRep( pRep ), RepRep( pTst ), et[e] );
         *pFile << rpt;
-				if( nMode == 2 )
-					return s;
-			}
+                                if( nMode == 2 )
+                                        return s;
+                        }
       else
       {
         CString r0( RepRep( pRep ));
@@ -1509,22 +1557,22 @@ void
 CMapView::OnTestAllRepers()
 {
   CRepDialog dlg;
-	if( dlg.DoModal() != IDOK )
-		return;
+        if( dlg.DoModal() != IDOK )
+                return;
 
   CString pfn( dlg.GetPath());
-	int bRepes = dlg.GetRepers();
-	int bOneErr = dlg.GetOneError();
-	int bAllErr = dlg.GetAllErrors();
-	int mode = bRepes + bOneErr * 2 + bAllErr * 4;
+        int bRepes = dlg.GetRepers();
+        int bOneErr = dlg.GetOneError();
+        int bAllErr = dlg.GetAllErrors();
+        int mode = bRepes + bOneErr * 2 + bAllErr * 4;
 
   int bWriteFile = !pfn.IsEmpty();
 
-  std::ofstream pFile;
+  ofstream pFile;
 
   if( bWriteFile )
   {
-    pFile.open( pfn, std::ios::out | std::ios::trunc, std::filebuf::sh_read );
+    pFile.open( pfn, ios::out | ios::trunc, SH_DENYNO );
     if( !pFile.good())
     {
       ErrBox( "Невозможно открыть файл\n"
@@ -1539,36 +1587,36 @@ CMapView::OnTestAllRepers()
   while(( pRep = m_ReperList.GetNext()) && e >= 0 )
   {
     m_ReperList.SavePosition();
-		if( mode == 1 )
-		{
-			if( bWriteFile )
-        pFile << RepRep( pRep ) << std::endl;
-			else
-			{
+    if( mode == 1 )
+    {
+      if( bWriteFile )
+        pFile << RepRep( pRep ) << endl;
+      else
+      {
         CString rpt;
         rpt.Format( "%s\n\nПоказать репер?", RepRep( pRep ));
-				int r = AskBox( rpt, 1 );
-				if( r == IDCANCEL )
-					break;
-        
-				if( r == IDYES )
+        int r = AskBox( rpt, 1 );
+        if( r == IDCANCEL )
+          break;
+
+        if( r == IDYES )
         {
           ClearSelection( 0, 0 );
           CBox box( pRep->GetBoundBox());
           int s = 2 * WindowSize2Scale( box.Size());
           SetScale( s, box.CenterPoint());
           UpdateWindow();
-					if( !GetObjectPtr( pRep->Ident()))
-						m_ClipData.AddObject( pRep ); 
+          if( !GetObjectPtr( pRep->Ident()))
+            m_ClipData.AddObject( pRep );
           SelectObject( pRep->Ident(), 1 );
         }
-			}
-		}
-		else
-		{
+      }
+    }
+    else
+    {
       e = Test1Reper( pRep, bWriteFile ? &pFile : 0, mode );
       s += abs( e );
-		}
+    }
     m_ReperList.RestPosition();
   }
   ClearSelection( 0, 0 );
@@ -1577,7 +1625,7 @@ CMapView::OnTestAllRepers()
     pFile.close();
 
   if( mode != 1 )
-	{
+  {
     CString m;
     if( s == 0 )
       m  = "Проверка завершена.\nНекорректных реперов не выявлено";
@@ -1587,7 +1635,7 @@ CMapView::OnTestAllRepers()
     else
       m.Format( "Проверка завершена.\nОшибок вывлено %d.", s );
     InfBox( m );
-	}
+  }
 }
 //========================================================================
 CObjTreeList*
@@ -1600,7 +1648,7 @@ CMapView::GetReperList()
     ReportHint( "Загрузка реперов..." );
     long ClassArr[] = { REPER };
     CSize ds( GetDocument()->GetSize());
-    Rect rct( 0, 0, ds.cx, ds.cy );
+    CRect rct( 0, 0, ds.cx, ds.cy );
     for( ResultCode r = R_REPEAT ; r == R_REPEAT ; )
     {
       int nCnt;
@@ -1625,18 +1673,70 @@ CMapView::GetReperList()
   return &m_ReperList;
 }
 //========================================================================
+void
+CMapView::OnCloneLines()
+{
+  CDrawObject* pObj = GetSelectObject( 1 );
+  if( !pObj )
+    return;
+
+  int np;
+  CPoint* pp = pObj->GetPolyline( &np );
+  if( !pp )
+  {
+    ErrBox( "Необходимо выделить линейный объект!" );
+    return;
+  }
+
+  CCloneParamDialog dlg( pp, np );
+  if( dlg.DoModal() != IDOK )
+    return;
+
+  int n = dlg.GetRep();
+  int r0 = dlg.GetStep();
+
+  ClearSelection();
+
+  CWaitCursor wc;
+
+  CObjList lst;
+  int nl = 0, r = 0;
+  while( --n >= 0 )
+  {
+    TGstream dst;
+    r += r0;
+    int nn = SmartCloneLine( dst, pp, np, r );
+    if( nn )
+    {
+      CDrawObject* pTmp = pObj->CopyObject();
+      long ev;
+      m_MapStore.GetUniId( &ev );
+      pTmp->SetEntry( ev );
+      pTmp->SetPoly((CPoint*)dst.str(), nn );
+      CDrawObject* pNew = pTmp->Rebuild();
+      delete pTmp;
+      AddObject( pNew, 1 );
+      lst.AddHead( pNew );
+      ++nl;
+      ShowObjectBox( pNew );
+    }
+    if( nl )
+      m_Undo.AddItem( new CUndoAddItem( this, &lst, 0 ), this );
+  }
+}
+//========================================================================
 #ifndef _FULL_PROJECT
 //========================================================================
 void
 CMapView::OnMakeStatistics( UINT id )
 {
-  Point* pRgn = 0;
+  CPoint* pRgn = 0;
   int rgnSize = 0;
 
   if( id == IDM_MAKE_RGN_STATISTICS )
   {
     CString path( App.GetProjectFilePath( "region.txt" ));
-	std::ifstream rin( path, std::ios::in| std::ios::nocreate );
+    ifstream rin( path, ios::in );
 
     if( rin.bad())
     {
@@ -1655,7 +1755,7 @@ CMapView::OnMakeStatistics( UINT id )
       return;
     }
 
-    pRgn = new Point[rgnSize];
+    pRgn = new CPoint[rgnSize];
     for( int i = rgnSize ; --i >= 0 ; )
     {
       double x, y;
@@ -1690,26 +1790,24 @@ CMapView::OnMakeStatistics( UINT id )
   ReportHint( "Пожалуйста, подождите..." );
   m_MapStore.AcountAllObjects( t, pRgn, rgnSize );
 
-  int i;
-  for( i = CELEM( c ) ; --i >= 0 ; c[i] = i );
+  for( int i = CELEM( c ) ; --i >= 0 ; c[i] = i );
 
   int l, ml = 18;
 
-  for( i = 1 ; i < FULL_RANGE ; ++i )
+  for( int i = 1 ; i < FULL_RANGE ; ++i )
   {
     int t0 = t[i], t1 = c[i];
     int nl = strlen( m_pObjDef->GetName( t1 ));
     if( t[i] && ml < nl )
       ml = nl;
-	int j;
-    for(j = i ;
-         --j > 0 && strcmp( m_pObjDef->GetName( c[j] ), m_pObjDef->GetName( t1 )) < 0 ;
+    int j;
+    for( j = i ; --j > 0 && strcmp( m_pObjDef->GetName( c[j] ), m_pObjDef->GetName( t1 )) < 0 ;
          t[j+1] = t[j], c[j+1] = c[j] );
     t[j+1] = t0;
     c[j+1] = t1;
   }
 
-  std::ofstream os( fName, std::ios::out | std::ios::trunc, std::filebuf::sh_none );
+  ofstream os( fName, ios::out | ios::trunc, SH_DENYWR );
 
   CTime tm = CTime::GetCurrentTime();
   char line[256];
@@ -1720,27 +1818,28 @@ CMapView::OnMakeStatistics( UINT id )
     *pl = '=';
 
   os << line
-     << "Проект - " << GetDocument()->GetDocName() << std::endl
-     << "Дата   - " << tm.Format( "%d.%m.%y" ) << std::endl
-     << "Время  - " << tm.Format( "%H:%M:%S" ) << std::endl
+     << "Проект - " << GetDocument()->GetDocName() << endl
+     << "Дата   - " << tm.Format( "%d.%m.%y" ) << endl
+     << "Время  - " << tm.Format( "%H:%M:%S" ) << endl
      << line;
-  for( i = CELEM( t ) ; --i >= 0 ; )
+  int i = CELEM( t );
+  while( --i >= 0 )
   {
     LPCTSTR n = m_pObjDef->GetName( c[i] );
     if( t[i] && ( !m_pObjDef->GetDerived( c[i] ) || n[0] == '#' ) || !c[i]  )
     {
       char d[16];
-      sprintf( d, "%d", t[i] );
+      sprintf_s( d, "%d", t[i] );
       os << n;
       for( l = ml + 6 - strlen( n ) - strlen( d ) ; --l >= 0 ; os << '.' );
-      os << d << std::endl;
+      os << d << endl;
     }
   }
   os << line;
   os.close();
 
   char m[256];
-  sprintf( m, "Отчет записан в файл\n%s", fName );
+  sprintf_s( m, "Отчет записан в файл\n%s", (LPCSTR)fName );
   InfBox( m );
 
   ShowSelectedNum();
@@ -1811,7 +1910,7 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
 
   bool bCommNum = ptn == btn && pen == ben;
 
-  std::ofstream os( fName, std::ios::out | std::ios::trunc, std::filebuf::sh_none );
+  ofstream os( fName, ios::out | ios::trunc, SH_DENYNO );
 
   int sol = m_ScaleOnLoading;
   m_ScaleOnLoading = 0;
@@ -1841,7 +1940,7 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
     memcpy( m_pDRH->GetBriefPtr(), pSrc, m_pDRH->GetBriefSize());
 
     CIdent pi( m_pDRH->GetIdent());
-	int* pc;
+    int* pc;
     for( pc = lct ; *pc != 0 && *pc != pi.Class() ; ++pc );
     if( !*pc )
       continue;
@@ -1872,8 +1971,8 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
     int const R = 160;
     r0.InflateRect( R, R );
     r1.InflateRect( R, R );
-    Rect rc0( r0.left, r0.top, r0.right, r0.bottom );
-    Rect rc1( r1.left, r1.top, r1.right, r1.bottom );
+    CRect rc0( r0.left, r0.top, r0.right, r0.bottom );
+    CRect rc1( r1.left, r1.top, r1.right, r1.bottom );
 
     int nCnt0 = 0, nCnt1 = 0;
 
@@ -1941,12 +2040,12 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
       int const BR = 100;
       int const BB = 6; //Строение
 
-      Rect rc( cp[i][0].x - BR, cp[i][0].y - BR, cp[i][0].x + BR, cp[i][0].y + BR );
+      CRect rc( cp[i][0].x - BR, cp[i][0].y - BR, cp[i][0].x + BR, cp[i][0].y + BR );
 
-      buf.seekp( 0, std::ios::beg );
+      buf.seekp( 0, ios::beg );
 
       ResultCode r = R_REPEAT;
-	  int tCnt;
+      int tCnt;
       for( tCnt = 0 ; !tCnt && r == R_REPEAT ;
            r = m_MapStore.SelectByRect( rc, BB, buf, &tCnt ));
 
@@ -1994,10 +2093,10 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
 
       m_pDRH->SetMagic( OBJMAGIC );
       m_pDRH->SetSize( nSize );
-      m_pDRH->SetBox( *((Rect*)&box ));
+      m_pDRH->SetBox( box );
       m_pDRH->SetIdent( tpc, 0, tab, ent );
-      time_t t;
-      clock_t c;
+      long t;
+      long c;
       m_MapStore.GetTimeClock( &t, &c );
       m_pDRH->SetTime( t );
       m_pDRH->SetClock( c );
@@ -2012,7 +2111,7 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
 
       os <<  tpc << ";"
          <<  tab << ";"
-         <<  ent << std::endl;
+         <<  ent << endl;
     }
 
     n += t || w;
@@ -2034,8 +2133,8 @@ CMapView::AttachmentLines( LPCTSTR fName, int* lct, int* wct, int pct, int bct,
 
   os.close();
   char m[1024];
-  sprintf( m, "Обработано %d из %d линейных объектов\n\n"
-              "Параметры добавленных объектов записаны в файл\n%s", n, g, fName );
+  sprintf_s( m, "Обработано %d из %d линейных объектов\n\n"
+                "Параметры добавленных объектов записаны в файл\n%s", n, g, fName );
   InfBox( m );
   ClearHint();
   m_Undo.RemoveAll();
@@ -2102,9 +2201,9 @@ CMapView::OnLineAttachment()
     {
       int n = t >> 3;
       int m = 1 << ( t & 7 );
-      if( LCMask[n] & m )
+      if( GetBit( LCMask, t ))
         lct[lctn++] = t;
-      if( WCMask[n] & m )
+      if( GetBit( WCMask, t ))
         wct[wctn++] = t;
   }
   lct[lctn] = 0;
@@ -2115,639 +2214,15 @@ CMapView::OnLineAttachment()
                    btn, max( ben, 1 ));
 }
 //========================================================================
-void
-CMapView::OnCloneLines()
-{
-  CDrawObject* pObj = GetSelectObject( 1 );
-	if( !pObj )
-		return;
-
-	int np;
-	CPoint* pp = pObj->GetPolyline( &np );
-	if( !pp )
-	{
-		ErrBox( "Необходимо выделить линейный объект!" );
-		return;
-	}
-
-  CCloneParamDialog dlg( pp, np );
-	if( dlg.DoModal() != IDOK )
-		return;
-
-	int n = dlg.GetRep();
-	int r0 = dlg.GetStep();
-
-	ClearSelection();	
-	
-	CWaitCursor wc;
-
-	CObjList lst;
-	int nl = 0, r = 0;
-	while( --n >= 0 )
-	{
-		TGstream dst;
-		r += r0;
-		int nn = SmartCloneLine( dst, pp, np, r );
-		if( nn )
-		{
-  		CDrawObject* pTmp = pObj->CopyObject();
-	  	long ev;
-		  m_MapStore.GetUniId( &ev );
-		  pTmp->SetEntry( ev );
-		  pTmp->SetPoly((CPoint*)dst.str(), nn );
-  		CDrawObject* pNew = pTmp->Rebuild();
-			delete pTmp;
-		  AddObject( pNew, 1 );
-			lst.AddHead( pNew );
-			++nl;
-		  ShowObjectBox( pNew );
-		}
-		if( nl )
-      m_Undo.AddItem( new CUndoAddItem( this, &lst, 0 ), this );
-	}
-}
-//========================================================================
-#ifdef _DEBUG
-static int
-CpyData( void* pDst, int dl, char** ppSrc, int* psl )
-{
-	if( dl > *psl )
-		return 0;
-
-	memcpy((char*)pDst, *ppSrc, dl );
-	*ppSrc += dl;
-	*psl -= dl;
-	return 1;
-}
-
-
-static int
-DrawPrim( char** ppSrc, int* psl, CDC* pDC, double cf )
-{
-  word type;
-	ASSERT( CpyData( &type, sizeof type, ppSrc, psl ));
-	int typeKey = type & PF_TYPE_MASK;
-  int subType = (( type & PF_STROKED ) ? STROKED : 0 ) |
-                (( type & PF_FILLED  ) ? FILLED  : 0 ) |
-                (( type & PF_ROUND   ) ? ROUND   : 0 );
-  CPen Pen;
-	CBrush Brush;
-	
-	ExPenParam   Epp, *pEpp = 0;
-	ExBrushParam Ebp, *pEbp = 0;
-  switch( subType & OUTLINED )
-	{
-    case STROKED :
-			ASSERT( CpyData( pEpp = &Epp, sizeof Epp, ppSrc, psl ));
-      break;
-    case FILLED :
-			ASSERT( CpyData( pEbp = &Ebp, sizeof Ebp, ppSrc, psl ));
-      break;
-    case OUTLINED :
-			ASSERT( CpyData( pEpp = &Epp, sizeof Epp, ppSrc, psl ));
-			ASSERT( CpyData( pEbp = &Ebp, sizeof Ebp, ppSrc, psl ));
-      break;
-	}
-	
-	if( pEpp )
-	{
-    Pen.CreatePen( pEpp->style, pEpp->width, CItem::GetColor( pEpp->color ));
-		pDC->SelectObject( &Pen );
-	}
-	else
-		pDC->SelectStockObject( NULL_PEN );
-
-	if( pEbp && pEbp->fill )
-	{
-		LOGBRUSH LB = { pEbp->style, CItem::GetColor( pEbp->fore ), pEbp->hatch }; 
-		Brush.CreateBrushIndirect( &LB );
-		pDC->SelectObject( &Brush );
-		pDC->SetBkColor( pEbp->back );
-		pDC->SetBkMode( pEbp->style == 2 ? TRANSPARENT : OPAQUE );
-	}
-	else
-		pDC->SelectStockObject( NULL_BRUSH );
-
-  switch( typeKey )
-  {
-    case 0:
-			return 0;
-    case PF_CONTAINER:
-		{
-		  while( DrawPrim( ppSrc, psl, pDC, cf ));
-      break;
-		}
-
-		case PF_ICON:
-		{
-			ExIcon icn;
-			ASSERT( CpyData( &icn, sizeof icn, ppSrc, psl ));
-			CRect r;
-			r.left = icn.x - icn.xSize / 2;
-			r.top  = icn.y - icn.ySize / 2;
-			r.right = r.left + icn.xSize;
-			r.bottom = r.top + icn.ySize;
-			pDC->SelectStockObject( BLACK_PEN );
-			pDC->SelectStockObject( WHITE_BRUSH );
-			pDC->Ellipse( &r );			
-      break;
-		}
-
-		case PF_TEXT:
-    {
-			FontParam fp;
-			StringParam sp;
-			ASSERT( CpyData( &fp, sizeof fp, ppSrc, psl ));
-			ASSERT( CpyData( &sp, sizeof sp, ppSrc, psl ));
-			char* tb = *ppSrc;
-			*ppSrc += sp.length;
-			*psl -= sp.length;
-      CFont font;
-			font.CreateFont( fp.height, 0, sp.angle, sp.angle, fp.weight, fp.style & 1, fp.style & 2,
-				               0, RUSSIAN_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, PROOF_QUALITY, DEFAULT_PITCH, pDocument->num2fontface( fp.number ));
-  
-      pDC->SetTextColor( CItem::GetColor( fp.color ));
-			pDC->SetBkMode( TRANSPARENT );
-      pDC->SelectObject( &font );
-      pDC->SetTextAlign( TA_LEFT | TA_BASELINE | TA_NOUPDATECP );
-      pDC->TextOut( sp.offset.x, sp.offset.y, tb, sp.length );
-			font.DeleteObject();
-      break;
-		}
-
-    case PF_TEXTBYLINE:
-    {
-			FontParam fp;
-			dword ln;
-			ASSERT( CpyData( &fp, sizeof fp, ppSrc, psl ));
-			ASSERT( CpyData( &ln, sizeof ln, ppSrc, psl ));
-      TxtItem* pItems = (TxtItem*)*ppSrc;
-      int nb = ln * sizeof TxtItem;
-      *ppSrc += nb;
-			*psl -= nb;
-      pDC->SetTextColor( CItem::GetColor( fp.color ));
-			pDC->SetBkMode( TRANSPARENT );
-      pDC->SetTextAlign( TA_LEFT | TA_BASELINE | TA_NOUPDATECP );
-			for( int i = 0 ; i < ln ; ++i )
-			{
-        CFont font;
-	  		font.CreateFont( fp.height, 0, pItems[i].angle, pItems[i].angle, fp.weight, fp.style & 1, fp.style & 2,
-				                0, RUSSIAN_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, PROOF_QUALITY, DEFAULT_PITCH, pDocument->num2fontface( fp.number ));
-        pDC->SelectObject( &font );
-        pDC->TextOut( pItems[i].org.x, pItems[i].org.y, pItems[i].letter, 1 );
-  			font.DeleteObject();
-			}
-      break;
-		}
-
-    case PF_MULTILINE:
-    {
-      word np;
-			ASSERT( CpyData( &np, sizeof np, ppSrc, psl ));
-			CPoint* pPoints = new CPoint[np+1];
-      int nb = np * sizeof point;
-			ASSERT( CpyData( pPoints, nb, ppSrc, psl ));
-			int nPoints = np;
-			for( int i = 0 ; i < nPoints ; i += 2 )
-			{
-			  pDC->MoveTo( pPoints[i] );
-			  pDC->LineTo( pPoints[i+1] );
-			}
-			delete pPoints;
-			break;
-    }
-
-		case PF_POLYPOINT:
-    {
-      word np;
-			ASSERT( CpyData( &np, sizeof np, ppSrc, psl ));
-			ASSERT( np );
-			CPoint* pPoints = new CPoint[np+1];
-      int nb = np * sizeof point;
-			ASSERT( CpyData( pPoints, nb, ppSrc, psl ));
-			int nPoints = np;
-			if( pEbp )
-			  pDC->Polygon( pPoints, nPoints );
-			else
-    	if( pEpp )
-			{
-        CLineTmpl* pTempl = CLineTmpl::GetTemplate( pEpp->style );
-        if( pTempl )
-					pTempl->Draw( pDC, pPoints, nPoints, pEpp->color, cf );
-				else
-  		  	pDC->Polyline( pPoints, nPoints );
-			}
-			delete pPoints;
-			break;
-    }
-
-    case PF_FOOTNOTE:
-    {
-      word np;
-			ASSERT( CpyData( &np, sizeof np, ppSrc, psl ));
-			CPoint* pPoints = new CPoint[np+1];
-      int nb = np * sizeof point;
-			ASSERT( CpyData( pPoints, nb, ppSrc, psl ));
-			int nPoints = np;
-			pDC->Polyline( pPoints, nPoints );
-			delete pPoints;
-			break;
-    }
-		case PF_RECTANGLE :
-		{
-			RectParam rct;
-			ASSERT( CpyData( &rct, sizeof rct, ppSrc, psl ));
-			CRect* pRect = (CRect*)&rct;
-			double a = rct.angle * Pi / 1800;
-			double co = cos( a );
-			double si = sin( a );
-			CPoint buf[5];
-      CSize size( pRect->Size());
-      int xco = size.cx * co;
-      int xsi = size.cx * si;
-      int yco = size.cy * co;
-      int ysi = size.cy * si;
-      buf[4] = buf[0] = pRect->TopLeft();
-      buf[3].x = ( buf[2].x = ( buf[1].x = buf[0].x + xco ) + ysi ) - xco;
-      buf[3].y = ( buf[2].y = ( buf[1].y = buf[0].y - xsi ) + yco ) + xsi;
-			if( pEbp )
-  			pDC->Polygon( buf, 5 );
-			else
-    	if( pEpp )
-  			pDC->Polyline( buf, 5 );
-      break;
-    }
-    case PF_ELLIPSE :
-		{
-			CRect rct;
-			ASSERT( CpyData( &rct, sizeof rct, ppSrc, psl ));
-			pDC->Ellipse( &rct );
-      break;
-		}
-		case PF_ARC :
-		{
-			ArcParam arc;
-			ASSERT( CpyData( &arc, sizeof arc, ppSrc, psl ));
-			CRect* pRect = (CRect*)&arc;
-			double a0 = arc.angle * Pi / 1800;
-			double a1 = a0 + arc.delta * Pi / 1800;
-			CPoint c( pRect->CenterPoint());
-			CPoint s = c + CSize( 1000 * cos( a0 ), -1000 * sin( a0 ));  
-			CPoint f = c + CSize( 1000 * cos( a1 ), -1000 * sin( a1 ));
-			if(( subType & OUTLINED ) == FILLED )
-				pDC->Pie( pRect, s, f );
-			else
-			if( type & PF_CHORD )
-  			pDC->Chord( pRect, s, f );
-			else
-	  		pDC->Arc( pRect, s, f );
-      break;
-		}
-  }
-
-	if( pEpp )
-    Pen.DeleteObject();
-
-	if( pEbp )
-		Brush.DeleteObject();
-
-	return 1;
-}
-
-#endif
 //========================================================================
 void
 CMapView::OnDebug1()
 {
-#ifdef _DEBUG
-
-	CSize bs( LP2DP( m_Clip.Size()));
-	bs.cx = ( bs.cx + 0x100 ) & 0xffffff00;
-	bs.cy = ( bs.cy + 0x100 ) & 0xffffff00;
-	CPoint t0( m_Clip.TopLeft());
-	CPoint t1( t0 + DP2LP( bs ));
-
-	Point p0( MerkatorData.Prj2Merk( Point( t0.x, t0.y ), 0 ));
-	Point p1( MerkatorData.Prj2Merk( Point( t1.x, t1.y ), 0 ));
-
-	TGstream dst( 0x100000 );
-	ResultCode r = R_OK;
-	
-#if 0	
-  CDrawObject* pObj = GetObjectPtr( CTabIdent( 0, 1 ));
-	ASSERT( pObj );
-	if( !pObj )
-		return;
-
-	CPoint* pPnt = pObj->GetAnyPoints();
-	ASSERT( pPnt );
-
-	Point p2( MerkatorData.Prj2Merk( Point( pPnt->x, pPnt->y ), 0 ));
-	CRect box = pObj->CalcBoundBox();
-
-	Point b0( MerkatorData.Prj2Merk( Point( box.left, box.top ), 0 ));
-	Point b1( MerkatorData.Prj2Merk( Point( box.right, box.bottom ), 0 ));
-	
-  r = m_MapStore.SelGlobalRect( p0.x, p0.y, p1.x, p1.y, bs.cx, bs.cy, dst, b0.x, b0.y, b1.x, b1.y );
-#else
-  r = m_MapStore.GetGlobalRect( p0.x, p0.y, p1.x, p1.y, bs.cx, bs.cy, dst );
-#endif
-//	r = m_MapStore.GetGlobalGeoRect(39.2211, 51.9307, 39.2266, 51.92733, 256, 256, dst );
- 
-	if( r == R_OK )
-	{
-		char* pSrc = dst.str();
-		int dl = dst.pcount();
-
-		char ph[4];
-		int mn, sw, sh;
-		
-		ASSERT( CpyData( ph, sizeof ph,  &pSrc, &dl ));
-		ASSERT( CpyData( &mn, sizeof mn, &pSrc, &dl ));
-		ASSERT( CpyData( &sw, sizeof sw, &pSrc, &dl ));
-		ASSERT( CpyData( &sh, sizeof sh, &pSrc, &dl ));
-		ASSERT( !strncmp( ph, "TGMP", sizeof ph ));
-
-    static char szFilter[] = "Image Files (*.bmp)|*.bmp|All Files (*.*)|*.*||";
-
-    CFileDialog* fdlg = new CFileDialog( 0, ".emf", 0, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter );
-
-    if( DoModalDlg( fdlg, CE_PAR_DLG ) == IDOK )
-    {
-		  CClientDC dc( 0 );
-      CMemDC memDC( &dc, 1 );
-			memDC.SetWindowExt( bs );
-			memDC.SetViewportExt( bs );
-
-			CBitmap bmp;
-
-      if( !bmp.CreateCompatibleBitmap( &dc, bs.cx, bs.cy ))
-        ErrBox( "Ошибка создания BMP" );
-			else
-			{
-				memDC.SelectObject( &bmp );
-				memDC.FillSolidRect( 0, 0, bs.cx, bs.cy, RGB( -1, -1, -1 ));
- 
-				while( dl > 0 )
-				{
-		      char lh[4];
-		      int lt, ls;
-		      ASSERT( CpyData( lh, sizeof ph,  &pSrc, &dl ));
-		      ASSERT( CpyData( &lt, sizeof lt, &pSrc, &dl ));
-					if( !lt )
-						break;
-		      ASSERT( CpyData( &ls, sizeof ls, &pSrc, &dl ));
-      		ASSERT( !strncmp( lh, "LAYR", sizeof lh ));
-					while( --ls >= 0 )
-					{
-  					int pos = pSrc - dst.str();
-  		      char dh[4];
-  		      ASSERT( CpyData( dh, sizeof dh, &pSrc, &dl ));
-	      		ASSERT( !strncmp( dh, "DATA", sizeof dh ));
-						 
-						CTabIdent id;
-  		      ASSERT( CpyData( &id, sizeof id, &pSrc, &dl ));
-						
-						double cf = double( p1.x - p0.x ) / double( t1.x - t0.x ) * 2.54 * 96 / 100;
-            
-						int minScale = m_pObjDef->GetMinScale( lt );
-            int maxScale = m_pObjDef->GetMaxScale( lt );
-            int scale = m_AltScale;
-            int tscle = scale;
-
-            if( minScale > 0 && tscle < minScale )
-              tscle = minScale;
-            if( maxScale > 0 && tscle > maxScale )
-              tscle = maxScale;
-
-            if( scale != tscle )
-							cf *= scale,
-							cf /= tscle;
-
-						CDrawObject::SetDrawnClass( lt );
-						DrawPrim( &pSrc, &dl, &memDC, cf );
-					}
-				}
-
-        using namespace Gdiplus;
-        GdiplusStartupInput gdiplusStartupInput;
-        ULONG_PTR gdiplusToken;
-        GdiplusStartup( &gdiplusToken, &gdiplusStartupInput, 0 );
-        {
-          WCHAR wbuf[_MAX_PATH];
-          MultiByteToWideChar( CP_ACP, MB_PRECOMPOSED, fdlg->GetPathName(), -1, wbuf, _MAX_PATH );
-
-          CLSID bmpClsid;
-          UINT  num, size;
-          GetImageEncodersSize( &num, &size );
-          ImageCodecInfo* pImageCodecInfo = (ImageCodecInfo*) new char[size];
-          GetImageEncoders( num, size, pImageCodecInfo );
-		  int i;
-          for( i = num ; --i >= 0 && wcscmp( pImageCodecInfo[i].MimeType, L"image/bmp" ) ; );
-          if( i >= 0 )
-            bmpClsid = pImageCodecInfo[i].Clsid;
-          delete pImageCodecInfo;
-
-		      Bitmap Bmp( bmp, 0 );
-
-          if( i < 0 || Bmp.Save( wbuf, &bmpClsid, 0 ) != Ok )
-            ErrBox( Compose( "Не удается сохранить изображение\nв файле ", fdlg->GetPathName(), 0 ));
-        }
-        GdiplusShutdown( gdiplusToken );
-      }
-		}
-    delete fdlg;
-	}
-
-
-  for( int i = 0 ; i < 1 ; ++i )
-	{
-    ResultCode r = R_OK;
-
-		TGstream dst( 0x100000 );
-
-    r = i ? m_MapStore.GetGlobalRect( p0.x, p0.y, p1.x, p1.y, bs.cx, bs.cy, dst ) :
-            m_MapStore.PRJ2XML( dst );
-
-    if( r == R_OK )
-		{
-      char* szFilter = i ? "Binary Files (*.bin)|*.bin|All Files (*.*)|*.*||" :
-                           "XML Files (*.xml)|*.xml|All Files (*.*)|*.*||";
-			CFileDialog* fdlg = new CFileDialog( 0, i ? ".bin" : "xml", 0, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szFilter );
-
-			if( DoModalDlg( fdlg, 0 ) == IDOK )
-			{
-				std::ofstream os( fdlg->GetPathName(), std::ios::out | std::ios::binary | std::ios::trunc, std::filebuf::sh_read );
-			  os.write( dst.str(), dst.pcount());
-				os.close();
-			}
-		  delete fdlg;
-		}
-	}
-
-
-/*
-    static char szIFilter[] = "Image Files (*.bmp)|*.bmp|All Files (*.*)|*.*||";
-    static char szBFilter[] = "Binary Files (*.bin)|*.bin|All Files (*.*)|*.*||";
-
-    CFileDialog* bfdlg = new CFileDialog( 0, ".bin", 0, OFN_HIDEREADONLY, szBFilter );
-    CFileDialog* ifdlg = new CFileDialog( 0, ".bmp", 0, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, szIFilter );
-
-    if( DoModalDlg( bfdlg, CE_PAR_DLG ) == IDOK &&
-			  DoModalDlg( ifdlg, CE_PAR_DLG ) == IDOK	)
-    {
-
-			std::ifstream Src;
-			Src.open( bfdlg->GetPathName(), ios::in | ios::binary );
-			if( Src.bad())
-				return;
-			
-		  char ph[4];
-		  int mn, sw, sh;
-		  Src.read( ph, sizeof ph );
-		  Src.read((char*)&mn, sizeof mn );
-		  Src.read((char*)&sw, sizeof sw );
-		  Src.read((char*)&sh, sizeof sh );
-		  ASSERT( !strncmp( ph, "TGMP", sizeof ph ));
-			
-			CClientDC dc( 0 );
-      CMemDC memDC( &dc, 1 );
-			memDC.SetWindowExt( bs );
-			memDC.SetViewportExt( bs );
-
-			CBitmap bmp;
-
-      if( !bmp.CreateCompatibleBitmap( &dc, bs.cx, bs.cy ))
-        ErrBox( "Ошибка создания BMP" );
-			else
-			{
-				memDC.SelectObject( &bmp );
-				memDC.FillSolidRect( 0, 0, bs.cx, bs.cy, RGB( -1, -1, -1 ));
- 
-				while( !Src.eof())
-				{
-          int pos0 = Src.tellg();
-		      char lh[4];
-		      int lt, ls;
-		      Src.read((char*)lh, sizeof lh );
-		      Src.read((char*)&lt, sizeof lt );
-		      Src.read((char*)&ls, sizeof ls );
-      		ASSERT( !strncmp( lh, "LAYR", sizeof lh ));
-					while( --ls >= 0 )
-					{
-            int pos1 = Src.tellg();
-  		      char dh[4];
-  		      Src.read((char*)dh, sizeof dh );
-	      		ASSERT( !strncmp( dh, "DATA", sizeof dh ));
-						
-						double cf = double( p1.x - p0.x ) / double( t1.x - t0.x ) * 2.54 * 96 / 100;
-            
-						int minScale = m_pObjDef->GetMinScale( lt );
-            int maxScale = m_pObjDef->GetMaxScale( lt );
-            int scale = m_AltScale;
-            int tscle = scale;
-
-            if( minScale > 0 && tscle < minScale )
-              tscle = minScale;
-            if( maxScale > 0 && tscle > maxScale )
-              tscle = maxScale;
-
-            if( scale != tscle )
-							cf *= scale,
-							cf /= tscle;
-
-		        DrawPrim( Src, &memDC, cf );
-					}
-				}
-
-				Src.close();
-
-        using namespace Gdiplus;
-        GdiplusStartupInput gdiplusStartupInput;
-        ULONG_PTR gdiplusToken;
-        GdiplusStartup( &gdiplusToken, &gdiplusStartupInput, 0 );
-        {
-          WCHAR wbuf[_MAX_PATH];
-          MultiByteToWideChar( CP_ACP, MB_PRECOMPOSED, ifdlg->GetPathName(), -1, wbuf, _MAX_PATH );
-
-          CLSID bmpClsid;
-          UINT  num, size;
-          GetImageEncodersSize( &num, &size );
-          ImageCodecInfo* pImageCodecInfo = (ImageCodecInfo*) new char[size];
-          GetImageEncoders( num, size, pImageCodecInfo );
-          for( int i = num ; --i >= 0 && wcscmp( pImageCodecInfo[i].MimeType, L"image/bmp" ) ; );
-          if( i >= 0 )
-            bmpClsid = pImageCodecInfo[i].Clsid;
-          delete pImageCodecInfo;
-
-		      Bitmap Bmp( bmp, 0 );
-
-          if( i < 0 || Bmp.Save( wbuf, &bmpClsid, 0 ) != Ok )
-            ErrBox( Compose( "Не удается сохранить изображение\nв файле ", ifdlg->GetPathName(), 0 ));
-        }
-        GdiplusShutdown( gdiplusToken );
-      }
-		}
-    delete ifdlg;
-    delete bfdlg;
-
-*/
-#endif
 }
 //========================================================================
 void
 CMapView::OnDebug2()
 {
-#ifdef _DEBUG
-  CDrawObject* pObj = GetSelectObject( 1 );
-	if( !pObj )
-		return;
-	int np;
-	CPoint* pp = pObj->GetPolyline( &np );
-	if( !pp )
-		return;
-
-	int r, i;
-
-	r = 50;
-	for( i = 15 ; --i >= 0 ; r += 50 )
-	{
-		TGstream dst;
-		int nn = SmartCloneLine( dst, pp, np, r );
-		if( nn )
-		{
-  		CDrawObject* pTmp = pObj->CopyObject();
-	  	long ev;
-		  m_MapStore.GetUniId( &ev );
-		  pTmp->SetEntry( ev );
-		  pTmp->SetPoly((CPoint*)dst.str(), nn );
-  		CDrawObject* pNew = pTmp->Rebuild();
-			delete pTmp;
-		  m_ClipData.AddObject( pNew );
-		  ShowObjectBox( pNew );
-		}
-	}
-
-	r = -50;
-	for( i = 15 ; --i >= 0 ; r -= 50 )
-	{
-		TGstream dst;
-		int nn = SmartCloneLine( dst, pp, np, r );
-		if( nn )
-		{
-  		CDrawObject* pTmp = pObj->CopyObject();
-	  	long ev;
-		  m_MapStore.GetUniId( &ev );
-		  pTmp->SetEntry( ev );
-		  pTmp->SetPoly((CPoint*)dst.str(), nn );
-  		CDrawObject* pNew = pTmp->Rebuild();
-			delete pTmp;
-		  m_ClipData.AddObject( pNew );
-		  ShowObjectBox( pNew );
-		}
-	}
-
-#endif
 }
 //========================================================================
 void

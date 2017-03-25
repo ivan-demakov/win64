@@ -26,7 +26,7 @@ static char BASED_CODE THIS_FILE[] = __FILE__;
 //=====================================================================
 // Mode CBuildMode -- object building
 //========================================================================
-int    CBuildMode::m_bContextBld = 0;
+int     CBuildMode::m_bContextBld = 0;
 ksi_obj CBuildMode::m_KsiContext = ksi_false;
 CIdent  CBuildMode::m_ContextId;
 CPoint  CBuildMode::m_LastLoc;
@@ -48,7 +48,7 @@ CBuildMode::CBuildMode( UINT nID, CIdent id, int nNode,
   ResetClipRect();
 }
 //========================================================================
-void 
+void
 CBuildMode::DrawTextCursor()
 {
   if( IsDragging())
@@ -56,7 +56,7 @@ CBuildMode::DrawTextCursor()
 
   CPoint p0( m_CursorPos + TurnPoint( 0, m_CursorSize / 4, m_CursorAngle ));
   CPoint p1( m_CursorPos + TurnPoint( 0, -m_CursorSize, m_CursorAngle ));
-  
+
   CViewDC dc( pView );
   if( !m_ClipRect.IsRectNull())
     dc.IntersectClipRect( &m_ClipRect );
@@ -69,7 +69,7 @@ CBuildMode::DrawTextCursor()
   m_bCursorShown = !m_bCursorShown;
 }
 //========================================================================
-void 
+void
 CBuildMode::SetTextCursor( int CursorSize, CPoint CursorPos, int CursorAngle )
 {
   if( IsDragging())
@@ -105,10 +105,10 @@ CBuildMode::OnTimer( UINT& nID )
   return AM_RDONE;
 }
 //=====================================================================
-int 
-CBuildMode::IsEdition() 
-{ 
-  return KSI_PLIST_P( m_imageDef ); 
+int
+CBuildMode::IsEdition()
+{
+  return KSI_PLIST_P( m_imageDef );
 }
 //========================================================================
 int
@@ -152,7 +152,7 @@ CBuildMode::Term( int bDestroy )
   return 1;
 }
 //========================================================================
-void 
+void
 CBuildMode::SetContext( int cb, CDrawObject* pObj, CPoint loc )
 {
   m_bContextBld = cb;
@@ -201,7 +201,7 @@ CBuildMode::Open()
 
   double sf = m_pOwner->CalcObjScaleFactor( t, m_pOwner->GetTrueScale(), 1 );
   KsiCall( "set-obj-scale-factor!", ksi_double2num( sf ), 0 );
-	m_pOwner->SetKsiHiResolution();
+        m_pOwner->SetKsiHiResolution();
 
   ksi_obj val =
     KsiCall( "build-object",
@@ -217,7 +217,7 @@ CBuildMode::Open()
   {
     if( IsEdition() && pObj )
       m_pOwner->BeginCoedition( pObj, this );
-    m_pOwner->EndCoedition( new CDrawObject( 
+    m_pOwner->EndCoedition( new CDrawObject(
       val, m_ObjectIdent, m_pOwner->m_Conductor.GetNode()));
     m_pOwner->RemoveMode( this );
   }
@@ -258,7 +258,7 @@ CBuildMode::UpdateMouseEvent( UINT &flags, CPoint &loc, ksi_event_fun fun )
   CViewDC dc( m_pOwner );
   ksi_obj ksi_dc = ksi_make_win_dc( m_pOwner->GetSafeHwnd(), dc.GetSafeHdc());
   return UpdateContainer( ksi_apply_2( KSI_Dispatch, ksi_dc,
-                                       fun( m_pOwner->GetSafeHwnd(), loc.x, loc.y, flags )), 
+                                       fun( m_pOwner->GetSafeHwnd(), loc.x, loc.y, flags )),
                           ksi_dc );
 }
 //========================================================================
@@ -325,19 +325,19 @@ int
 CObjActionMode::OnLButtonDown( UINT& flags, CPoint& loc )
 {
   m_pOwner->ResetCrtMsg();
-  
-	m_ObjId = CIdent( 0, 0 );  
-  
+
+        m_ObjId = CIdent( 0, 0 );
+
   if( flags & MK_SHIFT )
     return AM_RPROPAGATE;
 
   CDrawObject* pObj = m_pOwner->GetDetectedObject( 1, m_nID == IDM_OBJEDIT_MODE );
   if( !pObj )
     return AM_RPROPAGATE;
-  
+
   m_FirstLoc = loc;
 
-	if( !m_pOwner->IsVisibleInScale( pObj ))
+  if( !m_pOwner->IsVisibleInScale( pObj ))
     pObj = 0;
 
   CSpot spot( m_pOwner->GetSpot());
@@ -350,7 +350,7 @@ CObjActionMode::OnLButtonDown( UINT& flags, CPoint& loc )
 
   if( pObj )
     m_ObjId = pObj->Ident();
-  
+
   return pObj ? AM_RDONE : AM_RPROPAGATE;
 }
 //========================================================================
@@ -397,10 +397,10 @@ CObjActionMode::OnLButtonUp( UINT &flags, CPoint& loc )
       if( !m_pOwner->IsHiResolution() && pObj->IsHiRes())
       {
         char m[1024];
-        sprintf( m, "Объект '%s' построен в увеличенном масштабе.\n"
-                    "Возможна потеря графической информации!\n\n"
-                    "Продолжить редактирование?",
-                 m_pOwner->m_pObjDef->GetName( pObj->Class()));
+        sprintf_s( m, "Объект '%s' построен в увеличенном масштабе.\n"
+                      "Возможна потеря графической информации!\n\n"
+                      "Продолжить редактирование?",
+                   m_pOwner->m_pObjDef->GetName( pObj->Class()));
 
         if( AskBox( m ) != IDYES )
           return AM_RDONE;
@@ -412,14 +412,14 @@ CObjActionMode::OnLButtonUp( UINT &flags, CPoint& loc )
       ksi_obj ksi_val = KsiCall( "unwrap",
                                  KSI_MK_SINT( pObj->Class()),
                                  KSI_MK_SINT( pObj->Status()),
-																 ksi_img, 0 );
+                                                                                                                                 ksi_img, 0 );
 
       if( KSI_FALSE_P( ksi_val ))
       {
         char m[1024];
-        sprintf( m, "Объект '%s' имеет устаревшую структуру.\n"
-                    "Редактирование объекта невозможно!",
-                 m_pOwner->m_pObjDef->GetName( pObj->Class()));
+        sprintf_s( m, "Объект '%s' имеет устаревшую структуру.\n"
+                      "Редактирование объекта невозможно!",
+                   m_pOwner->m_pObjDef->GetName( pObj->Class()));
         ErrBox( m );
         return AM_RDONE;
       }
@@ -429,13 +429,13 @@ CObjActionMode::OnLButtonUp( UINT &flags, CPoint& loc )
                            ksi_cons( KSI_MK_SINT( loc.x ), KSI_MK_SINT( loc.y )),
                            ksi_img );
       CBuildMode::SetContext();
-      
+
       CBuildMode* pBM = new CBuildMode( IDM_CLASS_BEGIN + pObj->Class(),
-                                        pObj->Ident(), 
+                                        pObj->Ident(),
                                         pObj->Node(),
                                         ksi_nil, ksi_img );
       pBM->SetSelStatus( pObj->SelectFlag());
-			m_pOwner->QueryUserRights( UR_BLDMODE, pBM );
+                        m_pOwner->QueryUserRights( UR_BLDMODE, pBM );
       break;
     }
     case IDM_CHANGEPARAM_MODE :
@@ -445,9 +445,9 @@ CObjActionMode::OnLButtonUp( UINT &flags, CPoint& loc )
         ErrBox( "Попытка изменения временного объекта" );
       }
       else
-			{
-				m_pOwner->UpdateSetObjParam( pObj, 1 );
-			}
+      {
+        m_pOwner->UpdateSetObjParam( pObj, 1 );
+      }
       break;
     case IDM_QUERYPARAM_MODE :
       if( pObj->IsObjectTemp()|| pObj->IsExtObject())
@@ -471,18 +471,18 @@ CContextMode::OnRButtonDown( UINT &flags, CPoint &loc )
   if( flags & MK_SHIFT )
     return AM_RPROPAGATE;
 
-	CDrawObject* pObj = 0;
+  CDrawObject* pObj = 0;
   int tgts[CLASS_RANGE];
-	int ntgt = 0;
-  for( m_pOwner->BeginGlobalSearch( m_pOwner->GetSpot()) ; 
-	     !ntgt && ( pObj = m_pOwner->NextGlobalSearch()) ; 
-			 ntgt = GetTargets( pObj->Class(), tgts ));
+  int ntgt = 0;
+  for( m_pOwner->BeginGlobalSearch( m_pOwner->GetSpot()) ;
+       !ntgt && ( pObj = m_pOwner->NextGlobalSearch()) ;
+       ntgt = GetTargets( pObj->Class(), tgts ));
 
-	if( !pObj )
-    return AM_RDONE;		
+  if( !pObj )
+    return AM_RDONE;
 
   if( !m_pOwner->IsObjectInLegalRegion( pObj, "Построение", 1 ))
-    return AM_RDONE;		
+    return AM_RDONE;
 
   if( pObj->IsObjectTemp() || pObj->IsExtObject())
   {
@@ -496,8 +496,8 @@ CContextMode::OnRButtonDown( UINT &flags, CPoint &loc )
 
   CMenu popup;
   popup.CreatePopupMenu();
-	CMapDoc* pDoc = m_pOwner->GetDocument();
-	pDoc->SetContextMenu( 1 );
+  CMapDoc* pDoc = m_pOwner->GetDocument();
+  pDoc->SetContextMenu( 1 );
   pDoc->MakePopupMenu( &popup, tgts, ntgt, IDM_CONTEXT_BEGIN );
   if( popup.GetMenuItemCount())
   {

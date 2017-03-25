@@ -194,6 +194,7 @@ public:
   ~CShabDlg();
 
   int  OnInitDialog();
+  void Init();
   void Activate( CWnd* pView );
   void OnOK();
   void OnCancel();

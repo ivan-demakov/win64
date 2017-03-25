@@ -40,23 +40,23 @@ Merkator::Merkator() :
 int
 Merkator::CalcScale( double ScaleFactor )
 {
-	return DPI / ( 254. * m_SmInUnit * 1.e-2 * ScaleFactor );
+  return DPI / ( 254. * m_SmInUnit * 1.e-2 * ScaleFactor );
 }
 //=====================================================================
 int
 Merkator::Level2Scale( int level )
 {
-  return 2 * Pi * m_Rmj * DPI * m_SmInUnit * 1.e-2 / ( 256. * (1 << (level+1)) * .0254 );
+  return 2. * Pi * m_Rmj * DPI * m_SmInUnit * 1.e-2 / ( 256. * ( 1 << level ) * .0254 );
 }
 //=====================================================================
 int
 Merkator::Scale2Level( int scale )
 {
-  int level = 0;
+  int level = MIN_TILE_LEVEL;
   while( Level2Scale( level ) > scale )
-		++level;
-	
-	return level;
+    ++level;
+
+  return level;
 }
 //=====================================================================
 void
@@ -91,8 +91,8 @@ ReadPar( LParDef* lpd, int lpn, char const* iniPath )
 int
 Merkator::Init( MapStore* ms )
 {
-  TGstream dst;
   DataFileHeadRec HR;
+  TGstream dst( sizeof HR );
   memset( &HR, 0, sizeof HR );
   m_TrueMerkator = 0;
 
@@ -144,7 +144,7 @@ Merkator::Init( MapStore* ms )
   }
 
   if( m_TrueMerkator )
-	{
+        {
     char tmp[17];
     tmp[16] = 0;
 
@@ -166,14 +166,14 @@ Merkator::Init( MapStore* ms )
     m_C0.x = atoi( tmp );
     strncpy( tmp, HR.YC0, sizeof HR.YC0 );
     m_C0.y = atoi( tmp );
-	}
-	else
-	{
-		m_Rmj = m_Rmj * 1e2 / HR.UnitDec;
-		m_Rmn = m_Rmn * 1e2 / HR.UnitDec;
+  }
+  else
+  {
+    m_Rmj = m_Rmj * 1e2 / HR.UnitDec;
+    m_Rmn = m_Rmn * 1e2 / HR.UnitDec;
     m_C0.x = HR.XSize / 2;
     m_C0.y = HR.YSize / 2;
-	}
+  }
 
   if( !HR.MinScale )
   {
@@ -199,13 +199,13 @@ Merkator::Init( MapStore* ms )
 }
 //=====================================================================
 int
-Merkator::TrueScale( int scale, Point pt )
+Merkator::TrueScale( int scale, POINT pt )
 {
   return scale / ScaleFactor( pt ) + .5;
 }
 //=====================================================================
 double
-Merkator::LogScale( int scale, Point pt )
+Merkator::LogScale( int scale, POINT pt )
 {
   return scale * ScaleFactor( pt );
 }
@@ -232,7 +232,7 @@ Merkator::DeinitLocal()
 }
 //=====================================================================
 Polar
-Merkator::Dec2Pol( Point pt )
+Merkator::Dec2Pol( POINT pt )
 {
   Polar ll;
   ll.lon = pt.x / m_Rmj;
@@ -260,18 +260,18 @@ Merkator::Dec2Pol( Point pt )
   return ll;
 }
 //=====================================================================
-Point
+POINT
 Merkator::Pol2Dec( Polar ll )
 {
   double esl = m_Ex * ::sin( ll.lat );
-  Point pt;
+  POINT pt;
   pt.x = m_Rmj * ll.lon;
   pt.y = m_Rmj * log( tan( Pi/4. + ll.lat/2. ) * pow(( 1. - esl ) / ( 1. + esl ), m_Ex/2. ));
   return pt;
 }
 //=====================================================================
 int
-Merkator::GK2Pol( Point pt, Point p0, double k0, double e, double l0, Polar& pol )
+Merkator::GK2Pol( POINT pt, POINT p0, double k0, double e, double l0, Polar& pol )
 {
   if( !m_TrueMerkator )
     return 0;
@@ -334,7 +334,7 @@ Merkator::GK2Pol( Point pt, Point p0, double k0, double e, double l0, Polar& pol
 }
 //=====================================================================
 int
-Merkator::Pol2Prj( Polar ll, Point& pt )
+Merkator::Pol2Prj( Polar ll, POINT& pt )
 {
   if( !m_TrueMerkator )
     return 0;
@@ -347,8 +347,8 @@ Merkator::Pol2Prj( Polar ll, Point& pt )
   return 1;
 }
 //=====================================================================
-Point
-Merkator::Prj2Merk( Point pt, int bMetr )
+POINT
+Merkator::Prj2Merk( POINT pt, int bMetr )
 {
   pt.x = ( pt.x - m_C0.x ) / m_S1 + m_C1.x;
   pt.y = ( pt.y - m_C0.y ) /-m_S1 + m_C1.y;
@@ -360,8 +360,8 @@ Merkator::Prj2Merk( Point pt, int bMetr )
   return pt;
 }
 //=====================================================================
-Point
-Merkator::Merk2Prj( Point pt, int bMetr )
+POINT
+Merkator::Merk2Prj( POINT pt, int bMetr )
 {
   if( bMetr )
   {
@@ -374,7 +374,7 @@ Merkator::Merk2Prj( Point pt, int bMetr )
 }
 //=====================================================================
 void
-Merkator::Merk2Prj( Point& pt, FPoint fp )
+Merkator::Merk2Prj( POINT& pt, FPoint fp )
 {
   pt.x = fp.fx * 1e2 / m_SmInUnit;
   pt.y = fp.fy * 1e2 / m_SmInUnit;
@@ -382,7 +382,7 @@ Merkator::Merk2Prj( Point& pt, FPoint fp )
 }
 //=====================================================================
 void
-Merkator::Prj2Merk( Point pt, FPoint& fp )
+Merkator::Prj2Merk( POINT pt, FPoint& fp )
 {
   pt = Prj2Merk( pt, 0 );
   fp.fx = pt.x * 1e-2 * m_SmInUnit;
@@ -390,7 +390,7 @@ Merkator::Prj2Merk( Point pt, FPoint& fp )
 }
 //=====================================================================
 int
-Merkator::Prj2Pol( Point pt, Polar& ll )
+Merkator::Prj2Pol( POINT pt, Polar& ll )
 {
   if( !m_TrueMerkator )
     return 0;
@@ -401,7 +401,7 @@ Merkator::Prj2Pol( Point pt, Polar& ll )
 }
 //=====================================================================
 double
-Merkator::ScaleFactor( Point pt )
+Merkator::ScaleFactor( POINT pt )
 {
   double sf = 1;
   Polar ll;
@@ -414,7 +414,7 @@ Merkator::ScaleFactor( Point pt )
 }
 //=====================================================================
 double
-Merkator::Dist( Point pt0, Point pt1 )
+Merkator::Dist( POINT pt0, POINT pt1 )
 {
   double dx = pt0.x - pt1.x;
   double dy = pt0.y - pt1.y;
@@ -427,7 +427,7 @@ Merkator::Dist( Point pt0, Point pt1 )
   Prj2Pol( pt1, ll1 );
   double cf = ::cos(( ll0.lat + ll1.lat ) * .5 );
 
-  Point t;
+  POINT t;
   t.x = ( pt0.x + pt1.x ) / 2;
   t.y = ( pt0.y + pt1.y ) / 2;
   double cf1 = ScaleFactor( t );
@@ -441,7 +441,7 @@ Merkator::Dist( Point pt0, Point pt1 )
 }
 //=====================================================================
 double
-Merkator::Sq3( Point pt0, Point pt1, Point pt2 )
+Merkator::Sq3( POINT pt0, POINT pt1, POINT pt2 )
 {
   double dx1 = pt2.x - pt0.x, dy1 = pt2.y - pt0.y;
   double dx2 = pt1.x - pt0.x, dy2 = pt1.y - pt0.y;
@@ -490,12 +490,15 @@ Merkator::IsProjectInRect( int x0, int y0, int x1, int y1, int scale )
   if( scale < m_MaxScale || scale > m_MinScale )
     return 0;
 
-  Point p0( Merk2Prj( Point( x0, y0 ), 0 ));
-  Point p1( Merk2Prj( Point( x1, y1 ), 0 ));
+  POINT p0, p1;
+  p0.x = x0;
+  p0.y = y0;
+  p1.x = x1;
+  p1.y = y1;
 
-  Rect prjClip( p0, p1 );
-  Rect prjRect( 0, 0, m_ProjectSize.cx, m_ProjectSize.cy );
+  p0 = Merk2Prj( p0, 0 );
+  p1 = Merk2Prj( p1, 0 );
 
-  return prjRect.IntersectRect( prjClip );
+  return p0.x >= 0 && p0.y >= 0 && p1.x < m_ProjectSize.cx && p1.y < m_ProjectSize.cy;
 }
 //=====================================================================

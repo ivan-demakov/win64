@@ -265,12 +265,12 @@ CPrintMapMode::Draw( CDC* pDC )
     pDC->RestoreDC( idc );
 
     char s[128];
-    int n = sprintf( s, "Страниц печати: %d x %d = %d", iy, ix, ix * iy );
+    int n = sprintf_s( s, "Страниц печати: %d x %d = %d", iy, ix, ix * iy );
     int a = m_pOwner->GetModeAngle();
     if( a )
     {
       int ma = abs( a );
-      sprintf( s + n, ". Поворот на %s%d.%1d град.", a >= 0 ? "" : "-", ma/10, ma%10 );
+      sprintf_s( s + n, sizeof s - n, ". Поворот на %s%d.%1d град.", a >= 0 ? "" : "-", ma/10, ma%10 );
     }
     ReportHint( s );
   }

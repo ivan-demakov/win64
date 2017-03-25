@@ -223,8 +223,8 @@ CStrokRectPrim::CalcBoundBox( CBox& box )
 int
 CStrokRectPrim::Detected( CSpot const &spot, int bStrict, int* pDist )
 {
-	if( !spot.StrictPolyDetect( Rect2Poly( *this, m_Size.m_Angle ), 5, pDist ))
-    return bStrict ? 0 : spot.DetectRect( *this, m_Size.m_Angle, m_Strok.m_Width / 2, pDist );
+  return bStrict ? spot.StrictPolyDetect( Rect2Poly( *this, m_Size.m_Angle ), 5, pDist ) :
+                   spot.DetectRect( *this, m_Size.m_Angle, m_Strok.m_Width / 2, pDist );
 }
 //=====================================================================
 void
@@ -246,8 +246,9 @@ CFillRectPrim::operator ksi_obj()
 int
 CFillRectPrim::Detected( CSpot const &spot, int bStrict, int* pDist )
 {
-	if( !spot.StrictPolyDetect( Rect2Poly( *this, m_Size.m_Angle ), 5, pDist ))
-    return bStrict ? 0 : spot.DetectBar( *this, m_Size.m_Angle, pDist );  
+  return bStrict ? 
+    spot.StrictPolyDetect( Rect2Poly( *this, m_Size.m_Angle ), 5, pDist ) : 
+    spot.DetectBar( *this, m_Size.m_Angle, pDist );
 }
 //=====================================================================
 //=====================================================================
@@ -262,10 +263,10 @@ COutlinedRectPrim::operator ksi_obj()
 int
 COutlinedRectPrim::Detected( CSpot const &spot, int bStrict, int* pDist )
 {
-	if( !spot.StrictPolyDetect( Rect2Poly( *this, m_Size.m_Angle ), 5, pDist ))
-    return bStrict ? 0 :
-      spot.DetectBar( *this, m_Size.m_Angle, pDist ) ||  
-		  spot.DetectRect( *this, m_Size.m_Angle, m_Strok.m_Width / 2, pDist );
+	return bStrict ? 
+    spot.StrictPolyDetect( Rect2Poly( *this, m_Size.m_Angle ), 5, pDist ) :
+    spot.DetectBar( *this, m_Size.m_Angle, pDist ) ||  
+		spot.DetectRect( *this, m_Size.m_Angle, m_Strok.m_Width / 2, pDist );
 }
 //=====================================================================
 //=====================================================================
@@ -440,10 +441,9 @@ COutlinedBar::Draw( CDC* pDC )
 int
 COutlinedBar::Detected( CSpot const &spot, int bStrict, int* pDist )
 {
-	if( !spot.StrictPolyDetect( Rect2Poly( *this, m_Size.m_Angle ), 5, pDist ))
-		return bStrict ? 0 :
-      spot.DetectBar( *this, m_Size.m_Angle, pDist ) ||
-      spot.DetectRect( *this, m_Size.m_Angle, m_Strok.m_Width / 2, pDist );
+  return bStrict ? spot.StrictPolyDetect( Rect2Poly( *this, m_Size.m_Angle ), 5, pDist ) :
+                   spot.DetectBar( *this, m_Size.m_Angle, pDist ) ||
+                   spot.DetectRect( *this, m_Size.m_Angle, m_Strok.m_Width / 2, pDist );
 }
 //=====================================================================
 //=====================================================================
@@ -681,8 +681,9 @@ CPolygon::Draw( CDC* pDC )
 int
 CPolygon::Detected( CSpot const &spot, int bStrict, int* pDist )
 {
-	if( !spot.StrictPolyDetect( m_Poly.m_pPoints, m_Poly.ExtPointNum(), pDist ))
-    return  bStrict ? 0 : spot.DetectPolygon( m_Poly.m_pPoints, m_Poly.ExtPointNum(), pDist );
+	return bStrict ? 
+    spot.StrictPolyDetect( m_Poly.m_pPoints, m_Poly.ExtPointNum(), pDist ) : 
+    spot.DetectPolygon( m_Poly.m_pPoints, m_Poly.ExtPointNum(), pDist );
 }
 //=====================================================================
 int
@@ -838,10 +839,10 @@ COutlinedPolygon::Draw( CDC* pDC )
 int
 COutlinedPolygon::Detected( CSpot const &spot, int bStrict, int* pDist )
 {
-	if( !spot.StrictPolyDetect( m_Poly.m_pPoints, m_Poly.ExtPointNum(), pDist ))
-    return bStrict ? 0 :
-      spot.DetectPolygon( m_Poly.m_pPoints, m_Poly.ExtPointNum(), pDist ) ||
-	    spot.DetectPolyline( m_Poly.m_pPoints, m_Poly.ExtPointNum(), m_Strok.m_Width / 2, m_Strok.m_Width / 2, pDist );
+  return bStrict ? 
+    spot.StrictPolyDetect( m_Poly.m_pPoints, m_Poly.ExtPointNum(), pDist) :
+    spot.DetectPolygon( m_Poly.m_pPoints, m_Poly.ExtPointNum(), pDist ) ||
+	  spot.DetectPolyline( m_Poly.m_pPoints, m_Poly.ExtPointNum(), m_Strok.m_Width / 2, m_Strok.m_Width / 2, pDist );
 }
 //=====================================================================
 //=====================================================================
@@ -910,6 +911,7 @@ CLines::Detected( CSpot const &spot, int bStrict, int* pDist )
  	return r;  
 }
 //=====================================================================
+using namespace Trig;
 int
 CLines::GetAngle( CSpot const &spot, int* pAngle )
 {
@@ -998,7 +1000,17 @@ CText::Draw( CDC* pDC )
     for( char* p0 = m_String.m_String, *p1 = p0 ; *p1 ; p0 = p1 + 1, ++i )
     {
       ( p1 = strchr( p0, '\n' )) || ( p1 = strchr( p0, '\0' ));
-      pDC->TextOut( m_pLineRect[i].left, m_pLineRect[i].top, p0, p1 - p0 );
+			int tl = p1 - p0;
+			if( pView->DrawTextShadow())
+			{
+        CSize ds = pView->DP2LP( CSize( 1, 1 ));
+			  pDC->SetTextColor( 0xffffff );
+				for( int sx = -1 ; sx <= 1 ; sx += 2 ) 
+				  for( int sy = -1 ; sy <= 1 ; sy += 2 ) 
+			      pDC->TextOut( m_pLineRect[i].left+ds.cx*sx, m_pLineRect[i].top+ds.cy*sy, p0, tl );
+			}
+			pDC->SetTextColor( clr );      
+			pDC->TextOut( m_pLineRect[i].left, m_pLineRect[i].top, p0, tl );
     }
     pDC->SelectObject( pOldFont );
     pDC->SetBkMode( oldBkMode );
@@ -1521,9 +1533,8 @@ CVisiblePrim::TranslateToMap( TGstream* pDst, int type )
 int
 CPointPrim::TranslateToMap( TGstream* pDst, int ShapeBit )
 {
-  point par = { m_Coord.x, m_Coord.y };
   int r = CVisiblePrim::TranslateToMap( pDst, PF_POINT | ShapeBit );
-  return r == R_OK ? WriteData( &par, sizeof par, pDst ) : r;
+  return r == R_OK ? WriteData( &m_Coord, sizeof m_Coord, pDst ) : r;
 }
 //=====================================================================
 int
@@ -1575,7 +1586,7 @@ CText::TranslateToMap( TGstream* pDst, int )
   if( r != R_OK )
     return r;
 
-  r = WriteData( &par, sizeof point, pDst );
+  r = WriteData( &par, sizeof POINT, pDst );
   if( r != R_OK )
     return r;
 
@@ -1648,7 +1659,7 @@ CRectPrim::TranslateToMap( TGstream* pDst, int type  )
   }
   else
   {
-    rect par;
+    RECT par;
     par.left   = m_Coord.x + m_Size.cx / 2;
     par.top    = m_Coord.y + m_Size.cy / 2;
     par.right  = m_Coord.x + m_Size.cx;

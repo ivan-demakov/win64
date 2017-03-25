@@ -73,9 +73,10 @@ public:
   void SetParentNum( int t, int v ) { m_Oda[t].Parent = v; }
   void SetMinScaleLimit( int t, int v ) { m_Oda[t].MinScale = v; }
   void SetMaxScaleLimit( int t, int v ) { m_Oda[t].MaxScale = v; }
-	int  GetClassInRange( int i ){	return i < m_nCls ? m_Rng[i] : 0; }
+  int  GetClassInRange( int i ){  return i < m_nCls ? m_Rng[i] : 0; }
   int const* GetRng() { return m_Rng; }
-	int GetClsNum() { return m_nCls; }
+  int GetClsNum() { return m_nCls; }
+  int GetSubNum() { return m_nSub; }
 
 private:
   int  IsClassValid( UINT t ) const { return t && t < FULL_RANGE; }
@@ -88,8 +89,9 @@ private:
   int m_bModified;
   OD  m_Oda[FULL_RANGE];
   int m_Rng[FULL_RANGE];
-	int m_nCls;
-	char const* m_IniPath;
+  int m_nCls;
+  int m_nSub;
+  char const* m_IniPath;
 };
 //=====================================================================
 #endif

@@ -74,7 +74,6 @@ CMapDoc::CanCloseFrame( CFrameWnd* pFrame )
   if( pView->SublDlgIsActive())
     pView->m_pSublDlg->OnEndButtonClicked();
 
-#ifndef _FULL_PROJECT
   if( pView->m_ConvDlg.IsConversion())
   {
     pView->m_ConvDlg.OnStopClicked();
@@ -83,6 +82,7 @@ CMapDoc::CanCloseFrame( CFrameWnd* pFrame )
   if( pView->m_ConvDlg.IsWindowVisible())
     pView->m_ConvDlg.OnCancel();
 
+#ifndef _FULL_PROJECT
   if( pView->m_ShabDlg.IsActive())
     pView->m_ShabDlg.OnCancel();
   
@@ -95,8 +95,8 @@ CMapDoc::CanCloseFrame( CFrameWnd* pFrame )
   
   return( !pView->m_pSTM || ( pView->m_pSTM->OnRButtonDown( f, p ) & AM_RREMOVE )) &&
 #ifndef _FULL_PROJECT
-          !pView->m_ShabDlg.IsActive() &&
-          !pView->m_AbstractDlg.IsActive() &&
+//          !pView->m_ShabDlg.IsActive() &&
+//          !pView->m_AbstractDlg.IsActive() &&
 #endif
           !pView->GetBuilding( 1 ) && 
           CDocument::CanCloseFrame( pFrame );
@@ -156,8 +156,8 @@ CMapDoc::InitColorTab()
       m_UserPrintColorTab.Add( k, c1 );
       m_UserPrintBWColorTab.Add( k, c2 );
       char szKey[16], szCol[48];
-      sprintf( szKey, "%d", k );
-      sprintf( szCol, "0x%06lx 0x%06lx 0x%06lx", c0, c1, c2 );
+      sprintf_s( szKey, "%d", k );
+      sprintf_s( szCol, "0x%06lx 0x%06lx 0x%06lx", c0, c1, c2 );
       App.WriteProfileString( "UserColorTab", szKey, szCol );
     }
     utd = 1;
@@ -238,7 +238,7 @@ CMapDoc::SetDocType()
 		  par[0] += 1;
 		  par[2] = i;
   	  char name[16];
-		  sprintf( name, "1:%d", par[3] );
+		  sprintf_s( name, "1:%d", par[3] );
 		  m_ObjDef.Add( name, par );
 		  par[11] -= 1;
 		  par[4] = par[3];
@@ -263,7 +263,6 @@ CMapDoc::SetDocType()
 
   ReportHint( "Загрузка описания значков" );
   m_BmpDefArray.Init();
-  ModifyObjectMenu();
   m_bInited = 1;
   ClearHint();
 
@@ -277,11 +276,10 @@ CMapDoc::SetDocType()
 			IDM_DEVORG
 		};
     CMenu* pMM = GetSubMenu( MapMenuName );
-	int i;
-		for( i = CELEM( ns ) ; --i >= 0 ; )
+		for( int i = CELEM( ns ) ; --i >= 0 ; )
 			pMM->DeleteMenu( ns[i], MF_BYCOMMAND );
 		int nc = pMM->GetMenuItemCount();
-		for( i = nc ; --i >= 0 ; )
+		for( int i = nc ; --i >= 0 ; )
 			if( pMM->GetMenuItemID( i ) == 0 && 
 				  ( i == 0 || i == nc - 1 || i > 0 && pMM->GetMenuItemID( i - 1 ) == 0 ))
   			pMM->DeleteMenu( i, MF_BYPOSITION );
@@ -308,7 +306,7 @@ CMapDoc::ModifyObjectMenu()
   DeletePopupMenu( pSub, 0 );
   for( int i = pSub->GetMenuItemCount() ; --i >= 0 ; pSub->RemoveMenu( i, MF_BYPOSITION ));
   SetContextMenu( 0 );
-  MakePopupMenu( pSub, 0, IDM_OBJCTL_BEGIN, CObjDef::GetDerived );
+  MakePopupMenu( pSub, 0, IDM_OBJCTL_BEGIN, &CObjDef::GetDerived );
 }
 //=====================================================================
 void
@@ -372,7 +370,7 @@ CMapDoc::MakePopupMenu( CMenu* pMenu, int* types, int n, UINT id ) const
       {
         CMenu* pPop = new CMenu;
         pPop->CreatePopupMenu();
-        if( MakePopupMenu( pPop, types[i], id, CObjDef::GetDerived ))
+        if( MakePopupMenu( pPop, types[i], id, &CObjDef::GetDerived ))
           pMenu->AppendMenu( MF_BYPOSITION | MF_POPUP, (UINT)pPop->m_hMenu, name );
         else
           delete pPop;
@@ -382,16 +380,16 @@ CMapDoc::MakePopupMenu( CMenu* pMenu, int* types, int n, UINT id ) const
           ( KSI_TRUE_P( KsiCall( "buildable?", KSI_MK_SINT( type ), 0 )) ||
 					  m_bContextMenu && KSI_TRUE_P( KsiCall( "is-only-insertable?", KSI_MK_SINT( type ), 0 ))))
       {
-        UINT f = MF_BYPOSITION | MF_STRING;
         int mas = m_ObjDef.GetMaxLimit( type );
         int mis = m_ObjDef.GetMinLimit( type );
-        int i = type >> 3, m = 1 << ( type & 0x7 );
-        if( mis && pView->GetTrueScale() < mis ||
-            mas && pView->GetTrueScale() > mas ||
-            !( pView->m_LoadMap[i] & m ) ||
-            !( pView->m_ShowMap[i] & m ) ||
-            !( pView->m_LocalLaw[type] & 1 ))
-          f |= MF_GRAYED;
+        int scl = pView->GetTrueScale();
+        UINT f = mis && scl < mis ||
+                 mas && scl > mas ||
+                 !GetBit( pView->m_LoadMap, type ) ||
+                 !GetBit( pView->m_ShowMap, type ) ||
+                 !( pView->m_LocalLaw[type] & 1 ) ? 
+          MF_BYPOSITION | MF_STRING | MF_GRAYED :
+          MF_BYPOSITION | MF_STRING;
         pMenu->AppendMenu( f, id + type, name );
       }
   }

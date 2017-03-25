@@ -84,7 +84,7 @@ translate_color( COLORREF color )
   UINT G = color &
   0xff; color >>= 8;
   UINT B = color & 0xff;
-  wsprintf( c, "#%02x%02x%02x", R, G, B );
+  sprintf_s( c, "#%02x%02x%02x", R, G, B );
   return ksi_str02string( c );
 }
 //=====================================================================
@@ -103,7 +103,7 @@ translate_color( ksi_obj str )
       {
         i /= 3;
         char fmt[16];
-        sprintf( fmt, "%%%dx%%%dx%%%dx", i, i, i );
+        sprintf_s( fmt, "%%%dx%%%dx%%%dx", i, i, i );
         sscanf( ptr, fmt, &r, &g, &b );
         i = ( i - 2 ) << 2;
         if( i < 0 )
@@ -285,9 +285,8 @@ KsiPoint( CPoint pnt )
 ksi_obj
 KsiPoints( CPoint* pPnt, int nPnt )
 {
-	ksi_obj ksi_lst;
-  for( ksi_lst = ksi_nil ;
-       --nPnt >= 0 ;
+  ksi_obj ksi_lst;
+  for( ksi_lst = ksi_nil ; --nPnt >= 0 ;
        ksi_lst = ksi_cons( KsiPoint( pPnt[nPnt] ), ksi_lst ));
   return ksi_lst;
 }
@@ -304,6 +303,8 @@ CppPoints( ksi_obj pnt_lst, CPoint* pPnt, int nPnt )
   return nPnt < 0 ? pPnt : 0;
 }
 //=====================================================================
+using namespace Trig;
+
 ksi_obj
 ksi_draw_diff( ksi_obj ksi_new_pl )
 {
@@ -379,7 +380,7 @@ ksi_draw_diff( ksi_obj ksi_new_pl )
     while( --n0 >= 0 )
     {
       CPoint* tp1 = pl1;
-	  int k1;
+      int k1;
       for( k1 = n1 ; --k1 >= 0 && ( pl0[0] != tp1[0] || pl0[1] != tp1[1] ); ++tp1 );
       if( k1 >= 0 )
         for( ++pl0, ++tp1 ; n0 > 0 && k1 > 0 && pl0[1] == tp1[1] ; ++pl0, ++tp1, --n0, --k1 );
@@ -612,7 +613,7 @@ ksi_calc_string_width( ksi_obj str, ksi_obj font, ksi_obj angle, ksi_obj do_list
     ksi_obj ksi_fn = KSI_VEC_REF( font, 0 );
     ASSERT( KSI_EXACT_P( ksi_fn ));
     if( KSI_EXACT_P( ksi_fn ))
-      strcpy( Log.lfFaceName, pDocument->num2fontface( ksi_num2int( ksi_fn )));
+      strcpy_s( Log.lfFaceName, pDocument->num2fontface( ksi_num2int( ksi_fn )));
     Log.lfHeight = ksi_num2int( KSI_VEC_REF( font, 1 ));
     if( KSI_VEC_LEN( font ) > 2 )
       Log.lfWeight = CFontItem::m_WeightKey->KsiTranslate( KSI_VEC_REF( font, 2 ));
@@ -643,7 +644,7 @@ ksi_calc_string_width( ksi_obj str, ksi_obj font, ksi_obj angle, ksi_obj do_list
 
   if( bDoList )
   {
-	  ksi_obj ksi_lst;
+    ksi_obj ksi_lst;
     for( ksi_lst = ksi_nil ; sl > 0 ; --sl )
     {
       CSize ext( dc.GetOutputTextExtent( sp, sl ));
@@ -1096,8 +1097,8 @@ ksi_mk_arc( ksi_obj ksi_pl )
 ksi_obj
 ksi_true_dist( ksi_obj ksi_p0, ksi_obj ksi_p1 )
 {
-	Point p0( ksi_num2int( KSI_CAR( ksi_p0 )), ksi_num2int( KSI_CDR( ksi_p0 )));
-	Point p1( ksi_num2int( KSI_CAR( ksi_p1 )), ksi_num2int( KSI_CDR( ksi_p1 )));
+	CPoint p0( ksi_num2int( KSI_CAR( ksi_p0 )), ksi_num2int( KSI_CDR( ksi_p0 )));
+	CPoint p1( ksi_num2int( KSI_CAR( ksi_p1 )), ksi_num2int( KSI_CDR( ksi_p1 )));
   int d = MerkatorData.Dist( p0, p1 );
   return ksi_int2num( d );
 }

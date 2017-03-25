@@ -73,9 +73,9 @@ CMapView::AddMode( CAppMode* pMode )
     delete pMode;
     return 0;
   }
-
+  
   CAppMode** ppMode;
-  for(ppMode = &m_pMode ;
+  for( ppMode = &m_pMode ; 
        *ppMode && (*ppMode)->m_nGroup > pMode->m_nGroup ;
        ppMode = &(*ppMode)->m_pNext );
 
@@ -99,7 +99,8 @@ CMapView::RemoveMode( CAppMode* pMode )
     return 0;
 
   CAppMode** ppCur;
-  for(ppCur = &m_pMode ; *ppCur && *ppCur != pMode ;
+  for( ppCur = &m_pMode ;
+       *ppCur && *ppCur != pMode ;
        ppCur = &(*ppCur)->m_pNext );
 
   if( *ppCur )
@@ -127,7 +128,8 @@ void
 CMapView::DrawModes( CDC* pDC )
 {
   for( CAppMode* pCur = m_pMode ; pCur ;
-       DrawMode( pCur, AM_ALL, pDC ), pCur = pCur->m_pNext );
+       DrawMode( pCur, AM_ALL, pDC ), 
+       pCur = pCur->m_pNext );
 }
 //=====================================================================
 CAppMode*
@@ -135,7 +137,7 @@ CMapView::GetMode( UINT nID1, UINT nID2 )
 {
   nID2 || ( nID2 = nID1 + 1 );
   CAppMode* pCur;
-  for(pCur = m_pMode ;
+  for( pCur = m_pMode ;
        pCur && ( pCur->m_nID < nID1 || pCur->m_nID >= nID2 ) ;
        pCur = pCur->m_pNext );
   return pCur;
@@ -151,26 +153,26 @@ CMapView::GetActiveMode( UINT id )
 CAppMode*
 CMapView::GetActiveMode( UINT* pId )
 {
-	CAppMode* pMode;
-  for(pMode = 0 ; *pId && !pMode ; pMode = GetActiveMode( *pId++ ));
+  CAppMode* pMode;
+  for( pMode = 0 ; *pId && !pMode ; pMode = GetActiveMode( *pId++ ));
   return pMode;
 }
 //=====================================================================
 CAppMode*
 CMapView::GetMode( UINT* pId )
 {
-	CAppMode* pMode;
-  for(pMode = 0 ; *pId && !pMode ; pMode = GetMode( *pId++ ));
+  CAppMode* pMode;
+  for( pMode = 0 ; *pId && !pMode ; pMode = GetMode( *pId++ ));
   return pMode;
 }
 //=====================================================================
 void
 CMapView::OnChar( UINT key_code, UINT count, UINT flags )
 {
-	static int bLock = 0;
-	if( bLock )
-		return;
-	bLock = 1;
+        static int bLock = 0;
+        if( bLock )
+                return;
+        bLock = 1;
   m_bCrtMsg = 1;
 
   CViewDC dc( this );
@@ -179,7 +181,7 @@ CMapView::OnChar( UINT key_code, UINT count, UINT flags )
     DrawMode( pCur, AM_FCHAR, &dc );
 
   SendCtrMsg();
-	bLock = 0;
+        bLock = 0;
 }
 //=====================================================================
 void
@@ -188,11 +190,11 @@ CMapView::OnTimer( UINT nIDEvent )
   switch( nIDEvent )
   {
     case IDM_FULINKTIMER:
-//      TestFLTopscr( 0 );
+      TestFLTopscr( 0 );
       break;
     case IDM_BLINKSELTIMER:
       MakeBlinking();
-      break;	
+      break;
     default:
     {
       CViewDC DC( this );
@@ -244,111 +246,111 @@ CMapView::OnMouseEvent( UINT flags, CPoint loc, UINT nFMask,
 void
 CMapView::OnFixMouse( CPoint loc, int bRB )
 {
-	m_Position = loc;
+  m_Position = loc;
   CViewDC dc( this );
-	CAppMode* pCur;
-	UINT flags = 0;
+  CAppMode* pCur;
+  UINT flags = 0;
 
   for( pCur = m_pMode ; pCur ; )
   {
     DrawMode( pCur, AM_FLBDOWN, &dc );
     pCur = UpdateMode( pCur, pCur->OnMouseMove( flags, loc ), AM_FLBDOWN, &dc );
   }
-	if(  bRB )
-	{
+  if(  bRB )
+  {
     for( pCur = m_pMode ; pCur ; )
-		{
+    {
       DrawMode( pCur, AM_FLBDOWN, &dc );
       pCur = UpdateMode( pCur, pCur->OnRButtonDown( flags, loc ), AM_FLBDOWN, &dc );
-		}
+    }
     for( pCur = m_pMode ; pCur ; )
-		{
+    {
       DrawMode( pCur, AM_FLBUP, &dc );
       pCur = UpdateMode( pCur, pCur->OnRButtonUp( flags, loc ), AM_FLBUP, &dc );
-		}
-	}
-	else
-	{
+    }
+  }
+  else
+  {
     for( pCur = m_pMode ; pCur ; )
-		{
+    {
       DrawMode( pCur, AM_FLBDOWN, &dc );
       pCur = UpdateMode( pCur, pCur->OnLButtonDown( flags, loc ), AM_FLBDOWN, &dc );
-		}
+    }
     for( pCur = m_pMode ; pCur ; )
-		{
+    {
       DrawMode( pCur, AM_FLBUP, &dc );
       pCur = UpdateMode( pCur, pCur->OnLButtonUp( flags, loc ), AM_FLBUP, &dc );
-		}
-	}
+    }
+  }
 }
 //=====================================================================
 void
 CMapView::OnLButtonDown( UINT flags, CPoint loc )
 {
   m_bCrtMsg = 1;
-	static int bLock = 0;
-	if( bLock )
-		return;
-	bLock = 1;
-  OnMouseEvent( flags, loc, AM_FLBDOWN, CAppMode::OnLButtonDown );
-	bLock = 0;
+  static int bLock = 0;
+  if( bLock )
+    return;
+  bLock = 1;
+  OnMouseEvent( flags, loc, AM_FLBDOWN, &CAppMode::OnLButtonDown );
+  bLock = 0;
 }
 //=====================================================================
 void
 CMapView::OnRButtonDown( UINT flags, CPoint loc )
 {
-	static int bLock = 0;
-	if( bLock )
-		return;
-	bLock = 1;
-  OnMouseEvent( flags, loc, AM_FRBDOWN, CAppMode::OnRButtonDown );
-	bLock = 0;
+  static int bLock = 0;
+  if( bLock )
+    return;
+  bLock = 1;
+  OnMouseEvent( flags, loc, AM_FRBDOWN, &CAppMode::OnRButtonDown );
+  bLock = 0;
 }
 //=====================================================================
 void
 CMapView::OnMButtonDown( UINT flags, CPoint loc )
 {
-	static int bLock = 0;
-	if( bLock )
-		return;
-	bLock = 1;
-  OnMouseEvent( flags, loc, AM_FMBDOWN, CAppMode::OnMButtonDown );
-	bLock = 0;
+  static int bLock = 0;
+  if( bLock )
+    return;
+  bLock = 1;
+  OnMouseEvent( flags, loc, AM_FMBDOWN, &CAppMode::OnMButtonDown );
+  bLock = 0;
 }
 //=====================================================================
 void
 CMapView::OnLButtonDblClk( UINT flags, CPoint loc )
 {
-	static int bLock = 0;
-	if( bLock )
-		return;
-	bLock = 1;
+  static int bLock = 0;
+  if (bLock)
+    return;
+  bLock = 1;
   m_bCrtMsg = 1;
   m_bDblClick = 1;
-  OnMouseEvent( flags, loc, AM_FLBDBLCLK, CAppMode::OnLButtonDblClk );
-	bLock = 0;
+  OnMouseEvent( flags, loc, AM_FLBDBLCLK, &CAppMode::OnLButtonDblClk );
+  bLock = 0;
 }
 //=====================================================================
 void
 CMapView::OnRButtonDblClk( UINT flags, CPoint loc )
 {
-	static int bLock = 0;
-	if( bLock )
-		return;
-	bLock = 1;
-  OnMouseEvent( flags, loc, AM_FRBDBLCLK, CAppMode::OnRButtonDblClk );
-	bLock = 0;
+  static int bLock = 0;
+  if( bLock )
+    return;
+  bLock = 1;
+  OnMouseEvent( flags, loc, AM_FRBDBLCLK, &CAppMode::OnRButtonDblClk );
+  bLock = 0;
 }
 //=====================================================================
 void
 CMapView::OnMButtonDblClk( UINT flags, CPoint loc )
 {
-	static int bLock = 0;
-	if( bLock )
-		return;
-	bLock = 1;
-  OnMouseEvent( flags, loc, AM_FMBDBLCLK, CAppMode::OnMButtonDblClk );
-	bLock = 0;
+  static int bLock = 0;
+  if( bLock )
+    return;
+  bLock = 1;
+  OnMouseEvent( flags, loc, AM_FMBDBLCLK, &CAppMode::OnMButtonDblClk );
+  bLock = 0;
 }
 //=====================================================================
 void
@@ -356,40 +358,40 @@ CMapView::OnLButtonUp( UINT flags, CPoint loc )
 {
   m_bCrtMsg = !m_bDblClick;
   m_bDblClick = 0;
-  OnMouseEvent( flags, loc, AM_FLBUP, CAppMode::OnLButtonUp );
+  OnMouseEvent( flags, loc, AM_FLBUP, &CAppMode::OnLButtonUp );
 }
 //=====================================================================
 void
 CMapView::OnRButtonUp( UINT flags, CPoint loc )
 {
-  OnMouseEvent( flags, loc, AM_FRBUP, CAppMode::OnRButtonUp );
+  OnMouseEvent( flags, loc, AM_FRBUP, &CAppMode::OnRButtonUp );
 }
 //=====================================================================
 void
 CMapView::OnMButtonUp( UINT flags, CPoint loc )
 {
-  OnMouseEvent( flags, loc, AM_FMBUP, CAppMode::OnMButtonUp );
+  OnMouseEvent( flags, loc, AM_FMBUP, &CAppMode::OnMButtonUp );
 }
 //=====================================================================
 void
 CMapView::OnMouseMove( UINT flags, CPoint loc )
 {
-	static int bLock = 0;
-	if( bLock )
-		return;
-	bLock = 1;
-  OnMouseEvent( flags, loc, AM_FMOUSEMOVE, CAppMode::OnMouseMove );
+  static int bLock = 0;
+  if( bLock )
+    return;
+  bLock = 1;
+  OnMouseEvent( flags, loc, AM_FMOUSEMOVE, &CAppMode::OnMouseMove );
   TestFLTopscr( &loc );
-	bLock = 0;
+  bLock = 0;
 }
 //=====================================================================
 void
 CMapView::OnKeyDown( UINT key_code, UINT count, UINT flags )
 {
-	static int bLock = 0;
-	if( bLock )
-		return;
-	bLock = 1;
+  static int bLock = 0;
+  if( bLock )
+    return;
+  bLock = 1;
 
   static UINT ect[][3] =
   {
@@ -406,8 +408,9 @@ CMapView::OnKeyDown( UINT key_code, UINT count, UINT flags )
 
   int bCtrl = GetKeyState( VK_CONTROL ) < 0;
   int bShft = GetKeyState( VK_SHIFT   ) < 0;
-  int i;
-  for(i = CELEM( ect ) ; --i >= 0 && key_code != ect[i][0] ; );
+
+  int i = CELEM( ect );
+  while( --i >= 0 && key_code != ect[i][0] );
 
   if( i >= 0 )
     OnChar( ect[i][bCtrl+1], count, 0 );
@@ -442,7 +445,7 @@ CMapView::OnKeyDown( UINT key_code, UINT count, UINT flags )
   OnSetCursor( this, 0, 0 );
 
   SendCtrMsg();
-	bLock = 0;
+        bLock = 0;
 }
 //=====================================================================
 void
@@ -471,9 +474,9 @@ CMapView::OnSetCursor( CWnd* pWnd, UINT nHitTest, UINT message )
   static HCURSOR GS = App.LoadCursor( IDC_GETSELECT );
   static HCURSOR IS = App.LoadCursor( IDC_INCSCALE );
   static HCURSOR crs[] = { 0, GS, IS, GS };
-
+  
   CAppMode* pCur;
-  for(pCur = m_pMode ; pCur && !pCur->OnSetCursor() ; pCur = pCur->m_pNext );
+  for( pCur = m_pMode ; pCur && !pCur->OnSetCursor() ; pCur = pCur->m_pNext );
 
   int ks = ( GetKeyState( VK_SHIFT   ) < 0 ? 1 : 0 ) |
            ( GetKeyState( VK_CONTROL ) < 0 ? 2 : 0 );
@@ -483,7 +486,7 @@ CMapView::OnSetCursor( CWnd* pWnd, UINT nHitTest, UINT message )
   if( !ci && !GetMode( IDM_OBJEDIT_MODE ) && !m_SelectList.IsEmpty() && !m_pSTM )
   {
     CSpot spot( GetSpot());
-		int dist = MAX_INT;
+                int dist = MAX_INT;
     for( POSITION pos = m_SelectList.GetHeadPosition() ; pos && !ci ; )
     {
       CDrawObject* pObj = m_SelectList.GetNext( pos );

@@ -59,7 +59,9 @@ CConductor::RegObjMifCoord( CDrawObject* pObj )
     long nTable  = pObj->Table();
     long nEntry  = pObj->Entry();
     CString mifCoordList( CSelectTraceMode::GetMifCoordList( pObj ));
-    CTGMapCliV1::FireSetObjectCoord( nTable, nEntry, mifCoordList.AllocSysString());
+    BSTR str = mifCoordList.AllocSysString();
+    CTGMapCliV1::FireSetObjectCoord( nTable, nEntry, str );
+    SysFreeString( str );
   }
 #endif
 }

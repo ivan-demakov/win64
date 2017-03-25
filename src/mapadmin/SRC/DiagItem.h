@@ -46,6 +46,11 @@ struct LegendItem
     m_Prefix( Prefix ? Prefix : "" ),
     m_Postfix( Postfix ? Postfix : "" )
   {}
+		LegendItem( LegendItem* pL ) :
+    m_FillColor( pL->m_FillColor ),
+    m_Prefix( pL->m_Prefix ),
+    m_Postfix( pL->m_Postfix )
+  {}
   int operator==( LegendItem const& rItem ) const
   {
     return m_FillColor == rItem.m_FillColor &&
@@ -96,16 +101,16 @@ public:
   CLegend& operator=( CLegend const& rLegend );
 };
 //=====================================================================
-typedef CArray< CLegend, CLegend& > LegenArray;
-
 // Библиотека легенд
 class CLegendCollection
 {
 private:
-  LegenArray m_Content;
+	int m_Size;
+  CLegend m_Content[MAX_LEGEND_SIZE];
 
 public:
 	// добавление легенды в библиотеку
+	CLegendCollection() : m_Size( 0 ) {}
   int AddLegend( CLegend* pLegend );
   CLegend* GetLegend( int ndx );
 };

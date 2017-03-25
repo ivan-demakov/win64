@@ -23,7 +23,7 @@ enum PrimFlag
   PF_SHAPE      = 0x0040,  // формобразующий
   PF_FLAG_MASK  = 0xfff0,  // маска флагов
   PF_VISIBLE    = PF_LVISIBLE | PF_HVISIBLE,
-  PF_SHAPE_MASK = ~( PF_VISIBLE | PF_SVISIBLE ),
+  PF_SHAPE_MASK = ~( PF_VISIBLE | PF_SVISIBLE | PF_SHAPE ),
 
   PF_NOTHING    = 0x0000,  // пусто
   PF_CONTAINER  = 0x0001,  // контейнер
@@ -40,18 +40,8 @@ enum PrimFlag
   PF_TYPE_MASK  = 0x000f   // маска типа
 };
 //=====================================================================
-struct point
-{
-  int x, y;
-};
-//=====================================================================
-struct rect
-{
-  int left, top, right, bottom;
-};
-//=====================================================================
 // параметры прямоугольника
-struct RectParam : public rect
+struct RectParam : public RECT
 {
   short angle;  // угол поворота относительно левого верхнего угла
 };
@@ -63,7 +53,7 @@ struct ArcParam : public RectParam
 };
 //=====================================================================
 // параметры ссылки
-struct Icon : public point
+struct Icon : public POINT
 {
   dword id; // идентификатор
 };
@@ -110,7 +100,7 @@ struct ExBrushParam
 // параметры строки
 struct StringParam
 {
-  point offset;    // смещение
+  POINT offset;    // смещение
   short angle;     // угол поворота
   word  length;    // длина
   char  string[0]; // содержимое
@@ -138,7 +128,7 @@ struct FontParam1  // для версий >= 0x107
 // параметры текста
 struct Text
 {
-  point org;
+  POINT org;
   union StrPar
   {
     struct FulPar
@@ -157,7 +147,7 @@ struct Text
 // параметры текста вдоль линии
 struct TxtItem
 {
-  point org;
+  POINT org;
   short angle;
   char  letter[2];
 };
@@ -177,7 +167,7 @@ struct TextByLine
 struct PolyParam
 {
   word  length;    // количество точек
-  point points[0]; // массив координат
+  POINT points[0]; // массив координат
 };
 //=====================================================================
 // параметры контейнера
@@ -192,7 +182,7 @@ union Drawable
 {
   PolyParam  polypoint;
   RectParam  rectangle;
-  rect       ellipse;
+  RECT       ellipse;
   ArcParam   arc;
 };
 //=====================================================================
@@ -225,7 +215,7 @@ struct PrimRecord
   union
   {
     Container container;
-    point      pnt;
+    POINT      pnt;
     Icon       icon;
     Text       text;
     TextByLine textbyline;

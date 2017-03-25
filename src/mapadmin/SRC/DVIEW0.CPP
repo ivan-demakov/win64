@@ -45,12 +45,18 @@ long       CMapView::m_Sensibility = 5;
 long       CMapView::m_MaxDelta = 25;
 long       CMapView::m_Deviation = 0;
 long       CMapView::m_bSlow = 1;
+long       CMapView::m_bTextShadow = 0;
 long       CMapView::m_bScrollBars = 0;
 long       CMapView::m_X0 = 0;
 long       CMapView::m_Y0 = 0;
 long       CMapView::m_XStep = 100000;
 long       CMapView::m_YStep = 100000;
 long       CMapView::m_bUseGrid = 0;
+
+CConvDlg        CMapView::m_ConvDlg;
+CShabDlg        CMapView::m_ShabDlg;
+CAbstractDialog CMapView::m_AbstractDlg;
+CFindObjectDlg  CMapView::m_FindObjectDlg;
 //=========================================================================
 //=====================================================================
 BEGIN_MESSAGE_MAP( CMapView, CScrollView )
@@ -78,10 +84,10 @@ BEGIN_MESSAGE_MAP( CMapView, CScrollView )
   ON_WM_SIZE()
 
 
-	ON_COMMAND( IDM_CLONE_LINES, OnCloneLines )
+  ON_COMMAND( IDM_CLONE_LINES, OnCloneLines )
   ON_COMMAND( IDM_BACKUP_PROJECT, OnBackupProject )
-  
-	ON_COMMAND_RANGE( IDM_SEL_JMP_HOME, IDM_SEL_JMP_END, OnJumpToSelect )
+
+  ON_COMMAND_RANGE( IDM_SEL_JMP_HOME, IDM_SEL_JMP_END, OnJumpToSelect )
   ON_UPDATE_COMMAND_UI_RANGE( IDM_SEL_JMP_HOME, IDM_SEL_JMP_END, OnUpdateJumpToSelect )
 
   ON_COMMAND_RANGE( IDM_OBJEDIT_MODE, IDM_QUERYPARAM_MODE, OnObjectActionMode  )
@@ -110,7 +116,8 @@ BEGIN_MESSAGE_MAP( CMapView, CScrollView )
   ON_COMMAND( IDM_INCSCALE_MODE, OnIncScaleMode )
   ON_COMMAND( IDM_DECSCALE_MODE, OnDecScaleMode )
 
-  ON_COMMAND_RANGE( IDM_MAGNIT_MODE, IDM_MAGNIT_MODE2, OnMagnitMode )
+  ON_COMMAND_RANGE( IDM_MAGNIT_MODE1, IDM_MAGNIT_MODE8, OnMagnitMode )
+  ON_UPDATE_COMMAND_UI_RANGE( IDM_MAGNIT_MODE1, IDM_MAGNIT_MODE8, OnUpdateMagnitMode )
 
   ON_COMMAND( IDM_GETSELECT_MODE, OnGetSelectMode )
   ON_COMMAND( IDM_ADDSELECT_MODE, OnAddSelectMode )
@@ -147,7 +154,7 @@ BEGIN_MESSAGE_MAP( CMapView, CScrollView )
   ON_COMMAND( IDM_CHANGE_CLASS_MODE, OnChangeClassMode )
 
   ON_COMMAND_RANGE( IDM_VIEWTRACE_MODE, IDM_CALCTRACE_MODE, OnSelectTraceMode )
-  ON_COMMAND( IDM_TRACE_CLOSE, OnTraceClose )
+  ON_COMMAND_RANGE( IDM_TRACE_CLOSE, IDM_TRACE_CLOSE, OnTraceClose )
 
   ON_COMMAND_RANGE( IDM_SHORTTRACE_OPEN, IDM_SHORTTRACE_CANCEL, OnShortTrace )
 
@@ -180,9 +187,11 @@ BEGIN_MESSAGE_MAP( CMapView, CScrollView )
   ON_UPDATE_COMMAND_UI( IDM_USE_GRID_CMD, OnUpdateUseGridCmd )
   ON_COMMAND( IDM_SHOW_AS_SELECTED, OnShowAsSeletedCmd )
   ON_UPDATE_COMMAND_UI( IDM_SHOW_AS_SELECTED, OnUpdateShowAsSeletedCmd )
-  
-	ON_COMMAND_RANGE( IDM_SELECT_LINKED, IDM_SELECT_All_LINKED, OnSelectLinkedCmd )
-	ON_UPDATE_COMMAND_UI_RANGE( IDM_SELECT_LINKED, IDM_SELECT_All_LINKED, OnUpdateSelectLinkedCmd )
+  ON_COMMAND( IDM_TEXT_SHADOW, OnTextShadowCmd )
+  ON_UPDATE_COMMAND_UI( IDM_TEXT_SHADOW, OnUpdateTextShadowCmd )
+
+  ON_COMMAND_RANGE( IDM_SELECT_LINKED, IDM_SELECT_All_LINKED, OnSelectLinkedCmd )
+  ON_UPDATE_COMMAND_UI_RANGE( IDM_SELECT_LINKED, IDM_SELECT_All_LINKED, OnUpdateSelectLinkedCmd )
 
 #ifdef _FULL_PROJECT
   ON_COMMAND( IDM_EXTFINDOBJECT, OnExtFind )
@@ -238,11 +247,12 @@ static CProfileVar pVars[] =
   &CMapView::m_Y0,             szGridSection,    "Y0", 0, 0, 0x80000000, 0x7fffffff,
   &CMapView::m_XStep,          szGridSection,    "DX", 50000, 0, -5000000, 5000000,
   &CMapView::m_YStep,          szGridSection,    "DY", 50000, 0, -5000000, 5000000,
+  &CMapView::m_bTextShadow,    szGeneralSection, "TexrShadow",     0, 1, 0, 1,
   &CMapView::m_bSlow,          szGeneralSection, "SlidingZoom",    0, 1, 0, 1,
   &CMapView::m_bScrollBars,    szGeneralSection, "ScrollBars",     1, 1, 0, 1,
   &CMapView::m_Sensibility,    szGeneralSection, "Sensibility",   10, 0, 5, 100,
   &CMapView::m_MaxDelta,       szGeneralSection, "MaxDelta",      10, 0, 5, 25,
-	
+
   &CMapView::m_DimScaleRatio,  szGeneralSection, "DimScaleRatio", 10, 0, 10, 100,
 
   &CPageSetupPage::m_layopt,        szPrDefSection, "Layout"          ,  0, 1, 0, 1,
@@ -277,12 +287,10 @@ static CProfileVar pVars[] =
 //=====================================================================
 CMapView::CMapView():
 #ifndef _FULL_PROJECT
-  m_ConvDlg( this, &m_MapStore ),
-  m_FindObjectDlg( this ),
   m_pNodes( 0 ),
 #endif
-	m_pGotoDialog( 0 ),
-	m_bReperListCreated( 0 ),
+  m_pGotoDialog( 0 ),
+  m_bReperListCreated( 0 ),
   m_bObjToolTips( 0 ),
   m_bCutIn( 0 ),
   m_bCutOut( 0 ),
@@ -299,7 +307,7 @@ CMapView::CMapView():
   m_bSerialBuilding( 0 ),
   m_ScaleOnLoading( 1 ),
   m_pSTM( 0 ),
-	m_pURMode( 0 ),
+  m_pURMode( 0 ),
   m_nRgn( 0 ),
   m_pRgn( 0 ),
   m_bSelectLinked( 0 ),
@@ -316,7 +324,7 @@ CMapView::CMapView():
   m_bFuLinksShow( 0 ),
   m_bFinding( 0 ),
   m_ScaleFactor( 1 ),
-	m_nURMode( UR_NOMODE )
+  m_nURMode( UR_NOMODE )
 {
   pView = this;
 }
@@ -340,18 +348,18 @@ CMapView::Clear( int bClose )
   delete m_pUndoItem;
   m_pUndoItem = 0;
   m_Undo.RemoveAll();
+#ifndef _FULL_PROJECT
+  m_pSublDlg->DestroyWindow();
   delete m_pSublDlg;
   m_pSublDlg = 0;
-#ifndef _FULL_PROJECT
-  m_ConvDlg.DestroyWindow();
   m_FindObjectDlg.DestroyWindow();
   delete m_pNodes;
-#endif 
-	delete m_pURMode;
-	m_pURMode = 0;
-	
-	m_ReperList.RemoveAll( 0, 0 );
-	m_bReperListCreated = 0;
+#endif
+  delete m_pURMode;
+  m_pURMode = 0;
+
+  m_ReperList.RemoveAll( 0, 0 );
+  m_bReperListCreated = 0;
 
   for( CProfileVar* pv = pVars ; pv->var; ++pv )
     App.WriteProfileInt( pv->sect, pv->entry, *pv->var );
@@ -378,7 +386,7 @@ CMapView::~CMapView()
   CFontItem::DeleteFont();
   Clear( 1 );
   pView = 0;
-	delete m_pGotoDialog;
+  delete m_pGotoDialog;
 }
 //=====================================================================
 void
@@ -388,8 +396,7 @@ CMapView::OnInitialUpdate()
   EnableWindow( 0 );
 
   m_bMultiSelection = App.GetProfileInt( "General", "MultiSelection", 0 );
-	m_bObjToolTips    = App.GetProfileInt( "General", "ObjToolTips", 0 );
-  memset( m_LoadMap, 0, sizeof m_LoadMap );
+  m_bObjToolTips    = App.GetProfileInt( "General", "ObjToolTips", 0 );
   SetScale( 1 );
   AddMode( new CContextMode );
   AddMode( new CSelectMode );
@@ -409,14 +416,13 @@ CMapView::OnInitialUpdate()
 #endif
 
 #ifndef _FULL_PROJECT
-  m_ConvDlg.Create( IDD_CONVERTOR_DIALOG, this );
   m_FindObjectDlg.Create( IDD_FIND_OBJECT_DIALOG, this );
 #endif
   m_pObjDef = GetDocument()->GetObjDef();
   ksi_defsym( "is-convertion?", ksi_false, ksi_current_env());
 
-	CLegend DefLegend;
-	AddLegend( &DefLegend );
+  CLegend DefLegend;
+  AddLegend( &DefLegend );
 }
 //=====================================================================
 void
@@ -480,8 +486,8 @@ CMapView::OnDraw( CDC* pDC )
   CRect clip;
   pDC->GetClipBox( &clip );
 
-//  while( !m_BoxList.IsEmpty())
-//    clip |= m_BoxList.RemoveHead();
+  while( !m_BoxList.IsEmpty())
+    clip |= m_BoxList.RemoveHead();
 
   pDC->LPtoDP( &clip );
   clip.InflateRect( 8, 8 );
@@ -499,10 +505,10 @@ CMapView::OnDraw( CDC* pDC )
     clip = m_Clip = f;
     m_OldScaleFactor = m_ScaleFactor;
 
-		CPoint t( m_Clip.CenterPoint());
-    m_ScaleFactor = MerkatorData.ScaleFactor( Point( t.x, t.y ));
-    
-		ClipObjects();
+    CPoint t( m_Clip.CenterPoint());
+    m_ScaleFactor = MerkatorData.ScaleFactor( t );
+
+    ClipObjects();
     m_bSublayerChanged = !( m_OldClip.TopLeft() == m_Clip.TopLeft() &&
                             m_OldClip.Width()  > m_Clip.Width() &&
                             m_OldClip.Height() > m_Clip.Height());
@@ -559,7 +565,7 @@ CMapView::OnDraw( CDC* pDC )
       else
         r1.bottom = m_OldClip.top;
 
-			int w = m_OldClip.Width(), h = m_OldClip.Height();
+      int w = m_OldClip.Width(), h = m_OldClip.Height();
       memDC.BitBlt( m_OldClip.left, m_OldClip.top, w, h, &memDC, m_Clip.left, m_Clip.top, SRCCOPY );
       bmpDC.BitBlt( m_OldClip.left, m_OldClip.top, w, h, &bmpDC, m_Clip.left, m_Clip.top, SRCCOPY );
 
@@ -739,58 +745,6 @@ CMapView::OnDraw( CDC* pDC )
   m_OldScale = m_AltScale;
   DrawModes( pDC );
 }
-//=====================================================================
-/*
-void
-CMapView::DragPicture( CSize delta, int bMakeUndo, int bDrawModes )
-{
-  if( m_bDrag )
-    return;
-
-  CPoint sp( GetScrollPos( SB_HORZ ), GetScrollPos( SB_VERT ));
-  CSize sl( GetScrollLimit( SB_HORZ ), GetScrollLimit( SB_VERT ));
-  CPoint vp( sp - delta );
-
-  vp.x = vp.x < 0 ? 0 : vp.x > sl.cx ? sl.cx : vp.x;
-  vp.y = vp.y < 0 ? 0 : vp.y > sl.cy ? sl.cy : vp.y;
-
-  SetScrollPos( SB_HORZ, vp.x );
-  SetScrollPos( SB_VERT, vp.y );
-
-  m_bDrag = sp != vp;
-  m_bRedraw = 1;
-
-  CRect r0;
-  GetClientRect( &r0 );
-  InvalidateRect( r0 );
-  r0 += delta = sp - vp;
-  ValidateRect( &r0 );
-
-  CDC* pDC = GetDC();
-  CMemDC memDC( pDC, 1 );
-  memDC.SelectObject( &m_Bitmap );
-  pDC->BitBlt( r0.left, r0.top, r0.Width(), r0.Height(), &memDC, 0, 0, SRCCOPY );
-  memDC.BitBlt( delta.cx, delta.cy, r0.Width(), r0.Height(), &memDC, 0, 0, SRCCOPY );
-  memDC.SelectObject( &m_SubBmp );
-  memDC.BitBlt( delta.cx, delta.cy, r0.Width(), r0.Height(), &memDC, 0, 0, SRCCOPY );
-
-  if( bMakeUndo && m_bDrag && !m_pUndoItem )
-    m_Undo.AddItem( new CUndoScaleItem( this ), this );
-
-  CMeasureMode::Restore( this );
-
-  CBuildMode* pBM = GetBuilding( 0 );
-
-  if( pBM && m_bDrag && !bDrawModes )
-    pBM->SetDragging( 1 );
-
-  CViewDC dc1( this );
-  DrawModes( &dc1 );
-
-  if( pBM && m_bDrag && !bDrawModes )
-    pBM->SetDragging( 0 );
-}
-*/
 //=====================================================================
 int
 CMapView::CanUndo( int beep )
@@ -1083,8 +1037,8 @@ CMapView::OnLoadTrackPointsCmd( UINT nID )
     return;
   }
 
-  std::ifstream data;
-  data.open( fdlg->GetPathName(), std::ios::in, std::filebuf::sh_read );
+  ifstream data;
+  data.open( fdlg->GetPathName(), ios::in, SH_DENYWR );
   delete fdlg;
 
   CArray <Polar,Polar&> PolPoints;
@@ -1099,7 +1053,6 @@ CMapView::OnLoadTrackPointsCmd( UINT nID )
       break;
     Polar pr( lat, 0, 0, lon, 0, 0 );
     PolPoints.Add( pr );
-    data.eatwhite();
   }
   data.close();
 
@@ -1113,15 +1066,15 @@ CMapView::OnLoadTrackPointsCmd( UINT nID )
   ksi_obj ksi_pts = ksi_nil;
   CSize docSize( GetDocument()->GetSize());
   int i;
-  for(i = 0 ; i < n ; ++i )
+  for( i = 0 ; i < n ; ++i )
   {
-		Point pt;
-		if( !MerkatorData.Pol2Prj( PolPoints[i], pt ))
-		{
-			CPoint t( Pol2Dec( PolPoints[i] ));
-			pt.x = t.x;
-			pt.y = t.y;
-		}
+    CPoint pt;
+    if( !MerkatorData.Pol2Prj( PolPoints[i], pt ))
+    {
+      CPoint t( Pol2Dec( PolPoints[i] ));
+      pt.x = t.x;
+      pt.y = t.y;
+    }
 
     if( pt.x == -1 && pt.y == -1 )
     {
@@ -1167,38 +1120,38 @@ CMapView::OnLoadTrackPointsCmd( UINT nID )
     AddObject( pObj, 1 );
     lastId = pObj->Ident();
   }
-  FindObject( lastId, 1, 1 );  
+  FindObject( lastId, 1, 1 );
 }
 //=====================================================================
 //=====================================================================
 static UINT
 Name2Num( char const* name )
 {
-	UINT ss = 0;
-	int ns = -4;
- 	while( *name )
-	{
-	  ss = ( ss << 2 ) + ( *name++ - '0' );
-		ns += 1;
-	}
-	return ( ss << 4 ) | ns;
+  UINT ss = 0;
+  int ns = -4;
+  while( *name )
+  {
+    ss = ( ss << 2 ) + ( *name++ - '0' );
+    ns += 1;
+  }
+  return ( ss << 4 ) | ns;
 }
 //=====================================================================
 static void
-Name2PathName( char const* name, char* path )
+Name2PathName( char const* name, char* path, int l )
 {
-	int const d = 4;
-	for( int len = strlen( name ) ; len > d ; len -= d )
-	{
-		strncpy( path, name, d );
-		path += d;
-		name += d;
-	  *path++ = '\\';
-	}
-	strcpy( path, name );
+  int const d = 4;
+  for( int len = strlen( name ) ; len > d ; len -= d )
+  {
+    strncpy_s( path, l, name, d );
+    l -= d;
+    path += d;
+    name += d;
+    *path++ = '\\';
+    l -= 1;
+  }
+  strcpy_s( path, l, name );
 }
-//=====================================================================
-static int const MIN_TILE_LEVEL = 4;
 //=====================================================================
 int
 CMapView::TestSubRect( CGraphData* pData, int lvl, int tlvl, CRect& tile, CRect& rect, CString const& path, CString name )
@@ -1206,75 +1159,75 @@ CMapView::TestSubRect( CGraphData* pData, int lvl, int tlvl, CRect& tile, CRect&
   CRect R( tile );
   int D = int( Pi * MerkatorData.GetRmj());
   int X = D * 2;
-	R.OffsetRect( -D, -D );
-  if( R.left < 0 )		 
+  R.OffsetRect( -D, -D );
+  if( R.left < 0 )
     R.OffsetRect( X, 0 );
 
-	Point tp( MerkatorData.GetOffset());
-	CSize s( tp.x, tp.y );
-	R.OffsetRect( s );
-	if( tlvl > 1 && !Intersect( &R, &rect ))
-		return 1;
+  CPoint tp( MerkatorData.GetOffset());
+  CSize s( tp.x, tp.y );
+  R.OffsetRect( s );
+  if( tlvl > 1 && !Intersect( &R, &rect ))
+    return 1;
 
-	if( lvl > tlvl )
-	{
-  	int dx = tile.Width()  / 2, mx = tile.left + dx;
-	  int dy = tile.Height() / 2, my = tile.top  + dy;
-  	CRect t0( tile.left, my, mx, tile.bottom );
-	  CRect t1( tile.left, tile.top, mx, my );
-  	CRect t2( mx, tile.top, tile.right, my );
-	  CRect t3( mx, my, tile.right, tile.bottom );
-  	if( TestSubRect( pData, lvl, tlvl + 1, t0, rect, path, name + "0" ) &
+  if( lvl > tlvl )
+  {
+    int dx = tile.Width()  / 2, mx = tile.left + dx;
+    int dy = tile.Height() / 2, my = tile.top  + dy;
+    CRect t0( tile.left, my, mx, tile.bottom );
+    CRect t1( tile.left, tile.top, mx, my );
+    CRect t2( mx, tile.top, tile.right, my );
+    CRect t3( mx, my, tile.right, tile.bottom );
+    if( TestSubRect( pData, lvl, tlvl + 1, t0, rect, path, name + "0" ) &
         TestSubRect( pData, lvl, tlvl + 1, t1, rect, path, name + "1" ) &
         TestSubRect( pData, lvl, tlvl + 1, t2, rect, path, name + "2" ) &
         TestSubRect( pData, lvl, tlvl + 1, t3, rect, path, name + "3" ))
-			return 1;
-	}
+      return 1;
+  }
 
-	int t = SUBSTAT_CLASS + 1 + tlvl - MIN_TILE_LEVEL;
-	CIdent id( t, 0, t, Name2Num( name ));
-	if( pData->GetObjectPtr( id ))
-		return 1;
+  int t = SUBSTAT_CLASS + 1 + tlvl - MIN_TILE_LEVEL;
+  CIdent id( t, 0, t, Name2Num( name ));
+  if( pData->GetObjectPtr( id ))
+    return 1;
 
-	CString fullName( name + ".jpg" );
-	
-	if( _access( path + fullName, 4 ) < 0 )
-	{
-  	char pnBuf[1024];
-		Name2PathName( name, pnBuf );
-		fullName = pnBuf;
-		fullName += ".jpg";
-		CString pathName = path + fullName;
-  	if( _access( pathName, 4 ) < 0 )
+  CString fullName( name + ".jpg" );
+
+  if( _access( path + fullName, 4 ) < 0 )
+  {
+    char pnBuf[1024];
+    Name2PathName( name, pnBuf, sizeof pnBuf );
+    fullName = pnBuf;
+    fullName += ".jpg";
+    CString pathName = path + fullName;
+    if( _access( pathName, 4 ) < 0 )
       return 0;
-	}
-		
-	// Creating the object
-	CStrokItem si;
-	CFontItem fi;
-	CRectangle* prp = new CRectangle( CRectPrim( R ), si );
-	CText* ptp = new CText( 0, 0, 0, fi, fullName, fullName.GetLength(), 0, 0, 0 );
-	prp->SetFlags( SF_ANY_VISIBLE );
-	CDrawContainer* pCont = new CDrawContainer;
-	pCont->AddTail( prp );
-	pCont->AddTail( ptp );
-	CDrawObject* pObj = new CDrawObject( id, 0, 0, 0, pCont );
-	pObj->CalcBoundBox();
-	pData->AddObject( pObj );
-	return 1;
+  }
+
+  // Creating the object
+  CStrokItem si;
+  CFontItem fi;
+  CRectangle* prp = new CRectangle( CRectPrim( R ), si );
+  CText* ptp = new CText( 0, 0, 0, fi, fullName, fullName.GetLength(), 0, 0, 0 );
+  prp->SetFlags( SF_ANY_VISIBLE );
+  CDrawContainer* pCont = new CDrawContainer;
+  pCont->AddTail( prp );
+  pCont->AddTail( ptp );
+  CDrawObject* pObj = new CDrawObject( id, 0, 0, 0, pCont );
+  pObj->CalcBoundBox();
+  pData->AddObject( pObj );
+  return 1;
 }
 //=====================================================================
 void
 CMapView::AddLoadStaticSublayer( CGraphData* pData, int sc, CRect rect )
 {
-	if( rect.IsRectEmpty())
-		return;
-	
-	CString path( App.GetSubbmpPath( 2 ));
-	if( path.IsEmpty())
-		return;
+  if( rect.IsRectEmpty())
+    return;
 
-	int lv = max( MIN_TILE_LEVEL, MerkatorData.Scale2Level( sc ));
+  CString path( App.GetSubbmpPath( 2 ));
+  if( path.IsEmpty())
+    return;
+
+  int lv = max( MIN_TILE_LEVEL, MerkatorData.Scale2Level( sc ));
 
   int D = int( Pi * MerkatorData.GetRmj());
   int X = D * 2;
@@ -1286,10 +1239,10 @@ void
 CMapView::OnBackupProject()
 {
 #ifndef _FULL_PROJECT
-	if( m_MapStore.Backup() == R_OK )
-		InfBox( "Копия проекта успешно создана" );
-	else
-		ErrBox( "Не удалось создать копию проекта" );
+  if( m_MapStore.Backup() == R_OK )
+    InfBox( "Копия проекта успешно создана" );
+  else
+    ErrBox( "Не удалось создать копию проекта" );
 #endif // _FULL_PROJECT
 }
 //=====================================================================

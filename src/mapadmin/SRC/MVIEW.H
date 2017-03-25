@@ -99,7 +99,7 @@ class CObjLinkNode
 {
 public:
   CObjLinkNode( CDrawObject* pObj, CDrawObject* pHostObj );
-	CDrawObject* GetNodeObject() { return m_pObj; }
+        CDrawObject* GetNodeObject() { return m_pObj; }
   void EditBy( int CoeditStep, int bHR, CObjLinkNode* pHostNode, ksi_obj ksi_dc );
   static void Add( CDrawObject* pObj, CDrawObject* pHostObj );
   static void RemoveAll();
@@ -182,6 +182,7 @@ public:
   CMapView();
   ~CMapView();
 
+  void InitQueryPolygon();
 	void RemoveExtObjects();
   void ResetCrtMsg() { m_bCrtMsg = 0; }
   void SendCtrMsg();
@@ -193,7 +194,7 @@ public:
   void HideObject( CIdent const& id, int bDelete = 0 );
   void ShowSelectedNum();
   void ShowAngle();
-  void ResumeObject( CDrawObject* pObj, int bDeleted, char* pBuf );
+  void ResumeObject( CDrawObject* pObj, int bDeleted );
   void ShowBox( CRect box );
   void ShowObjectBox( CDrawObject* pObj );
   void ShowSelected( int bShow, int bSave = 0, int bDeclare = 0 );
@@ -224,7 +225,7 @@ public:
   CAppMode* GetActiveMode( UINT id );
   CBuildMode* GetBuilding( int bMess = 1 );
   int CreateLineObject();
-	int TestPointObject( CPoint p ) { return m_ClipData.TestPointObject( p ); }
+        int TestPointObject( CPoint p ) { return m_ClipData.TestPointObject( p ); }
   int CreatePointObject();
   int  TestCutIn( CDrawObject* pIns, CDrawObject*& pObj0, CObjList* pLst, int bMsg );
   void TestCutIn( CDrawObject* pIns );
@@ -244,7 +245,7 @@ public:
   void SortShowSelect();
   void CopySelected();
   int  TestSelected();
-	int  OffsetObject( CTabIdent id, CSize off );
+  int  OffsetObject( CTabIdent id, CSize off );
   int  RemoveObject( CTabIdent id );
   int  RemoveObject( CDrawObject* pObj );
   int  RemoveTempObj( int nCode = 0 );
@@ -260,9 +261,9 @@ public:
   int  IsHiResolution();
   int  GetPrnScale();
   int  GetDsbl( int nType );
-	int  IsVisibleInScale( int nType, int nScale );
-	int  IsVisibleInScale( int nType ) { return IsVisibleInScale( nType, GetTrueScale()); }
-	int  IsVisibleInScale( CDrawObject* pObj ) { return IsVisibleInScale( pObj->Class()); }
+  int  IsVisibleInScale( int nType, int nScale );
+  int  IsVisibleInScale( int nType ) { return IsVisibleInScale( nType, GetTrueScale()); }
+  int  IsVisibleInScale( CDrawObject* pObj ) { return IsVisibleInScale( pObj->Class()); }
 
   void Clear( int bClose );
   void         ClearSelection( int bDelete = 0, int bMakeUndo = 1 );
@@ -294,8 +295,8 @@ public:
   void OnUserRightsOk( UINT cmd );
   void OnUserRightsCancel();
 
- 	void OnBackupProject();
-	void SetDrh();
+  void OnBackupProject();
+  void SetDrh();
   void OnExtFind();
   void OnCheckObject( CTabIdent id );
   void OnExtSetScale();
@@ -312,22 +313,24 @@ public:
   int  IsCopyingAllowable();
   int  IsEditionAllowable( int bDel );
 
-	void GoTo( CPoint c, int s );
+  void GoTo( CPoint c, int s );
   void SlowMove( CPoint cn, int s );
   int  FindObject( CTabIdent id, int bClearSelection = 1, int bShowFull = 1 );
   int  FindObjectCoord( CTabIdent id, CString& dst );
+  int  GetObjectCoord( CTabIdent id, int bYcoord );
   int  TestObjects( CTabIdent id0, CTabIdent id1, int bShow );
   int  TestObjects( CDrawObject* pOb0, CDrawObject* pOb1, int bShow );
   int  TestObjects( CTabIdArray const& tb0, CTabIdArray const& tb1, TGstream& dst );
-  int  SelectObjectSpecial( CTabIdent id, int bFlash, COLORREF clr, int bClearSelection = 0, int bShow = 0 );
-  int  SelectObjectSpecial( int nTab, int nEnt, int bFlash, COLORREF clr, int bClearSelection = 0, int bShow = 0 )
-    { return SelectObjectSpecial( CTabIdent( nTab, nEnt ), bFlash, clr, bClearSelection, bShow ); }
+//  int  SelectObjectSpecial( CTabIdent id, int bFlash, COLORREF clr, int bClearSelection = 0, int bShow = 0 );
+//  int  SelectObjectSpecial( int nTab, int nEnt, int bFlash, COLORREF clr, int bClearSelection = 0, int bShow = 0 )
+//    { return SelectObjectSpecial( CTabIdent( nTab, nEnt ), bFlash, clr, bClearSelection, bShow ); }
   int  SelectObjectSpecial( CTabIdent id, int ndx, DiagItem* pItem = 0, int bClearSelection = 0, int bShow = 0 );
   int  SelectObjectSpecial( int nTab, int nEnt,  int ndx, DiagItem* pItem = 0, int bClearSelection = 0, int bShow = 0 )
     { return SelectObjectSpecial( CTabIdent( nTab, nEnt ), ndx, pItem, bClearSelection, bShow ); }
   int  GetObjParam( CDrawObject* pObj, CTabIdent id, CStringArray& par );
   int  UpdateSetObjParam( CDrawObject* pObj, int bShow = 1 );
   char const* MakeSpaceQue( SpaceQueParam& QP );
+	void DrawRegion( CPoint* pPoint, int nPoint, int clr, int bFull = 1 );
   UpdateError CreateInContext( int bShow = 0 );
   UpdateError SetObjParam( CDrawObject* pObj, int bShow = 1 );
   UpdateError UpdateObject( CTabIdent id, CStringArray& par, int bShow = 0 );
@@ -375,12 +378,14 @@ public:
   static CConductor* GetConductor() { return &m_Conductor; }
   static CPoint Grid2Project( CPoint p );
   static CPoint Project2Grid( CPoint p );
+	static int DrawTextShadow() { return m_bTextShadow; }
+
 //  static void   Project2Grid( CPoint p, double r[] );
 
 private:
-	void OnCloneLines();
+  void OnCloneLines();
   void AddLoadStaticSublayer( CGraphData* pData, int sc, CRect r );
-	int TestSubRect( CGraphData* pData, int lvl, int tlvl, CRect& tile, CRect& rect, CString const& path, CString name );
+  int TestSubRect( CGraphData* pData, int lvl, int tlvl, CRect& tile, CRect& rect, CString const& path, CString name );
   void TestFLTopscr( CPoint* pLoc );
   void RedrawFuncLink( CTabIdent id );
   void DrawFuncLinks( CDC* pDC );
@@ -441,7 +446,8 @@ private:
   void OnUpdateCopyMode( CCmdUI* pCmdUI );
   void OnHandMode();
   void OnGoTo();
-	void OnMagnitMode( UINT cmd );
+  void OnMagnitMode( UINT cmd );
+  void OnUpdateMagnitMode( CCmdUI* pCmdUI );
   void OnIncScaleMode();
   void OnDecScaleMode();
   void OnGetSelectMode();
@@ -481,6 +487,8 @@ private:
   void OnUpdateScrollbarsCmd( CCmdUI* pCmdUI );
   void OnToolTipsCmd();
   void OnUpdateToolTipsCmd( CCmdUI* pCmdUI );
+	void OnTextShadowCmd();
+  void OnUpdateTextShadowCmd( CCmdUI* pCmdUI );
   void OnUseGridCmd();
   void OnUpdateUseGridCmd( CCmdUI* pCmdUI );
   void OnShowAsSeletedCmd();
@@ -491,9 +499,9 @@ private:
   void OnImprovePolyline();
   void OnTestReper();
   void OnTestAllRepers();
-  int  Test1Reper( CDrawObject* pRep, std::ofstream* pFile, int nMode );
+  int  Test1Reper( CDrawObject* pRep, ofstream* pFile, int nMode );
   void UnselObj();
-  void OnRegionSave();
+//  void OnRegionSave();
   void OnChangeClassMode();
   void OnLoadTrackPointsCmd( UINT nID );
 
@@ -550,6 +558,17 @@ private:
 #endif
 
 private:
+
+#ifndef _FULL_PROJECT
+  MapUpdater        m_MapStore;
+#else
+  MapStore          m_MapStore;
+#endif
+
+  char              m_ShowMap[BIT_FULL_RANGE];
+  char              m_LoadMap[BIT_FULL_RANGE];
+  char              m_LocalLaw[FULL_RANGE];
+
   int               m_bObjToolTips;
   int               m_bNoLinkEdit;
   int               m_bDblClick;
@@ -582,64 +601,57 @@ private:
   CRect             m_OldClip;
   CGraphData        m_ClipData;
   CObjTreeList      m_ReperList;
-	int               m_bReperListCreated;
+  int               m_bReperListCreated;
+  long              m_Version;
+  int               m_PrintPageNumX;
+  int               m_PrintPageNumY;
+  int               m_PrintPageNum;
+  int               m_bDrawSel;
+  int               m_HiResLimit;
+  int               m_UndoLevel;
+  int               m_HostClass;
+  int               m_nRgn;
+  int               m_bCutIn;
+  int               m_bCutOut;
 
-#ifndef _FULL_PROJECT
-  MapUpdater        m_MapStore;
-#else
-  MapStore          m_MapStore;
-#endif
-  PrintPageInfo*    m_pPrintPages;
   CSize             m_PrinterPageSize;
   CSize             m_PrintPageSize;
   CSize             m_PrintPageSngl;
   CSize             m_PrintPageFrst;
   CSize             m_PrintPageNext;
   CSize             m_PrintPageLast;
-  int               m_PrintPageNumX;
-  int               m_PrintPageNumY;
-  int               m_PrintPageNum;
-  CRect             m_PrintArea;
-  CAppMode*         m_pMode;
   CSize             m_WindowSize;
   CSize             m_ViewportSize;
-  int               m_bDrawSel;
+  CRect             m_PrintArea;
   CPoint            m_Position;
   CPoint            m_PrintOrg;
   CObjList          m_SelectList;
   CObjList          m_LastEditList;
   CObjList          m_LastHostList;
-  int               m_HostClass;
-  char              m_LocalLaw[FULL_RANGE];
-  char              m_LoadMap[BIT_FULL_RANGE];
-  char              m_ShowMap[BIT_FULL_RANGE];
-  long              m_Version;
   CUndo             m_Undo;
-  CUndoScaleItem*   m_pUndoItem;
-  int               m_HiResLimit;
-  int               m_UndoLevel;
-  COverviewDialog   m_OverviewDialog;
-	CGotoDialog*      m_pGotoDialog;
-  CObjSelectDialog  m_ObjSelectDialog;
   CSelectTraceMode* m_pSTM;
-  int               m_nRgn;
+  PrintPageInfo*    m_pPrintPages;
+  CGotoDialog*      m_pGotoDialog;
+  CUndoScaleItem*   m_pUndoItem;
+  CAppMode*         m_pMode;
   CPoint**          m_pRgn;
   CObjDef*          m_pObjDef;
   CDrawObject*      m_pCurSelObj;
   CDrawObject*      m_pSuspObj;
   CDrawObject*      m_pDelObj;
-  
-	CDrawObject*      m_pCutIns;
+
+  CDrawObject*      m_pCutIns;
   CDrawObject*      m_pCutObj0;
   CDrawObject*      m_pCutObj1;
-  int               m_bCutIn;
-  int               m_bCutOut;
 
   CBoxList          m_BoxList;
   CBaseDataRecPtr   m_pDRH;
   CLinkArray        m_FuLinkArray;
   int               m_bFuLinksShow;
   CLegendCollection m_LegendCollection;
+
+  COverviewDialog   m_OverviewDialog;
+  CObjSelectDialog  m_ObjSelectDialog;
 
   int        m_nURMode;
   CAppMode*  m_pURMode;
@@ -651,12 +663,13 @@ public:
   int             m_ScaleOnLoading;
   CSublDlg*       m_pSublDlg;
 #ifndef _FULL_PROJECT
-  CConvDlg        m_ConvDlg;
-  CShabDlg        m_ShabDlg;
-  CAbstractDialog m_AbstractDlg;
-  CFindObjectDlg  m_FindObjectDlg;
-  long*           m_pNodes;
+  static CConvDlg        m_ConvDlg;
+  static CShabDlg        m_ShabDlg;
+  static CAbstractDialog m_AbstractDlg;
+  static CFindObjectDlg  m_FindObjectDlg;
+  long*  m_pNodes;
 #endif
+	static long m_bTextShadow;
   static long m_DimScaleRatio;
   static long m_Deviation;
   static long m_Sensibility;
@@ -670,7 +683,7 @@ public:
   static long m_XStep;
   static long m_YStep;
   static long m_bUseGrid;
-	static CLegend const* m_pLg;
+  static CLegend const* m_pLg;
 
   DECLARE_MESSAGE_MAP()
 };

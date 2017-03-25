@@ -26,7 +26,7 @@ static char BASED_CODE THIS_FILE[] = __FILE__;
 //=====================================================================
 static char stdcnfpath[] = "convertor.cfg";
 //=====================================================================
-double CConvDlg::m_Cfs[3][3];
+double CConvDlg::m_Cfs0[3][3];
 int    CConvDlg::m_bNumerateFrom = 0;
 int    CConvDlg::m_bOffsetX = 0;
 int    CConvDlg::m_bOffsetY = 0;
@@ -43,6 +43,7 @@ double CConvDlg::m_CenterY  = 0;
 CTime  CConvDlg::m_Time1    = 0;
 CTime  CConvDlg::m_Time2    = 0;
 double CConvDlg::m_UTMP[] = { 0, 0, 0, 1, 0 };
+double CConvDlg::m_Cfs1[2][3] = { 1, 0, 0, 0, -1, 0 };
 //=====================================================================
 CConvDlg::CfgRec CConvDlg::ControlConfigTab[] =
 {
@@ -130,13 +131,17 @@ CConvDlg::DatRec CConvDlg::DataConfigTab[]  =
   IREAL,  &m_UTMP[3],       "UTM_K0",         0,
   IREAL,  &m_UTMP[4],       "UTM_E0",         0,
 	
-	IREAL,  &m_Cfs[0][0],     "CF00",           IDC_CVD_AX_EDIT,
-	IREAL,  &m_Cfs[0][1],     "CF01",           IDC_CVD_BX_EDIT,
-	IREAL,  &m_Cfs[0][2],     "CF02",           IDC_CVD_CX_EDIT,
-	IREAL,  &m_Cfs[1][0],     "CF10",           IDC_CVD_AY_EDIT,
-	IREAL,  &m_Cfs[1][1],     "CF11",           IDC_CVD_BY_EDIT,
-	IREAL,  &m_Cfs[1][2],     "CF12",           IDC_CVD_CY_EDIT,
-  NOTHING
+	IREAL,  &m_Cfs0[0][0],    "CF000",           IDC_CVD_AX_EDIT,
+	IREAL,  &m_Cfs0[0][1],    "CF001",           IDC_CVD_BX_EDIT,
+	IREAL,  &m_Cfs0[0][2],    "CF002",           IDC_CVD_CX_EDIT,
+	IREAL,  &m_Cfs0[1][0],    "CF010",           IDC_CVD_AY_EDIT,
+	IREAL,  &m_Cfs0[1][1],    "CF011",           IDC_CVD_BY_EDIT,
+	IREAL,  &m_Cfs0[1][2],    "CF012",           IDC_CVD_CY_EDIT,
+	
+	IREAL,  &m_Cfs1[0][2],    "CF102",           0,
+	IREAL,  &m_Cfs1[1][2],    "CF112",           0,  
+	
+	NOTHING
 };
 //=========================================================================
 IMPLEMENT_DYNCREATE( CConvDlg, CDialog )
@@ -223,8 +228,6 @@ IsValidPar( ksi_obj ksi_par )
 int
 CConvDlg::CreateIdentList()
 {
-	m_ParamList = ksi_nil;
-
 	static char szFilter[] = "Text Files (*.txt)|*.txt|All Files (*.*)|*.*||";
 
 	CFileDialog* fdlg = new CFileDialog( 1, ".txt", 0, OFN_HIDEREADONLY, szFilter );
@@ -246,8 +249,8 @@ CConvDlg::CreateIdentList()
 
   ksi_obj in_port = ksi_open_file( ksi_ptr02string( fName ), ksi_ptr02string( "rt" ));
 
-  int tt;
-  for( tt = 0 ;;  )
+  int tt = 0;
+	for(;;)
   {
     ksi_obj ksi_par = ksi_read( in_port );
 
@@ -269,7 +272,7 @@ CConvDlg::CreateIdentList()
 		m_ParamList = ksi_cons( ksi_par, m_ParamList );
 		++tt;
   }
-  
+	  
   ksi_close_port( in_port );
 
 	return tt;
@@ -428,9 +431,6 @@ CConvDlg::OnConvertCoordClicked()
     CheckDlgButton( IDC_CVD_OUTPUT_GEO_GRAD_CHECK, 0 );
 	}
 
-//  if( ch && m_OpNum == TEXT_TO_PROJECT )
-//    CheckDlgButton( IDC_CVD_UTM2M_CHECK, 0 );
-  
   for( int i = CELEM( t ) ; --i >= 0 ; GetDlgItem( t[i] )->EnableWindow( ch ));
 }
 //=====================================================================
@@ -438,12 +438,9 @@ void
 CConvDlg::OnUTM2MButtonClicked()
 {
   if( IsDlgButtonChecked( IDC_CVD_UTM2M_CHECK ))
-    if( CUTMDialog( this ).DoModal())
-		{
-//      CheckDlgButton( IDC_CVD_CONVERT_COORD_CHECK, 0 );
-//			OnConvertCoordClicked();
-		}
-		else
+		if( CUTMDialog( this ).DoModal() == IDOK )
+			CheckDlgButton( IDC_CVD_CONVERT_COORD_CHECK, 1 );
+    else
       CheckDlgButton( IDC_CVD_UTM2M_CHECK, 0 );
 }
 //=====================================================================
@@ -484,21 +481,21 @@ CConvDlg::CalcConversion( int bInvers )
   double dy = m_bOffsetY ? m_OffsetY : 0;
   if( bInvers )
   {
-    m_Cfs[0][0] = co / kx;
-    m_Cfs[0][1] = -si / ky;
-    m_Cfs[0][2] = -co * dx / kx + si * dy / ky + cx * dc + cy * si;
-    m_Cfs[1][0] = si / kx;
-    m_Cfs[1][1] = co / ky;
-    m_Cfs[1][2] = -si * dx / kx - co * dy / ky + cy * dc - cx * si;
+    m_Cfs0[0][0] = co / kx;
+    m_Cfs0[0][1] = -si / ky;
+    m_Cfs0[0][2] = -co * dx / kx + si * dy / ky + cx * dc + cy * si;
+    m_Cfs0[1][0] = si / kx;
+    m_Cfs0[1][1] = co / ky;
+    m_Cfs0[1][2] = -si * dx / kx - co * dy / ky + cy * dc - cx * si;
   }
   else
   {
-    m_Cfs[0][0] = co * kx;
-    m_Cfs[0][1] = si * kx;
-    m_Cfs[0][2] = kx * ( cx * dc - cy * si ) + dx;
-    m_Cfs[1][0] = -si * ky;
-    m_Cfs[1][1] = co * ky;
-    m_Cfs[1][2] = ky * ( cx * si + cy * dc ) + dy;
+    m_Cfs0[0][0] = co * kx;
+    m_Cfs0[0][1] = si * kx;
+    m_Cfs0[0][2] = kx * ( cx * dc - cy * si ) + dx;
+    m_Cfs0[1][0] = -si * ky;
+    m_Cfs0[1][1] = co * ky;
+    m_Cfs0[1][2] = ky * ( cx * si + cy * dc ) + dy;
   }
 
   static UINT e[][3] = { IDC_CVD_AX_EDIT, IDC_CVD_BX_EDIT, IDC_CVD_CX_EDIT,
@@ -508,7 +505,7 @@ CConvDlg::CalcConversion( int bInvers )
     for( int j = 0 ; j < 3 ; ++j )
     {
       CString t;
-      t.Format( j < 2 ? "%1.10f" : "%1.2f", m_Cfs[i][j] );
+      t.Format( j < 2 ? "%1.10f" : "%1.2f", m_Cfs0[i][j] );
       GetDlgItem( e[i][j] )->SetWindowText( t );
     }
 }
@@ -524,8 +521,11 @@ CConvDlg::SetConversion()
     {
       CString t;
 			GetDlgItem( e[i][j] )->GetWindowText( t );
-      m_Cfs[i][j] = atof( t );
+      m_Cfs0[i][j] = atof( t );
     }
+
+ 
+
 }
 //=====================================================================
 void 
@@ -646,7 +646,7 @@ CConvDlg::EnDsDlgItems( int opNum )
     IDC_CVD_SELECT_BY_DATE_CHECK,       0, 1, 1, 1, 0,
     IDC_CVD_SELECT_BY_IDENT_CHECK,      1, 1, 1, 1, 0,
     IDC_CVD_SELECT_BY_KEY_CHECK,        0, 0, 0, 0, 1,
-		IDC_CVD_UTM2M_CHECK,                1, 0, 0, 0, 0
+		IDC_CVD_UTM2M_CHECK,                0, 1, 0, 0, 0
   };
 
   m_OpNum = opNum;
@@ -770,8 +770,8 @@ CConvDlg::SetDecomp( int rest, int wrtn )
   }
 }
 //=====================================================================
-void
-CConvDlg::Report( UINT, LONG )
+LRESULT
+CConvDlg::Report( WPARAM, LPARAM )
 {
   static struct rd { UINT sid; UINT eid; int* pVal; } sa[] = 
   {
@@ -808,7 +808,10 @@ CConvDlg::Report( UINT, LONG )
       pWnd->ShowWindow( 1 );
     }  
   }
-   m_nRep = 0;
+   
+  m_nRep = 0;
+  
+  return LRESULT(0);
 }
 //=====================================================================
 char* 
@@ -935,7 +938,7 @@ CConvDlg::OnOK()
   m_RgnSize = 0;
   m_Rgn = 0;
 
-  m_Box.SetRect();
+  m_Box.SetRect( 0, 0, 0, 0 );
   if( m_Mode & CM_SPACE_SELECT )
   {
     CString path( App.GetProjectFilePath( "region.txt" ));
@@ -947,10 +950,10 @@ CConvDlg::OnOK()
 
     for( int step = 2 ; --step >= 0 ; )
     {
-      m_Rgn = step ? 0 : new Point[m_RgnSize+1];
-      Point* pp = m_Rgn;
+      m_Rgn = step ? 0 : new CPoint[m_RgnSize+1];
+      CPoint* pp = m_Rgn;
 
-	  std::ifstream rin( path, std::ios::in| std::ios::nocreate );
+      ifstream rin( path, ios::in );
       if( rin.bad())
       {
         ErrBox( "Не удается открыть файл описания региона!" );
@@ -977,12 +980,12 @@ CConvDlg::OnOK()
         if( step )
           m_RgnSize += rs + 1;
         else
-          *pp++ = Point( rs, 0 );
+          *pp++ = CPoint( rs, 0 );
 
         
         while( --rs >= 0 )
         {
-          Point p;
+          CPoint p;
           if( rin.eof())
           {
             ErrBox( "Некорректный регион!" );
@@ -995,12 +998,12 @@ CConvDlg::OnOK()
           if( !step )
           {
             *pp++ = p;
-            m_Box |= p;
+            m_Box |= CRect( p, p );
           }
         }
       }
       if( !step )
-        *pp = Point( 0 , 0 );
+        *pp = CPoint( 0, 0 );
       else
         rin.close();
     }
@@ -1072,6 +1075,8 @@ CConvDlg::OnOK()
 	SetConversion();
 
   SetReport( 0, 0, 0, 1 );
+
+	m_ParamList = ksi_nil;
 
   if( m_Mode & CM_FLTER_ID_LIST )
 	{
@@ -1258,8 +1263,8 @@ CConvDlg::RestoreConfig( LPCTSTR path )
                        IDC_CVD_ASSAMBLY_BY_TABLE_RADIO,
                        IDC_CVD_ASSAMBLY_ALL_RADIO };
 
-	int i;
-  for( i = CELEM( AC ) ; --i >= 0 && !IsDlgButtonChecked( AC[i] ) ; );
+  int i = CELEM( AC );
+  while( --i >= 0 && !IsDlgButtonChecked( AC[i] ));
   if( i < 0 )
     CheckDlgButton( PROJECT_TO_PROJECT, 1 );
   
@@ -1407,20 +1412,26 @@ CFindObjectDlg::OnInitDialog()
   return 1;
 }
 //=====================================================================
+BEGIN_MESSAGE_MAP( CUTMDialog, CDialog )
+  ON_BN_CLICKED( IDC_UTM_CALC_BTN, OnCalc )
+END_MESSAGE_MAP()
+//=====================================================================
 static struct { UINT id; double* pVal; } utmd[] = 
 {
 	IDC_UTM_X0_EDIT, &CConvDlg::m_UTMP[0],
 	IDC_UTM_Y0_EDIT, &CConvDlg::m_UTMP[1],
 	IDC_UTM_L0_EDIT, &CConvDlg::m_UTMP[2],
 	IDC_UTM_K0_EDIT, &CConvDlg::m_UTMP[3],
-	IDC_UTM_E0_EDIT, &CConvDlg::m_UTMP[4]
+	IDC_UTM_E0_EDIT, &CConvDlg::m_UTMP[4],
+	IDC_UTM_DX_EDIT, &CConvDlg::m_Cfs1[0][2],
+	IDC_UTM_DY_EDIT, &CConvDlg::m_Cfs1[1][2]
 };
-
+//=====================================================================
 int
 CUTMDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-  char const* f[] = { "%1.2f", "%1.2f", "%1.2f", "%1.4f", "%1.10f" }; 
+  char const* f[] = { "%1.2f", "%1.2f", "%1.2f", "%1.4f", "%1.10f", "%1.2f", "%1.2f" }; 
 	for( int i = CELEM( utmd ) ; --i >= 0 ; )
 	{
 		CString s;
@@ -1431,7 +1442,7 @@ CUTMDialog::OnInitDialog()
 }
 //=====================================================================
 void
-CUTMDialog::OnOK()
+CUTMDialog::CopyData()
 {
 	for( int i = CELEM( utmd ) ; --i >= 0 ; )
 	{
@@ -1439,9 +1450,37 @@ CUTMDialog::OnOK()
 		GetDlgItemText( utmd[i].id, s );
 		*utmd[i].pVal = atof( s );
 	}
+}
+//=====================================================================
+void
+CUTMDialog::OnOK()
+{
+  CopyData();
 	EndDialog( IDOK );
 }
 //=====================================================================
+void
+CUTMDialog::OnCalc()
+{
+  CopyData();
+	CPoint pt[4];
+
+	pt[0] = CPoint( GetDlgItemInt( IDC_UTM_TX_EDIT ), GetDlgItemInt( IDC_UTM_TY_EDIT ));
+  pt[1] = m_pCnvDlg->m_pUpdtr->UpdatePoint( pt[0], m_pCnvDlg->m_Cfs0, 0, 0, 1 );
+  pt[2] = m_pCnvDlg->m_pUpdtr->UpdatePoint( pt[1], 0, m_pCnvDlg->m_UTMP, 0, 1 );
+  pt[3] = m_pCnvDlg->m_pUpdtr->UpdatePoint( pt[2], 0, 0, m_pCnvDlg->m_Cfs1, 1 );
+
+  CWnd* pWnd = GetDlgItem( IDC_UTM_XY_LIST );
+	CDC* pDC = pWnd->GetDC();
+
+	for( int i = 1 ; i < 4 ; ++i )
+	{
+		int y = 20 * i - 10;
+		CString t;
+		t.Format( "(%d) X=%10.2f Y=%10.2f", i, pt[i].x * SmInUnit * 1e-2, pt[i].y * SmInUnit * 1e-2 );
+		pDC->TextOut( 5, y, t );
+	}
+}
 //=====================================================================
 CConwThread::CConwThread( CConvDlg* pDlg ) :
   m_pDlg( pDlg ), 
@@ -1455,13 +1494,14 @@ int
 CConwThread::InitInstance()
 {
   int t = m_pDlg->m_pUpdtr->SetModified( 0 );
+
   switch( m_pDlg->m_OpNum )
   {
     case TEXT_TO_PROJECT:
       m_pDlg->m_pUpdtr->TXT2GPL( m_pDlg, m_pDlg->m_TxtPath, m_pDlg->m_LogPath,
                                  m_pDlg->m_ParamList,
                                  m_pDlg->m_Mode, m_pDlg->GetNode(), 
-                                 m_pDlg->GetMap(), m_pDlg->m_Cfs, m_pDlg->m_UTMP );
+                                 m_pDlg->GetMap(), m_pDlg->m_Cfs0 );
       break;
     case PROJECT_TO_PROJECT:
       if( m_pDlg->m_Mode & CM_REMOVE_ALL )
@@ -1472,8 +1512,8 @@ CConwThread::InitInstance()
                                  m_pDlg->m_minIdent, m_pDlg->m_maxIdent,
                                  m_pDlg->m_Time1, m_pDlg->m_Time2,
                                  m_pDlg->GetNode(), m_pDlg->GetMap(),
-                                 m_pDlg->m_Cfs, m_pDlg->m_Rgn, 
-                                 !m_pDlg->m_Rgn ? 0 : &m_pDlg->m_Box );
+                                 m_pDlg->m_Cfs0, m_pDlg->m_UTMP, m_pDlg->m_Cfs1, 
+																 m_pDlg->m_Rgn, !m_pDlg->m_Rgn ? 0 : &m_pDlg->m_Box );
       m_pDlg->m_pView->SetDrh();
       m_pDlg->m_pView->ClearSelection( 0, 0 );
       m_pDlg->m_pView->m_Undo.RemoveAll();
@@ -1487,7 +1527,7 @@ CConwThread::InitInstance()
                                  m_pDlg->m_tableNumber,
                                  m_pDlg->m_minIdent, m_pDlg->m_maxIdent,
                                  m_pDlg->m_Time1, m_pDlg->m_Time2,
-                                 m_pDlg->GetMap(), m_pDlg->m_Cfs,
+                                 m_pDlg->GetMap(), m_pDlg->m_Cfs0,
                                  m_pDlg->m_Rgn,
                                  !m_pDlg->m_Rgn ? 0 : &m_pDlg->m_Box );
       break;
@@ -1498,7 +1538,7 @@ CConwThread::InitInstance()
                                  m_pDlg->m_tableNumber, 
                                  m_pDlg->m_minIdent, m_pDlg->m_maxIdent,
                                  m_pDlg->m_Time1, m_pDlg->m_Time2,
-                                 m_pDlg->GetMap(), m_pDlg->m_Cfs,
+                                 m_pDlg->GetMap(), m_pDlg->m_Cfs0,
                                  m_pDlg->m_Rgn,
                                  !m_pDlg->m_Rgn ? 0 : &m_pDlg->m_Box );
       break;
@@ -1509,7 +1549,7 @@ CConwThread::InitInstance()
                                  m_pDlg->m_tableNumber, m_pDlg->m_entryNumber,
                                  m_pDlg->m_SubsPar,
                                  m_pDlg->GetDlgItemInt(IDC_CVD_KEY_FIELD_EDIT ),
-                                 m_pDlg->m_KeyPar, m_pDlg->m_Cfs, 
+                                 m_pDlg->m_KeyPar, m_pDlg->m_Cfs0, 
                                  m_pDlg->GetDlgItemInt( IDC_CVD_DECOMPOSE_PARAM_EDIT ));
       break;
   }

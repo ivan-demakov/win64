@@ -24,7 +24,9 @@ CMapView::GetDsbl( int type )
   int tps[CLASS_RANGE];
   int dsbl = m_pObjDef->GetDerived( type, tps );
   if( !dsbl )
-    return !( m_LocalLaw[type] & 1 ) || !( m_ShowMap[i] & m ) || !IsVisibleInScale( type );
+    return !( m_LocalLaw[type] & 1 ) || 
+           !( GetBit( m_ShowMap, type )) ||
+           !IsVisibleInScale( type );
   
 	while( --dsbl >= 0 && GetDsbl( tps[dsbl] ));
   return dsbl < 0;
@@ -59,7 +61,6 @@ CMapView::OnUpdateAppCommandUI( CCmdUI* pCmdUI )
   };
 
   pCmdUI->SetCheck( GetMode( pCmdUI->m_nID ) != 0 );
-
   UINT* p;
   for( p = aid ; *p && pCmdUI->m_nID != *p ; ++p );
   pCmdUI->Enable( !*p || m_Conductor.GetUserRights() >= UR_L_EDIT );

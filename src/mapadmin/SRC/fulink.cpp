@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include "dwin.h"
 #include "mview.h"
 #include "miscmode.h"
 #include "measmode.h"
@@ -11,6 +12,8 @@
 static char BASED_CODE THIS_FILE[] = __FILE__;
 #endif
 //=====================================================================
+using namespace Trig;
+
 static int
 GetLinkPoint( CMapView* pView, CTabIdent const& id, CPoint* pPoint )
 {
@@ -29,8 +32,8 @@ GetLinkPoint( CMapView* pView, CTabIdent const& id, CPoint* pPoint )
     else
     if( pObj->GetPolygon())
     {
-		CVisiblePrim* pp;
-      for(pp = pObj->GetActualCont()->GetHead() ; pp && pp->GetType() != KEY_TEXT ; pp = pp->GetNext());
+      CVisiblePrim* pp;
+      for( pp = pObj->GetActualCont()->GetHead() ; pp && pp->GetType() != KEY_TEXT ; pp = pp->GetNext());
       if( pp )
       {
         CBox box;
@@ -78,9 +81,8 @@ CMapView::AddFuncLink( CFuncLink& funcLink )
     return 0;
 
   m_bRedraw = m_bFuLinksShow;
-
-  int i;
-  for(i = m_FuLinkArray.GetSize() ; --i >= 0 && ( funcLink != m_FuLinkArray[i] ); );
+  int i = m_FuLinkArray.GetSize();
+  while( --i >= 0 && ( funcLink != m_FuLinkArray[i] ));
   if( i < 0 )
     i = m_FuLinkArray.Add( funcLink );
   else
@@ -100,8 +102,8 @@ CMapView::RemFuncLink( CFuncLink& funcLink )
   if( !funcLink.DefPoints( this ))
     return 0;
 
-  int i;
-  for(i = m_FuLinkArray.GetSize() ; --i >= 0 && ( funcLink != m_FuLinkArray[i] ); );
+  int i = m_FuLinkArray.GetSize();
+  while( --i >= 0 && ( funcLink != m_FuLinkArray[i] ));
   if( i < 0 )
     return 0;
 
@@ -331,28 +333,28 @@ CMapView::TestFLTopscr( CPoint* pLoc )
     for( POSITION pos = m_SelectList.GetTailPosition() ; !pScr && pos ;
          pScr = m_SelectList.GetPrev( pos )->DetectedSpecial( spot ));
 
-	CString ObjStr;
-  if( !pScr )
-	{
-		CDrawObject* pObj = GetDetectedObject( 1 );
-		if( pObj )
-			if( pObj->IsSpecSelected())
-			  pScr = &pObj->GetSpecSelectText();
-			else
-			if( m_bObjToolTips )
-			{
-  			ObjStr = m_pObjDef->GetName( pObj->Class());
-			  for( CVisiblePrim* p = pObj->GetActualCont()->GetHead() ; p ; p = p->GetNext())
-				  if( p->IsAnyVisible() && p->GetText())
-					{
-						ObjStr += "\n";
-						ObjStr += p->GetText();
-					}				
-  			pScr = &ObjStr;
-			}
-	}
+  CString ObjStr;
+  if( !pScr && !GetBuilding( 0 ))
+  {
+    CDrawObject* pObj = GetDetectedObject( 1 );
+    if( pObj )
+      if( pObj->IsSpecSelected())
+        pScr = &pObj->GetSpecSelectText();
+      else
+      if( m_bObjToolTips )
+      {
+        ObjStr = m_pObjDef->GetName( pObj->Class());
+        for( CVisiblePrim* p = pObj->GetActualCont()->GetHead() ; p ; p = p->GetNext())
+          if( p->IsAnyVisible() && p->GetText())
+          {
+            ObjStr += "\n";
+            ObjStr += p->GetText();
+          }
+          pScr = &ObjStr;
+        }
+      }
 
-  if( pScr && !pScr->IsEmpty())
+  if( CMainWin::m_bToolTips && pScr && !pScr->IsEmpty())
   {
     char const* ps = *pScr;
     CSize S( 0, 10 );
@@ -361,7 +363,7 @@ CMapView::TestFLTopscr( CPoint* pLoc )
     f.CreateFontIndirect( &MsgFnt );
     dc.SelectObject( &f );
     char const* p0 = ps;
-	char const* p1;
+    char const* p1;
     for( p1 = p0 ; *p1 ; p0 = p1 + 1 )
     {
       ( p1 = strchr( p0, '\n' )) || ( p1 = strchr( p0, '\0' ));

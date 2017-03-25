@@ -76,7 +76,7 @@ class CChangeClassMode : public CAppMode
 {
 public:
   CChangeClassMode() :
-    CAppMode( AIDG_OBJACTIONMODE, IDC_CHANGE_CLASS, 
+    CAppMode( AIDG_OBJACTIONMODE, IDC_CHANGE_CLASS,
               AM_FUNIMODE | AM_FESCMODE | AM_FLBDOWN | AM_FRBDOWN,
               IDM_CHANGE_CLASS_MODE )
   {}
@@ -91,46 +91,47 @@ private:
 class CMagnitMode : public CAppMode
 {
 public:
-  CMagnitMode( UINT IDM ) :
-    CAppMode( AIDG_MAGNITMODE, 0, AM_FMOUSEMOVE | AM_FLBDOWN | AM_FRBDOWN, IDM ),
-		m_nSelectMode( IDM - IDM_MAGNIT_MODE ),
-		m_pPoint( 0 )
+  CMagnitMode() :
+    CAppMode( AIDG_MAGNITMODE, 0, AM_FMOUSEMOVE | AM_FLBDOWN | AM_FRBDOWN, IDM_MAGNIT_MODE1 ),
+    m_nSelectMode( 0 ),
+    m_pPoint( 0 )
   {
-		m_nMode = 1;
-	}
+    m_nMode = 1;
+  }
   int OnLButtonDown( UINT &flags, CPoint &loc )
-		{ return OnButtonDown( flags, loc ); }
+    { return OnButtonDown( flags, loc ); }
   int OnLButtonUp( UINT &flags, CPoint &loc )
-		{ return OnButtonDown( flags, loc ); }
+    { return OnButtonDown( flags, loc ); }
   int OnRButtonDown( UINT &flags, CPoint &loc )
-		{ return OnButtonDown( flags, loc ); }
+    { return OnButtonDown( flags, loc ); }
   int OnRButtonUp( UINT &flags, CPoint &loc )
-		{ return OnButtonDown( flags, loc ); }
+    { return OnButtonDown( flags, loc ); }
   int OnMouseMove( UINT &flags, CPoint &loc );
   void Draw( CDC* pDC );
-
-	void Select( CPoint pt );
-	void Select( CPoint* pPt, int n );
-	void Select( CRect const& r );
+  void Select( CPoint pt );
+  void Select( CPoint* pPt, int n );
+  void Select( CRect const& r );
+  void SetSelMode( int msk ) { m_nSelectMode ^= msk; }
+  int  GetSelMode() { return m_nSelectMode; }
 
 private:
   int OnButtonDown( UINT &flags, CPoint &loc );
-	
-	int m_nSelectMode;
+
+  int m_nSelectMode;
 
   CPoint* svl[3];
   int     snl[3];
   int     dl[3];
-  int     nLine;
+  int     m_nLine;
+  int     m_nRect;
 
-	CPoint* m_pPoint;
-	CPoint  m_CurPoint;
-	CPoint  m_CurPos;
-	int     m_CurDist;
+  CPoint* m_pPoint;
+  CPoint  m_CurPoint;
+  CPoint  m_CurPos;
+  int     m_CurDist;
 
   CRect svr[4];
   int   dr[4];
-  int   nRect;
 };
 //=====================================================================
 #endif

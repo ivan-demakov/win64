@@ -17,7 +17,6 @@
 #include "dwin.h"
 #include "miscmode.h"
 #include "mercator.h"
-#include "dvprint.h"
 //=====================================================================
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -205,7 +204,7 @@ CMapView::PrintBorder( int side, PrintPageInfo* ppi, CRect const& r, CDC* pDC )
     CFont* pOldFont;
     pDC->SetTextAlign( TA_CENTER | TA_TOP );
     char sn[32] = "";
-    int tl = sprintf( sn, "Ряд %d Лист %d", ppi->row, ppi->col );
+    int tl = sprintf_s( sn, "Ряд %d Лист %d", ppi->row, ppi->col );
     int dx = x0 == x1 ? -mkf : 0;
     int dy = y0 == y1 ? -mkf : 0;
     CRect r( x0, y0, x1 + dx, y1 + dy );
@@ -370,12 +369,6 @@ CMapView::OnPrint( CDC* pDC, CPrintInfo* pInfo )
     float dy = m_PrintOrg.y * ( 1.0 - cs ) - m_PrintOrg.x * sn;
 
     XFORM tf = { cs, sn, -sn, cs, dx, dy };
-/*
-    SetGraphicsMode( pDC->GetSafeHdc(), GM_ADVANCED );
-    SetWorldTransform( pDC->GetSafeHdc(), &tf );
-    data.Draw( pDC, OBJLAYER );
-    SetIdenticalTransform( pDC );
-*/
     for( POSITION pos = localSelect.GetHeadPosition() ; pos ; )
     {
       CDrawObject* pObj = localSelect.GetNext( pos );
@@ -415,11 +408,8 @@ CMapView::OnPrint( CDC* pDC, CPrintInfo* pInfo )
   CRect d1( 0, 0, 1, 1 );
   pDC->DPtoLP( &d1 );
   r.BottomRight() -= d1.Size();
-  
   int fr = 0;
-  for( int i = 4 ; --i >= 0 ;
-       PrintBorder( i, ppi, r, pDC ),
-       fr |= ppi->crmt[i] == MS_FRAME );
+  for( int i = 4 ; --i >= 0 ; PrintBorder( i, ppi, r, pDC ), fr |= ppi->crmt[i] == MS_FRAME );
 
   if( fr )
   {
@@ -452,7 +442,7 @@ CMapView::OnPrint( CDC* pDC, CPrintInfo* pInfo )
   {
     int lw = ppi->crmt[3] == MS_FRAME ? lnv : 0;
     char ts[32];
-    int tl = sprintf( ts, "Масштаб 1:%d", sc );
+    int tl = sprintf_s( ts, "Масштаб 1:%d", sc );
     pDC->SetTextAlign(( bAlb ? TA_RIGHT : TA_LEFT ) | TA_TOP );
     pDC->TextOut( bAlb ? ppi->area.right - dh / 2 : ppi->area.left,
                               ppi->area.bottom + 8 + lw, ts, tl );
@@ -473,7 +463,7 @@ CMapView::OnPrint( CDC* pDC, CPrintInfo* pInfo )
     if( CPageSetupPage::m_numerationEnb )
     {
       char nm[32];
-      int tl = sprintf( nm, "%d", CPageSetupPage::m_startNumber + pageNum );
+      int tl = sprintf_s( nm, "%d", CPageSetupPage::m_startNumber + pageNum );
       pDC->SetTextAlign( TA_CENTER | TA_BOTTOM );
       pDC->TextOut( cntr, ppi->area.top - dh, nm, tl );
 
@@ -499,7 +489,7 @@ CMapView::OnPrint( CDC* pDC, CPrintInfo* pInfo )
           if( b[i])
           {
             char nm[32];
-            tl = sprintf( nm, "%d", CPageSetupPage::m_startNumber + pageNum + dn[i] );
+            tl = sprintf_s( nm, "%d", CPageSetupPage::m_startNumber + pageNum + dn[i] );
             pDC->Rectangle( pr[i] );
             pDC->TextOut( c.x, c.y + dh, nm, tl );
           }
@@ -517,12 +507,12 @@ CMapView::OnPrint( CDC* pDC, CPrintInfo* pInfo )
   if( pInfo->m_bPreview )
   {
     char s[128];
-    int n = sprintf( s, "Лист %d из %d",
-                     ( ppi->row - 1 ) * m_PrintPageNumX + ppi->col, m_PrintPageNum );
+    int n = sprintf_s( s, "Лист %d из %d",
+                       ( ppi->row - 1 ) * m_PrintPageNumX + ppi->col, m_PrintPageNum );
     if( a )
     {
       int ma = abs( a );
-      sprintf( s + n, ". Поворот на %s%d.%1d град.", a >= 0 ? "" : "-", ma/10, ma%10 );
+      sprintf_s( s + n, sizeof s - n, ". Поворот на %s%d.%1d град.", a >= 0 ? "" : "-", ma/10, ma%10 );
     }
     ReportHint( s );
   }
@@ -725,8 +715,8 @@ CMapView::OnFilePrint()
                 OnPrepareDC( &dcPrint, &printInfo );
 
                 // write current page
-                TCHAR szBuf[80];
-                wsprintf( szBuf, strTemp, printInfo.m_nCurPage );
+                char szBuf[80];
+                sprintf_s( szBuf, strTemp, printInfo.m_nCurPage );
                 dlgPrintStatus.SetDlgItemText( AFX_IDC_PRINT_PAGENUM, szBuf );
 
                 // attempt to start the current page
@@ -749,7 +739,7 @@ CMapView::OnFilePrint()
         AfxGetMainWnd()->EnableWindow( 1 );
 
         OnEndPrinting( &dcPrint, 0 );
-          dlgPrintStatus.DestroyWindow();
+        dlgPrintStatus.DestroyWindow();
       }
       delete pPageMap;
     }

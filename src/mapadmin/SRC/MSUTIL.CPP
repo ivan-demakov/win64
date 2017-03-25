@@ -157,10 +157,11 @@ IsNumPair( ksi_obj pair )
   return KSI_PAIR_P( pair ) && KSI_NUM_P( KSI_CAR( pair )) && KSI_NUM_P( KSI_CDR( pair ));
 }
 //=====================================================================
-static Point
+static POINT
 TurnPoint( int x, int y, double co, double si )
 {
-  return Point(  x * co + y * si, y * co - x * si );
+  POINT p = { x * co + y * si, y * co - x * si };
+  return p;
 }
 //=====================================================================
 ResultCode
@@ -176,7 +177,8 @@ ConvertObject( int vers, ksi_obj init_obj, TGstream& dst, int level )
 
   init_obj = KSI_CDR( init_obj );
 
-  rec.type |= ( KSI_TRUE_P( ksi_assv_ref( init_obj, keyShape )) ? PF_SHAPE    : 0 ) |
+  
+	rec.type |= ( KSI_TRUE_P( ksi_assv_ref( init_obj, keyShape )) ? PF_SHAPE    : 0 ) |
               ( KSI_TRUE_P( ksi_assv_ref( init_obj, keyLVis  )) ? PF_LVISIBLE : 0 ) |
               ( KSI_TRUE_P( ksi_assv_ref( init_obj, keyHVis  )) ? PF_HVISIBLE : 0 ) |
               ( KSI_TRUE_P( ksi_assv_ref( init_obj, keySVis  )) ? PF_SVISIBLE : 0 );
@@ -249,9 +251,8 @@ ConvertObject( int vers, ksi_obj init_obj, TGstream& dst, int level )
       ksi_obj pt = ksi_assv_ref( init_obj, keyCoord );
       if( !IsNumVect( pt, 2, 2 ))
         return R_CONVERTERROR;
-      point par;
-      par.x = ksi_num2int( KSI_VEC_REF( pt, 0 ));
-      par.y = ksi_num2int( KSI_VEC_REF( pt, 1 ));
+      POINT par = { ksi_num2int(KSI_VEC_REF(pt, 0)),
+                    ksi_num2int(KSI_VEC_REF(pt, 1)) };
       r = WriteData( &par, sizeof par, &dst );
       break;
     }
@@ -337,7 +338,7 @@ ConvertObject( int vers, ksi_obj init_obj, TGstream& dst, int level )
           par.param.full.FontParams.font1.color  = fc;
         }
       }
-      r = WriteData( &par, sizeof point, &dst );
+      r = WriteData( &par, sizeof POINT, &dst );
       if( r == R_OK )
         r = WriteData( bVisible ? (void*)&par.param.full : (void*)&par.param.string,
                        bVisible ?  sizeof par.param.full :  sizeof par.param.string,
@@ -429,8 +430,8 @@ ConvertObject( int vers, ksi_obj init_obj, TGstream& dst, int level )
       {
         ksi_obj h = KSI_CAR( list );
         list = KSI_CDR( list );
-        Point c( ksi_num2int( KSI_CAR( h )), ksi_num2int( KSI_CDR( h )));
-        r = WriteData( &c, sizeof Point, &dst );
+        POINT c = { ksi_num2int(KSI_CAR(h)), ksi_num2int(KSI_CDR(h)) };
+        r = WriteData( &c, sizeof POINT, &dst );
         --len;
       }
       break;
@@ -453,8 +454,8 @@ ConvertObject( int vers, ksi_obj init_obj, TGstream& dst, int level )
         lst = KSI_CDR( lst );
         if( !IsNumPair( h ))
           return R_CONVERTERROR;
-        Point c( ksi_num2int( KSI_CAR( h )), ksi_num2int( KSI_CDR( h )));
-        r = WriteData( &c, sizeof Point, &dst );
+        POINT c = { ksi_num2int(KSI_CAR(h)), ksi_num2int(KSI_CDR(h)) };
+        r = WriteData( &c, sizeof POINT, &dst );
       }
       break;
     }
@@ -494,11 +495,7 @@ ConvertObject( int vers, ksi_obj init_obj, TGstream& dst, int level )
         }
         case PF_ELLIPSE :
         {
-          rect par;
-          par.left   = l;
-          par.top    = t;
-          par.right  = r;
-          par.bottom = b;
+          RECT par = { l, t, r, b };
           r = WriteData( &par, sizeof par, &dst );
           break;
         }
@@ -626,7 +623,7 @@ ConvertObject( int vers, void** ppSrc, int bFull )
     case PF_POINT:
     {
       *ppSrc = &pPr->param.pnt + 1;
-      point* pPnt = &pPr->param.pnt;
+      POINT* pPnt = &pPr->param.pnt;
       ksi_prim = ksi_cons( MakeCoord( pPnt->x, pPnt->y ),
                            ksi_prim );
       break;
@@ -743,8 +740,8 @@ ConvertObject( int vers, void** ppSrc, int bFull )
     case PF_POLYPOINT:
     case PF_FOOTNOTE:
     {
-      point* p = pObjPar->polypoint.points;
-      point* pp = p + pObjPar->polypoint.length;
+      POINT* p = pObjPar->polypoint.points;
+      POINT* pp = p + pObjPar->polypoint.length;
       *ppSrc = pp;
       ksi_obj list = ksi_nil;
       int x = 0, y = 0;
@@ -758,8 +755,8 @@ ConvertObject( int vers, void** ppSrc, int bFull )
     }
     case PF_MULTILINE:
     {
-      point* p0 = pObjPar->polypoint.points;
-      point* pp = p0 + pObjPar->polypoint.length;
+      POINT* p0 = pObjPar->polypoint.points;
+      POINT* pp = p0 + pObjPar->polypoint.length;
       *ppSrc = pp;
       ksi_obj list = ksi_nil;
       while(( pp -= 2 ) >= p0 )
@@ -773,7 +770,7 @@ ConvertObject( int vers, void** ppSrc, int bFull )
     }
     case PF_ELLIPSE :
     {
-      rect* pr = &pObjPar->ellipse;
+      RECT* pr = &pObjPar->ellipse;
       *ppSrc = pr + 1;
       ksi_prim = ksi_cons( MakeCoord( pr->left, pr->top ),
                  ksi_cons( MakeSize( pr->right - pr->left, pr->bottom - pr->top, 0 ),
@@ -849,7 +846,7 @@ CalcBoundBox( int vers, void** ppSrc )
     case PF_FOOTNOTE:
     {
       int nPoints = pObjPar->polypoint.length;
-      Point* pPoints = (Point*)pObjPar->polypoint.points;
+      POINT* pPoints = pObjPar->polypoint.points;
       *ppSrc = pPoints + nPoints;
       if( bVisible )
         return CBox((CPoint*)pPoints, nPoints, style, width, 0 );
@@ -933,7 +930,7 @@ CalcBoundBox( int vers, void** ppSrc )
     }
     case PF_ELLIPSE :
     {
-      rect* pr = &pObjPar->ellipse;
+      RECT* pr = &pObjPar->ellipse;
       CPoint lt( pr->left, pr->top );
       CPoint rb( pr->right, pr->bottom );
       CSize sz( rb - lt );
@@ -978,9 +975,9 @@ GetDT()
   SYSTEMTIME st;
   GetLocalTime( &st );
   static char dtm[256];
-  sprintf( dtm, " %02d.%02d.%4d, %02d:%02d:%02d ",
-           st.wDay, st.wMonth, st.wYear,
-           st.wHour, st.wMinute, st.wSecond );
+  sprintf_s( dtm, " %02d.%02d.%4d, %02d:%02d:%02d ",
+             st.wDay, st.wMonth, st.wYear,
+             st.wHour, st.wMinute, st.wSecond );
   return dtm;
 }
 //=====================================================================
@@ -1017,22 +1014,22 @@ TraceError( int mapNum, ResultCode r, char const* opName, long p0, long p1 )
   if( r < CELEM( Err ))
     msg = Err[r];
   else
-    sprintf( msg = tmp, "#%d", r );
+    sprintf_s( msg = tmp, sizeof tmp, "#%d", r );
 
   if( msg )
   {
     char t[1024], m[16] = "--";
     if( mapNum >= 0 )
-      sprintf( m, "[%d]", mapNum );
-    int n = sprintf( t, "%s%s%s %s", m, GetDT(), opName, msg );
+      sprintf_s( m, "[%d]", mapNum );
+    int n = sprintf_s( t, "%s%s%s %s", m, GetDT(), opName, msg );
     if( p0 && p1 )
-      sprintf( t + n, " : %d %d", p0, p1 );
+      sprintf_s( t + n, sizeof t - n, " : %d %d", p0, p1 );
     else
     if( p0 )
-      sprintf( t + n, " : %08x", p0 );
+      sprintf_s( t + n, sizeof t - n, " : %08x", p0 );
     else
     if( p1 )
-      sprintf( t + n, " : %d", p1 );
+      sprintf_s( t + n, sizeof t - n, " : %d", p1 );
     #ifndef _FULL_PROJECT
       if( r != R_INFORMATION )
         ErrBox( t );
@@ -1044,7 +1041,7 @@ TraceError( int mapNum, ResultCode r, char const* opName, long p0, long p1 )
 }
 //=====================================================================
 ResultCode
-ReadData( void* pData, int size, std::istream* pSrc )
+ReadData( void* pData, int size, istream* pSrc )
 {
   pSrc->read((char*)pData, size );
   return pSrc->good() ? R_OK :
@@ -1055,7 +1052,7 @@ ReadData( void* pData, int size, std::istream* pSrc )
 }
 //=====================================================================
 ResultCode
-WriteData( void* pData, int size, std::ostream* pDst )
+WriteData( void* pData, int size, ostream* pDst )
 {
   pDst->write((char*)pData, size );
   return pDst->good() ? R_OK :
@@ -1066,14 +1063,14 @@ WriteData( void* pData, int size, std::ostream* pDst )
 }
 //=====================================================================
 ResultCode
-ReadData( std::streampos pos, void* pData, int size, std::istream* pSrc )
+ReadData( streampos pos, void* pData, int size, istream* pSrc )
 {
   pSrc->seekg( pos );
   return pSrc->tellg() == pos ? ReadData( pData, size, pSrc ) : R_FAILSTREAM;
 }
 //=====================================================================
 ResultCode
-WriteData( std::streampos pos, void* pData, int size, std::ostream* pDst )
+WriteData( streampos pos, void* pData, int size, ostream* pDst )
 {
   pDst->seekp( pos );
   return pDst->tellp() == pos ? WriteData( pData, size, pDst ) : R_FAILSTREAM;
@@ -1101,5 +1098,19 @@ int
 GetString( char const* path, char const* section, char const* entry, char* par, int size, char* def )
 {
   return GetPrivateProfileString( section, entry, def, par, size, path );
+}
+//=====================================================================
+int
+GetBit( char* p, int n )
+{
+  char m = 1 << (n&7);
+  return ( p[n>>3] & m ) != 0;
+}
+//=====================================================================
+void
+SetBit( char* p, int n, int v )
+{
+  char m = 1 << (n&7);
+  p[n>>3] |= ( v ? m : ~m );
 }
 //=====================================================================

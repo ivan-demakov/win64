@@ -144,8 +144,9 @@ CToolbarDlg::ShowExample( int n )
 {
   if( !m_pBar )
     return;
-
-  for( int i = m_nExButtons ; --i >= 0 ; delete m_ExButtons[i] );
+  
+  int i;
+  for( i = m_nExButtons ; --i >= 0 ; delete m_ExButtons[i] );
 
   CWnd* pStatic = GetDlgItem( IDC_TBD_EXAMPLE_STATIC );
   WINDOWPLACEMENT WP;
@@ -154,9 +155,7 @@ CToolbarDlg::ShowExample( int n )
   int y = WP.rcNormalPosition.top + 4;
   CRect br( x, y, x + BUTTON_X_SIZE, y + BUTTON_Y_SIZE );
   m_nExButtons = 0;
-  
-  int i;
-  for(i = n ; i < m_pBar->GetBarSize() && br.right < WP.rcNormalPosition.right ; ++i )
+  for( i = n ; i < m_pBar->GetBarSize() && br.right < WP.rcNormalPosition.right ; ++i )
     if( m_pBar->GetID( i ) == ID_SEPARATOR )
     {
       m_ExButtons[m_nExButtons++] = 0;
@@ -164,8 +163,8 @@ CToolbarDlg::ShowExample( int n )
     }
     else
     {
-		int k;
-      for( k = m_nButtons ; --k >= 0 && m_Names[k].CompareNoCase( m_pBar->GetName( i )) ; );
+      int k = m_nButtons;
+      while( --k >= 0 && m_Names[k].CompareNoCase( m_pBar->GetName( i )));
       ASSERT( k >= 0 );
       m_ExButtons[m_nExButtons++] = new CMyButton( this, br, m_Buttons[k]->GetBitmap(), m_pBar->GetID( i ));
       br.OffsetRect( BUTTON_X_SIZE, 0 );
@@ -195,8 +194,8 @@ CToolbarDlg::OnButtonDown( CMyButton* pButton )
   if( !m_pBar )
     return;
 
-  int i;
-  for(i = m_nButtons ; --i >= 0 && m_Buttons[i]->GetBitmap() != pButton->GetBitmap() ; );
+  int i = m_nButtons;
+  while( --i >= 0 && m_Buttons[i]->GetBitmap() != pButton->GetBitmap());
   ASSERT( i >= 0 );
   CString const& name = m_Names[i];
   for( i = m_pBar->GetBarSize() ; --i >= 0 && m_pBar->GetName( i ).CompareNoCase( name ) ; );
@@ -278,9 +277,9 @@ CToolbarDlg::OnButtonDrop( CMyButton* pButton )
     else
     if( lsp )
       m_pBar->RemoveButton( k );
-
-	int i;
-    for(i = m_nButtons ; --i >= 0 && m_Buttons[i]->GetBitmap() != pButton->GetBitmap() ; );
+    
+    int i = m_nButtons;
+    while( --i >= 0 && m_Buttons[i]->GetBitmap() != pButton->GetBitmap());
     m_pBar->InsertButton( k, m_Names[i], tt, id );
   }
 
@@ -299,7 +298,7 @@ CToolbarDlg::SaveModified()
 
   CMainWin* pWnd = (CMainWin*)AfxGetMainWnd();
   char m[128];
-  sprintf( m, "Сохранить изменения панели \"%s\"?", pWnd->TBS[pWnd->GetBarNum( m_BarID )].pName );
+  sprintf_s( m, "Сохранить изменения панели \"%s\"?", pWnd->TBS[pWnd->GetBarNum( m_BarID )].pName );
   int r = AskBox( m );
   if( r == IDYES )
     OnOK();

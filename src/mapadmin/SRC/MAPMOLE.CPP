@@ -36,8 +36,9 @@ CMapmoleApp::CMapmoleApp()
 LPCSTR
 CMapmoleApp::GetProjectFilePath( LPCSTR name )
 {
-  strcpy( m_FilePath, m_pszProfileName );
-  strcpy( strrchr( m_FilePath, '\\' ), Compose( "\\", name, 0 ));
+  strcpy_s( m_FilePath, m_pszProfileName );
+  char* p = strrchr( m_FilePath, '\\' );
+  strcpy_s( p, sizeof m_FilePath - ( p - m_FilePath ), Compose( "\\", name, 0 ));
   return m_FilePath;
 }
 //=========================================================================
@@ -63,8 +64,8 @@ CMapmoleApp::OpenDocumentFile( LPCSTR DocFileName )
     else
       return 0;
 
-  std::fstream DataStream;
-  DataStream.open( DocFileName, std::ios::in| std::ios::out| std::ios::binary, filebuf::sh_read );
+  fstream DataStream;
+  DataStream.open( DocFileName, ios::in|ios::out|ios::binary, SH_DENYRW );
   if( DataStream.good())
     DataStream.close();
   else
@@ -208,18 +209,20 @@ CMapmoleApp::InitInstance()
   if( cl[0] == '"' )
     ++cl;
   if( strchr( cl, '\\' ))
-    strcpy( m_ModulePath, cl );
+    strcpy_s( m_ModulePath, cl );
   else
   {
     int dl = GetCurrentDirectory( sizeof m_ModulePath, m_ModulePath );
-    strcpy( m_ModulePath + dl, Compose( "\\", cl, 0 ));
+    strcpy_s( m_ModulePath + dl, sizeof m_ModulePath - dl, Compose( "\\", cl, 0 ));
   }
-  char* pp = strrchr( m_ModulePath, '.' );
 
   char buf[256];
   char const pifn[] = "project.ini";
+  char* pp = strrchr( m_ModulePath, '.' );
+  if( !pp )
+    pp = m_ModulePath + strlen( m_ModulePath );
 
-  strcpy( pp ? pp : m_ModulePath + strlen( m_ModulePath ), ".ini" );
+  strcpy_s( pp, sizeof m_ModulePath - ( pp - m_ModulePath ), ".ini" );
   if( !FileExist( m_ModulePath ))
   {
     ErrBox( Compose( "Не найден файл", m_ModulePath, 0 ));
@@ -234,7 +237,7 @@ CMapmoleApp::InitInstance()
 
   pp = strrchr( m_ModulePath, '\\' );
 
-  strcpy( pp, Compose( "\\", buf, "\\", pifn, 0 ));
+  strcpy_s( pp, sizeof m_ModulePath - ( pp - m_ModulePath ), Compose( "\\", buf, "\\", pifn, 0 ));
 
   if( !FileExist( m_ModulePath ))
   {
@@ -243,10 +246,12 @@ CMapmoleApp::InitInstance()
   }
 
   delete (char*)m_pszProfileName;
-  m_pszProfileName = new char[strlen( m_ModulePath ) + 1];
-  strcpy( (char*)m_pszProfileName, m_ModulePath );
+  int l = strlen( m_ModulePath ) + 1;
+  m_pszProfileName = new char[l];
+  strcpy_s( (char*)m_pszProfileName, l, m_ModulePath );
 
-  pp = strrchr( strcpy( buf, m_ModulePath ), '\\' );
+  strcpy_s( buf, m_ModulePath );
+  pp = strrchr( buf, '\\' );
   pp[1] = 0;
   SetCurrentDirectory( buf );
 
@@ -280,12 +285,6 @@ CMapmoleApp::InitInstance()
   ksi_load_init_file( KSI_INIT_FILE );
   ksi_reg_unit( ksi_func, 0 );
   init_keys();
-
-#ifdef _AFXDLL
-  Enable3dControls();
-#else
-  Enable3dControlsStatic();
-#endif
 
   AddDocTemplate(
     new CSingleDocTemplate( IDR_MAP_DOC,
@@ -327,7 +326,7 @@ CMapmoleApp::GetProfileKeys( char const* pSection, char* buf, int size )
 {
   GetPrivateProfileString( pSection, 0, "", buf, size, m_ModulePath );
   int n;
-  for(int n = 0 ; *buf ; buf += strlen( buf ) + 1, ++n );
+  for( n = 0 ; *buf ; buf += strlen( buf ) + 1, ++n );
   return n;
 }
 //======================================================================

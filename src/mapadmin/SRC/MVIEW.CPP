@@ -116,30 +116,32 @@ CMapView::SaveToStore( CObjList& ObjList, int bNew, int bAddToClip )
   if( ObjList.IsEmpty())
     return;
 
-  time_t t;
-  clock_t c;
+  long t, c;
   m_MapStore.GetTimeClock( &t, &c );
 
   dword mg = bNew ? INSMAGIC : REPMAGIC;
   TGstream nss;
   nss.write((char*)&mg, sizeof mg );
+  int nObj = 0;
 
   for( POSITION pos = ObjList.GetHeadPosition() ; pos ; )
   {
-    CDrawObject* pObj = ObjList.GetNext( pos );
+    CDrawObject* pObj = ObjList.GetNext(pos);
     if( !pObj->IsObjectTemp())
     {
       pObj->SetTimeClock( t, c );
       pObj->TranslateToMap( &nss );
-      if( nss.tellp() > MIN_BUF_SIZE || !pos )
-      {
-        m_MapStore.AddObject( nss );
-        nss.seekp( 0 );
-        nss << t;
-      }
-			m_Conductor.RegObjMifCoord( pObj );
+      m_Conductor.RegObjMifCoord( pObj );
+      ++nObj;
     }
   }
+
+  int tl = nss.pcount();
+  char tm[1024];
+  memcpy(tm, nss.str(), tl );
+
+  if( nObj )
+    m_MapStore.AddObject( nss );
 
   if( bAddToClip )
 	{
@@ -178,8 +180,7 @@ CMapView::LoadFromStore( CGraphData* pDst,
   {
     int nObj = 0;
     TGstream buf;
-    r = m_MapStore.SelectObjects( *((Rect*)&r1), *((Rect*)&r2), scale1,
-                                  *((Rect*)&r0), scale0, buf, 0, &nObj );
+    r = m_MapStore.SelectObjects( r1, r2, scale1,r0, scale0, buf, 0, &nObj );
     if( r <= R_REPEAT )
       LoadMap( pDst, buf.str(), nObj, scale1 );
   }
@@ -196,7 +197,7 @@ CMapView::LoadFromStore( CGraphData* pDst, CRect const& r0,
   {
     int nObj;
     TGstream buf;
-    r = m_MapStore.SelectByClass( *((Rect*)&r0), pClassArray, nClass, buf, &nObj );
+    r = m_MapStore.SelectByClass( r0, pClassArray, nClass, buf, &nObj );
     if( r <= R_REPEAT && nObj )
       LoadMap( pDst ? pDst : &m_ClipData, buf.str(), nObj, 0, 1 );
   }
@@ -247,11 +248,6 @@ CMapView::StartInit()
   pDoc->CreateLayers( &m_ClipData );
 
   memset( CDrawContainer::m_bSASMap, 0, sizeof CDrawContainer::m_bSASMap );
-  memset( m_ShowMap, 0, sizeof m_ShowMap );
-  int t;
-  for( t = FULL_RANGE ; --t > 0 ; )
-    if( m_pObjDef->GetLoad( t ) & 1 )
-      m_ShowMap[t>>3] |= 1 << ( t & 7 );
 
   for( int n = 2 ; --n >= 0 ; )
   {
@@ -269,13 +265,7 @@ CMapView::StartInit()
       sscanf( p, "%x", pi++ );
   }
 
-  for( t = FULL_RANGE ; --t >= 0 ; )
-    m_ClipData.GetLayerByClass( t )->SetVisible( m_ShowMap[t>>3] & ( 1 << ( t & 7 )) );
-
-#ifndef _FULL_PROJECT
-  if( pDoc->GetObjDef()->IsCollision())
-    ErrBox( "Коллизия приоритетов слоев -\n"
-            "обратитесь к администратору проекта!" );
+#ifdef _FULL_PROJECT
   pDoc->GetObjDef()->SetModified( 0 );
 #endif
 
@@ -300,14 +290,18 @@ CMapView::StartInit()
   MaxScale = App.GetProfileInt( gnr, "MaxScale",   100 );
   MinScale = App.GetProfileInt( gnr, "MinScale", 50000 );
 
-  for( t = FULL_RANGE ; --t >= 0 ; )
+  memset( m_ShowMap, 0x00, sizeof m_ShowMap );
+  memset( m_LoadMap, 0x00, sizeof m_LoadMap );
+  for( int t = 0 ; t < FULL_RANGE ; ++t )
   {
+    if( m_pObjDef->GetLoad( t ) & 1 )
+    {
+      SetBit( m_LoadMap, t, 1 );
+      SetBit( m_ShowMap, t, 1 );
+      m_ClipData.GetLayerByClass( t )->SetVisible( 1 );
+    }
+
     m_LocalLaw[t] = m_pObjDef->GetEdit( t );
-    int i = t>>3;
-    int m = 1 << ( t & 7 );
-    int bLoad = m_pObjDef->GetLoad( t ) & 1;
-    if( bLoad )
-      m_LoadMap[i] |= m;
   }
 
 #ifdef _FULL_PROJECT
@@ -317,6 +311,8 @@ CMapView::StartInit()
 #endif
 
   pDoc->SetSize( ds );
+  pDoc->ModifyObjectMenu();
+
   AddMode( new CBoundingMode( ds.cx, ds.cy ));
   m_HiResLimit = App.GetProfileInt( gnr, "HiResLimit", MaxScale );
   m_UndoLevel = App.GetProfileInt( gnr, "UndoLevel", 0 );
@@ -361,7 +357,7 @@ CMapView::StartInit()
   int s = sc;
 #endif
 
-  s = MerkatorData.LogScale( s, Point( cn.x, cn.y ));
+  s = MerkatorData.LogScale( s, cn );
   SetScale( s, cn, 0 );
   ShowScrollbars( 0 );
   SetScale( s, cn, 0 );
@@ -429,9 +425,14 @@ CMapView::StartInit()
 
 #ifndef _FULL_PROJECT
   InitSublayer();
+  m_FindObjectDlg.Init(this);
+  m_ConvDlg.Init( this, &m_MapStore );
+  m_ConvDlg.Create( IDD_CONVERTOR_DIALOG, this );
+  m_ShabDlg.Init();
 #endif
 
   m_pSublDlg = new CSublDlg();
+
   m_OldClip.SetRectEmpty();
   m_Clip.SetRectEmpty();
 
@@ -746,7 +747,7 @@ CMapView::TranslateFromMap( void** ppSrc )
 
         case PF_ELLIPSE :
         {
-          rect* pr = &pObjPar->ellipse;
+          RECT* pr = &pObjPar->ellipse;
           CRectPrim RP( pr->left, pr->top, pr->right, pr->bottom );
           switch( subType )
           {
@@ -873,8 +874,20 @@ CMapView::TranslateObjectFromMap( char** ppSrc )
   {
 #ifdef _FULL_PROJECT
     char m[128];
-    sprintf( m, "Invalid object: class %d, table %d, object %d",
-             m_pDRH->GetClass(), m_pDRH->GetTable(), m_pDRH->GetEntry());
+    sprintf_s( m, "Invalid object: class %d, table %d, object %d",
+               m_pDRH->GetClass(), m_pDRH->GetTable(), m_pDRH->GetEntry());
+    m_MapStore.TraceError( m );
+#endif
+    return 0;
+  }
+
+	int t = m_pDRH->GetClass();
+  if( t <= 0 || t >= SUBSTAT_CLASS )
+  {
+#ifdef _FULL_PROJECT
+    char m[128];
+    sprintf_s( m, "Invalid object class: class %d, table %d, object %d",
+               m_pDRH->GetClass(), m_pDRH->GetTable(), m_pDRH->GetEntry());
     m_MapStore.TraceError( m );
 #endif
     return 0;
@@ -1051,8 +1064,10 @@ CMapView::CreateInContext( int bShow )
   ksi_obj env = ksi_nil;
   for( int i = 0 ; i < np ; i += 2 )
   {
-    par[i].MakeLower();
-    env = ksi_assv_set_x( env, ksi_str02sym( par[i] ), ksi_str02string( par[i+1] ));
+    CString n( par[i] );
+    CString v(par[i+1]);
+    n.MakeLower();
+    env = ksi_assv_set_x( env, ksi_str02sym( n ), ksi_str02string( v ));
   }
 
   CIdent id( m_Conductor.GetIdent());
@@ -1160,7 +1175,7 @@ CMapView::GetDistance( CPoint const& pnt, CTabIdent tid1 )
 
   CPoint* p = pObj->GetPoint();
 
-  return p ? MerkatorData.Dist( Point( p->x, p->y ), Point( pnt.x, pnt.y )) : -1;
+  return p ? MerkatorData.Dist( *p, pnt ) : -1;
 }
 //=====================================================================
 int
@@ -1182,13 +1197,13 @@ CMapView::IsObjectInLegalRegion( CDrawObject* pObj, char const* opName, int mess
   if( mess )
   {
     char m[256];
-    sprintf( m,
-             "Извините! %s %s:\n"
-             "объект '%s' находится вне разрешенного региона!",
-             opName,
-             mess == 1 ? "блокируется" :
-             mess == 2 ? "отменяется"  : "",
-             m_pObjDef->GetName( pObj->Class()));
+    sprintf_s( m,
+               "Извините! %s %s:\n"
+               "объект '%s' находится вне разрешенного региона!",
+               opName,
+               mess == 1 ? "блокируется" :
+               mess == 2 ? "отменяется"  : "",
+               m_pObjDef->GetName( pObj->Class()));
     ErrBox( m );
   }
   return 0;
@@ -1221,7 +1236,7 @@ CMapView::GetIncludingObjects( CTabIdent tid, int type, int flags,
     {
       int nObj = 0;
       TGstream buf;
-      ResultCode r = m_MapStore.SelectByRect( *((Rect*)&pHstObj->GetBoundBox()), type, buf, &nObj );
+      ResultCode r = m_MapStore.SelectByRect( pHstObj->GetBoundBox(), type, buf, &nObj );
       if( r == R_OK && nObj )
       {
         char* pSrc = buf.str();
@@ -1292,6 +1307,42 @@ CMapView::GetIncludingObjects( CTabIdent tid, int type, int flags,
   }
 
   return dst.GetSize();
+}
+//=====================================================================
+void
+CMapView::DrawRegion( CPoint* pPoint, int nPoint, int clr, int bFull )
+{
+	if( nPoint < 3 )
+		return;
+
+  CIntAssocMap* pct = &pDocument->m_ViewColorTab;
+  static int k = -1;
+  if( pct->TranslateKey( k ) < 0 )
+  {
+    k = pct->FindFreeKey();
+    pct->Add( k, clr );
+  }
+
+	GetLayer( 0 )->SetVisible( 1 );
+  CIdent id( 0, 0, 0 );
+  HideObject( id, 1 );
+  CDrawContainer* pc = new CDrawContainer;
+  COutlinedPolygon* pl = new COutlinedPolygon(
+    CFillItem( CForeBackItem( k, -1 ), BS_HATCHED, HS_DIAGCROSS ),
+    CStrokItem( 0, PS_SOLID, 100 ), nPoint, pPoint );
+  pl->SetFlags( SF_LOW_VISIBLE | SF_HIG_VISIBLE, SF_STATUS_MASK );
+  pc->AddTail( pl );
+  CDrawObject* pObj = new CDrawObject( id, 0, 0, 0, pc );
+  pObj->CalcBoundBox();
+
+  CRect box( pObj->GetBoundBox());
+  CPoint cn( box.CenterPoint());
+  int s = CalcShowScale( pObj, bFull );
+  CRect r( m_Clip );
+  if( !r.PtInRect( cn ) || abs( s - m_AltScale ) > 1 )
+    SlowMove( cn, s );
+	delete m_ClipData.AddObject( pObj );
+	ShowObjectBox( pObj );
 }
 //=====================================================================
 char const*
@@ -1397,7 +1448,7 @@ CMapView::MakeSpaceQue( SpaceQueParam& QP )
       }
     }
 #else
-  m_MapStore.ClipObjectsId((Point*)ps.str(), np, QP.classMap, buf, &nId );
+  m_MapStore.ClipObjectsId( (POINT*)ps.str(), np, QP.classMap, buf, &nId );
 #endif
 
   if( QP.maxSel )
@@ -1419,32 +1470,7 @@ CMapView::MakeSpaceQue( SpaceQueParam& QP )
   }
 
   if( bDrawRgn )
-  {
-    CIntAssocMap* pct = &pDocument->m_ViewColorTab;
-    int const c = 176;
-    static int k = -1;
-    if( pct->TranslateKey( k ) < 0 )
-    {
-      k = pct->FindFreeKey();
-      pct->Add( k, RGB( c, c, c ));
-    }
-
-    GetLayer( 0 )->SetVisible( 1 );
-    CIdent id( 0, 0, 0 );
-    HideObject( id, 1 );
-    CDrawContainer* pc = new CDrawContainer;
-    COutlinedPolygon* pl = new COutlinedPolygon(
-      CFillItem( CForeBackItem( k, -1 ), BS_HATCHED, HS_DIAGCROSS ),
-      CStrokItem( 0, PS_SOLID, 100 ),
-      np, (CPoint*)ps.str());
-    pl->SetFlags( SF_LOW_VISIBLE | SF_HIG_VISIBLE, SF_STATUS_MASK );
-    pc->AddTail( pl );
-    CDrawObject* pObj = new CDrawObject( id, 0, 0, 0, pc );
-    pObj->CalcBoundBox();
-    delete m_ClipData.AddObject( pObj );
-    ShowObjectBox( pObj );
-    UpdateWindow();
-  }
+		DrawRegion((CPoint*)ps.str(), np, RGB( 176, 176, 176 ));
 
   ObjectInfoArray& tSel = m_Conductor.GetSelected();
   tSel.RemoveAll();
@@ -1626,8 +1652,8 @@ CMapView::GetScaleRatio( int t, int* pNum, int* pDen, int prnt )
 void
 CMapView::SetTimeClock( CDrawObject* pObj )
 {
-  time_t t;
-  clock_t c;
+  long t;
+  long c;
   m_MapStore.GetTimeClock( &t, &c );
   pObj->SetTimeClock( t, c );
 }

@@ -182,9 +182,9 @@ CSelectMode::OnMouseMove( UINT &flags, CPoint &loc )
 int
 CSelectMode::OnChar( UINT& flags, UINT& key_code )
 {
-  if( m_pOwner->GetMode( IDM_MOVE_MODE ) || 
-	    m_pOwner->GetMode( IDM_SHORTTRACE_MODE ) ||
-			m_pOwner->GetMode( IDM_FIND_DIST_MODE ))
+  if( m_pOwner->GetMode( IDM_MOVE_MODE ) ||
+            m_pOwner->GetMode( IDM_SHORTTRACE_MODE ) ||
+                        m_pOwner->GetMode( IDM_FIND_DIST_MODE ))
     return AM_RPROPAGATE;
 
   if( key_code == VK_ESCAPE )
@@ -244,28 +244,28 @@ CSelectMode::OnChar( UINT& flags, UINT& key_code )
 
           m_pOwner->GetConductor()->Create( pObj );
           char m[256];
-          sprintf( m, "Удалить объект '%s'?",
-                   m_pOwner->m_pObjDef->GetName( pObj->Class()));
+          sprintf_s( m, "Удалить объект '%s'?",
+                     m_pOwner->m_pObjDef->GetName( pObj->Class()));
           if( AskBox( m ) == IDYES )
-					{
-						if( GetProjectSLEnable())
-						{
-							if( pObj->Table())
-							  m_pOwner->GetConductor()->DeclareEvent( CE_OBJ_DELETE );
-							else
+          {
+            if( GetProjectSLEnable())
+            {
+              if( pObj->Table())
+                m_pOwner->GetConductor()->DeclareEvent( CE_OBJ_DELETE );
+              else
                 m_pOwner->QueryUserRights( UR_DELETE, 0 );
               n = 0;
-						}
-						else
-						if( pObj->Table() && m_pOwner->GetConductor()->DeclareEvent( CE_OBJ_DELETE ))
+            }
+            else
+            if( pObj->Table() && m_pOwner->GetConductor()->DeclareEvent( CE_OBJ_DELETE ))
               n = 0;
-					}
-					else
-						n = 0;
+          }
+          else
+            n = 0;
         }
 
         int nTabs = 0;
-	
+
         if( n > 1 )
         {
           for( POSITION pos = pSL->GetHeadPosition() ; pos && nTabs < 2 ;
@@ -456,8 +456,8 @@ CChangeClassMode::OnRButtonDown( UINT &flags, CPoint &loc )
 int
 CMagnitMode::OnButtonDown( UINT &flags, CPoint &loc )
 {
-	if( m_pPoint )
-		m_pOwner->m_Position = loc = *m_pPoint;
+  if( m_pPoint )
+    m_pOwner->m_Position = loc = *m_pPoint;
 
   return AM_RPROPAGATE;
 }
@@ -465,174 +465,178 @@ CMagnitMode::OnButtonDown( UINT &flags, CPoint &loc )
 void
 CMagnitMode::Select( CPoint pt )
 {
-	int d = dist( pt, m_CurPos );
-	if( m_CurDist <= d )
-		return;
+  int d = dist( pt, m_CurPos );
+  if( m_CurDist <= d )
+    return;
 
-	m_CurDist = d;
-	m_CurPoint = pt;
-	m_pPoint = &m_CurPoint;
+  m_CurDist = d;
+  m_CurPoint = pt;
+  m_pPoint = &m_CurPoint;
 }
 //=====================================================================
 void
 CMagnitMode::Select( CPoint* pPt, int n )
 {
-	if( !n )
-		return;
-
-  int d = abs( DistPointToPolyline( m_CurPos, pPt, n ));
-  int i;
-  for( i = nLine ; --i >= 0 && dl[i] > d ; dl[i+1] = dl[i], svl[i+1] = svl[i], snl[i+1] = snl[i] )
+  int i, d = abs( DistPointToPolyline( m_CurPos, pPt, n ));
+  for( i = m_nLine ; --i >= 0 && dl[i] > d ; dl[i+1] = dl[i], svl[i+1] = svl[i], snl[i+1] = snl[i] )
   dl[i+1] = d;
   svl[i+1] = pPt;
   snl[i+1] = n;
-  nLine = min( nLine + 1, 2 );
-	
-	while( --n >= 0 )
-		Select( *pPt++ );
+  m_nLine = min( m_nLine + 1, 2 );
 }
 //=====================================================================
 void
 CMagnitMode::Select( CRect const& r )
 {
   CPoint c( r.CenterPoint());
-	int R = abs( r.Width() / 2 );
-	int d = abs( dist( c, m_CurPos ) - R );
+  int R = abs( r.Width() / 2 );
+  int d = abs( dist( c, m_CurPos ) - R );
 
-	if( m_CurDist <= d )
-		return;
-
-	int i;
-  for(i = nRect ; --i >= 0 && dr[i] > d ; dr[i+1] = dr[i], svr[i+1] = svr[i] );
+  if( m_CurDist <= d )
+    return;
+  
+  int i;
+  for( i = m_nRect ; --i >= 0 && dr[i] > d ; dr[i+1] = dr[i], svr[i+1] = svr[i] );
   dr[i+1] = d;
-	svr[i+1] = r;
-	nRect = min( nRect + 1, 3 );
+  svr[i+1] = r;
+  m_nRect = min( m_nRect + 1, 3 );
 }
 //=====================================================================
 static int
 PtInRing( CPoint pt, CRect const& r )
 {
   CPoint c( r.CenterPoint());
-	int R = abs( r.Width() / 2 );
-	return dist( c, pt ) < R;
+  int R = abs( r.Width() / 2 );
+  return dist( c, pt ) < R;
 }
 //=====================================================================
 int
 CMagnitMode::OnMouseMove( UINT &flags, CPoint &loc )
 {
-	m_pPoint = 0;
-	CSize d( m_pOwner->m_Sensibility + 1, 0 );
-	d = m_pOwner->DP2LP( d );
-	m_CurDist = d.cx;
-	m_CurPos = loc;
-	CObjList lst;
-	if( m_nSelectMode == 2 )
-		m_pOwner->m_Sensibility *= 2;
-	CSpot spot( m_pOwner->GetSpot());
-	if( m_nSelectMode == 2 )
-		m_pOwner->m_Sensibility /= 2;
-	m_pOwner->m_ClipData.SelectBySpot( spot, lst );
-	
-	nRect = 0;
-	nLine = 0;
+  m_pPoint = 0;
+  CSize d( m_pOwner->m_Sensibility + 1, 0 );
+  d = m_pOwner->DP2LP( d );
+  m_CurDist = d.cx;
+  m_CurPos = loc;
+  CObjList lst;
+  if( m_nSelectMode == 2 )
+    m_pOwner->m_Sensibility *= 2;
+  CSpot spot( m_pOwner->GetSpot());
+  if( m_nSelectMode == 2 )
+    m_pOwner->m_Sensibility /= 2;
+  m_pOwner->m_ClipData.SelectBySpot( spot, lst );
 
-	while( !lst.IsEmpty())
-	{
-		CDrawObject* pObj = lst.RemoveHead();
-		if( m_nSelectMode == 0 )
-		{
-			int np;
-			CPoint* pPnt = pObj->GetAnyPoints( 0, &np );
-			if( pPnt )
-				Select( pPnt, np );
-		}
-		else
-		{
-			CRect r;
-		  if( pObj->GetRing( spot, &r ))
-				Select( r );
-		}
-	}
+  m_nRect = 0;
+  m_nLine = 0;
 
-	if( m_nSelectMode == 0 && nLine == 2 )
-	{
-		for( ; --snl[0] > 0 ; ++svl[0] )
-		{
-			CPoint* p1 = svl[1];
-  		for( int k = snl[1] ; --k > 0 ; ++p1 )
-			{
-				CPoint cp;
-				if( CrossPoint( svl[0], p1, &cp, 1 ))
-				{
-			    int td = dist( m_CurPos, cp );
-			    if( td < m_CurDist )
-					{
-				    m_CurDist = td;
-        	  m_CurPoint = cp;
-	          m_pPoint = &m_CurPoint;
-					}
-				}
-			}
-		}
-	}
-	else
-	if( m_nSelectMode == 1 && nRect >= 2 )
-	{
-		CPoint tp[2];
-		int np = FindCrossPoints( svr[0], svr[1], tp );
-		while( --np >= 0 )
-		{
-			int td = dist( m_CurPos, tp[np] );
-			if( td < m_CurDist )
-			{
-				m_CurDist = td;
-      	m_CurPoint = tp[np];
-	      m_pPoint = &m_CurPoint;
-			}
-		}
-	}
-	else
-	if( m_nSelectMode == 2 && nRect == 3 )
-	{
-		CPoint tp[6];
-		int np = FindCrossPoints( svr[0], svr[1], &tp[0] ) + 
-		         FindCrossPoints( svr[0], svr[2], &tp[2] ) + 
-		         FindCrossPoints( svr[1], svr[2], &tp[4] );
-		if( np == 6 )
-		{
-			for( int m = 0 ; m < 8 ; ++m )
-			{
-  			double sx = 0, sy = 0;
-				int i, k;
-			  for( i = 1, k = 0 ; k < 6 ; i <<= 1, k += 2  )
-				{
-					int j = k + (( m & i ) ? 1 : 0 );
-					sx += tp[j].x;
-					sy += tp[j].y;
-				}
-       	CPoint pp( sx / 3., sy / 3. );
-				int d = 0;
-			  for( i = 1, k = 0 ; k < 6 ; i <<= 1, k += 2  )
-				{
-					int j = k + (( m & i ) ? 1 : 0 );
-					d = max( d, dist( pp, tp[j] ));					
-				}
-				if( d > m_CurDist )
-					continue;
-				
-				int td = dist( m_CurPos, pp );
-		    if( td < m_CurDist )
-				{
-			    m_CurDist = td;
-     	    m_CurPoint = pp;
+  while( !lst.IsEmpty())
+  {
+    CDrawObject* pObj = lst.RemoveHead();
+    
+		if( m_nSelectMode & 0x1 )
+    {
+      int np;
+      CPoint* pPnt = pObj->GetAnyPoints( 0, &np );
+      if( pPnt )
+      	while( --np >= 0 )
+          Select( *pPnt++ );
+    }
+
+    if( m_nSelectMode & 0x2 )
+    {
+      int np;
+      CPoint* pPnt;
+			( pPnt = pObj->GetPolyline( &np )) ||
+			( pPnt = pObj->GetPolygon( &np ));
+			if( pPnt && np >= 2 )
+        Select( pPnt, np );
+    }
+    
+    if( m_nSelectMode & 0xc )
+    {
+      CRect r;
+      if( pObj->GetRing( spot, &r ))
+        Select( r );
+    }
+  }
+
+  if(( m_nSelectMode & 0x2 ) && m_nLine == 2 )
+    for( ; --snl[0] > 0 ; ++svl[0] )
+    {
+      CPoint* p1 = svl[1];
+      for( int k = snl[1] ; --k > 0 ; ++p1 )
+      {
+        CPoint cp;
+        if( CrossPoint( svl[0], p1, &cp, 1 ))
+        {
+          int td = dist( m_CurPos, cp );
+          if( td < m_CurDist )
+          {
+            m_CurDist = td;
+            m_CurPoint = cp;
+            m_pPoint = &m_CurPoint;
+          }
+        }
+      }
+    }
+  
+  if(( m_nSelectMode & 0x4 ) && m_nRect >= 2 )
+  {
+    CPoint tp[2];
+    int np = FindCrossPoints( svr[0], svr[1], tp );
+    while( --np >= 0 )
+    {
+      int td = dist( m_CurPos, tp[np] );
+      if( td < m_CurDist )
+      {
+        m_CurDist = td;
+        m_CurPoint = tp[np];
+        m_pPoint = &m_CurPoint;
+      }
+    }
+  }
+
+  if(( m_nSelectMode & 0x8 ) && m_nRect == 3 )
+  {
+    CPoint tp[6];
+    int np = FindCrossPoints( svr[0], svr[1], &tp[0] ) +
+             FindCrossPoints( svr[0], svr[2], &tp[2] ) +
+             FindCrossPoints( svr[1], svr[2], &tp[4] );
+    if( np == 6 )
+    {
+      for( int m = 0 ; m < 8 ; ++m )
+      {
+        double sx = 0, sy = 0;
+        int i, k;
+        for( i = 1, k = 0 ; k < 6 ; i <<= 1, k += 2  )
+        {
+          int j = k + (( m & i ) ? 1 : 0 );
+          sx += tp[j].x;
+          sy += tp[j].y;
+        }
+        CPoint pp( sx / 3., sy / 3. );
+        int d = 0;
+        for( i = 1, k = 0 ; k < 6 ; i <<= 1, k += 2  )
+        {
+          int j = k + (( m & i ) ? 1 : 0 );
+          d = max( d, dist( pp, tp[j] ));
+        }
+        if( d > m_CurDist )
+          continue;
+
+        int td = dist( m_CurPos, pp );
+        if( td < m_CurDist )
+        {
+          m_CurDist = td;
+          m_CurPoint = pp;
           m_pPoint = &m_CurPoint;
-				}
-			}
-		}
-	}
+        }
+      }
+    }
+  }
 
-	if( m_pPoint )
-		m_pOwner->m_Position = loc = *m_pPoint;
+  if( m_pPoint )
+    m_pOwner->m_Position = loc = *m_pPoint;
 
   return AM_RPROPAGATE;
 }
@@ -640,32 +644,32 @@ CMagnitMode::OnMouseMove( UINT &flags, CPoint &loc )
 void
 CMagnitMode::Draw( CDC* pDC )
 {
-	if( !m_pPoint )
-		return;
+  if( !m_pPoint )
+    return;
 
   CPoint c( m_CurPoint );
-	pDC->LPtoDP( &c );
-	CRect R( c.x - 8, c.y - 8, c.x + 8, c.y + 8 );
+  pDC->LPtoDP( &c );
+  CRect R( c.x - 8, c.y - 8, c.x + 8, c.y + 8 );
 
-	if( m_nMode == 1 )
-	{
-  	int sdc = SetTM( pDC );
-	  CBrush br1( RGB( 0, -1, 0 ));
-	  CBrush br2( RGB( -1, 0, 0 ));
-	  pDC->SelectObject( &br1 );
-	  pDC->SelectStockObject( BLACK_PEN );
-	  pDC->Ellipse( &R );
-	  pDC->SelectObject( &br2 );
-	  pDC->Ellipse( c.x - 4, c.y - 4, c.x + 4, c.y + 4 );
-	  pDC->RestoreDC( sdc );
-	  m_nMode = 2;
-	}
-	else
-	{
-  	CRect box( R );
-		box.InflateRect( 1, 1 );
-		m_pOwner->InvalidateRect( &box, 0 );
-  	m_nMode = 1;
-	}
+  if( m_nMode == 1 )
+  {
+    int sdc = SetTM( pDC );
+    CBrush br1( RGB( 0, -1, 0 ));
+    CBrush br2( RGB( -1, 0, 0 ));
+    pDC->SelectObject( &br1 );
+    pDC->SelectStockObject( BLACK_PEN );
+    pDC->Ellipse( &R );
+    pDC->SelectObject( &br2 );
+    pDC->Ellipse( c.x - 4, c.y - 4, c.x + 4, c.y + 4 );
+    pDC->RestoreDC( sdc );
+    m_nMode = 2;
+  }
+  else
+  {
+    CRect box( R );
+    box.InflateRect( 1, 1 );
+    m_pOwner->InvalidateRect( &box, 0 );
+    m_nMode = 1;
+  }
 }
 //=====================================================================

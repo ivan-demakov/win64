@@ -131,28 +131,38 @@ struct RepInf
 #define PtList CList< CPoint, CPoint& >
 #define LsList CList< PtList*, PtList* >
 //=====================================================================
-class CTrig
+namespace Trig
 {
-public:
-  class CTrigTabGenerator
+  class CTrig
   {
-  public:
-    CTrigTabGenerator();
+    public:
+      class CTrigTabGenerator
+      {
+        public:
+          CTrigTabGenerator();
+      };
+
+      friend class CTrigTabGenerator;
+      
+      friend int atan2( int vCos, int vSin );
+      friend int atan2( CSize s );
+      friend double sin( int angle );
+      friend double cos( int angle );
+
+    public:
+      CTrig() {}
+
+    private:
+      static double TrigTab[];
+      static CTrigTabGenerator TG;
   };
 
-  friend class CTrigTabGenerator;
-  friend int atan2( int vCos, int vSin );
-  friend int atan2( CSize s );
-  friend double sin( int angle );
-  friend double cos( int angle );
-
-public:
-  CTrig(){}
-
-private:
-  static double TrigTab[];
-  static CTrigTabGenerator TG;
+  int atan2( int vCos, int vSin );
+  int atan2( CSize s );
+  double sin( int angle );
+  double cos( int angle );
 };
+
 
 int Intersect( CRect const* r1, CRect const* r2 );
 int dist( CPoint const& point1, CPoint const& point2 );
@@ -224,7 +234,6 @@ int MakeSpace( TGstream& dst, CPoint* pp, int n, int r, int bLine );
 int SmartCloneLine( TGstream& dst, CPoint* pp, int n, int r );
 int DecimatePoly( CPoint* p, int n, int h );
 void ReversePoly( CPoint* pp, int n );
-CPoint* SubConPolygons( CPoint* p0, int n0, CPoint* p1, int n1 );
 CPoint* SubConPolygons( CPoint* p0, int n0, CPoint* p1, int n1, int i0, int i1 );
 CPoint* SmartSubtractPolygons( CPoint* p0, int n0, CPoint* p1, int n1 );
 CPoint* SmartConnectPolygons( CPoint* p0, int n0, CPoint* p1, int n1 );
@@ -233,8 +242,7 @@ CPoint* SmartSubConPolygons( CPoint* pp0, int n0, CPoint* pp1, int n1, int bAdd 
 CPoint* UnSelfCross( CPoint* p );
 void SmartClipLine( CPoint p0, CPoint p1, CPoint const* plg, int n, LItemHash* plh, int bClipping, int bInside );
 void SmartClipPlg( CPoint* plg, int pgn, CPoint* rgp, int rgn, LItemHash* plh,
-                  int bClipping, int bInside );
-int SplitPolygon( CPoint* p, int n, int* pi );
+                   int bClipping, int bInside );
 int ImprovePoly( CPoint* p, int n );
 CPoint* ImprovePolygon( CPoint* pp );
 int FindPointToPoint( CPoint* p0, int n0, CPoint* p1, int n1, int pi[][2], int ni = 1, int bs2 = 1024, int bs = 32 );
@@ -255,12 +263,6 @@ inline int
 Intersect( CRect const& r1, CRect const& r2 )
 {
   return Intersect( &r1, &r2 );
-}
-//=====================================================================
-inline int
-atan2( CSize s )
-{
-  return (int)atan2( s.cx, -s.cy );
 }
 //=====================================================================
 inline double

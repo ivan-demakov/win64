@@ -27,8 +27,8 @@ static char OldRange[] = "Class Parent Priority MaxLimit Show Load Table MinScal
 static int
 ParamNum( char const* pn )
 {
-	int i;
-  for(i = CELEM( pnm ) ; --i >= 0 && _stricmp( pn, pnm[i] ) ; );
+  int i = CELEM( pnm );
+  while( --i >= 0 && _stricmp( pn, pnm[i] ));
   return i;
 }
 //=====================================================================
@@ -42,7 +42,8 @@ CObjDef::CObjDef() :
 int
 CObjDef::IsClass( UINT t ) const
 { 
-  return !GetMark( t ) && m_Oda[t].Name[0] && ( GetDerived( t ) || IsObject( t ));
+  return !GetMark( t ) && m_Oda[t].Name[0] && 
+		     ( t >= SUBSTAT_CLASS || GetDerived( t ) || IsObject( t ));
 }
 //=====================================================================
 int
@@ -77,13 +78,15 @@ CObjDef::MakeRange()
   }
 
   m_nCls = 0;
+	m_nSub = 0;
   for( t = 0 ; t < FULL_RANGE ; ++t )
     if( IsClass( t ) && !GetDerived( t ))
 		{
-		  int i, r = GetRange( t );
-	      for( i = m_nCls ; --i >= 0 && GetRange( m_Rng[i] ) > r ; m_Rng[i+1] = m_Rng[i] );
+			int i, r = GetRange( t );
+      for( i = m_nCls ; --i >= 0 && GetRange( m_Rng[i] ) > r ; m_Rng[i+1] = m_Rng[i] );
 			m_Rng[i+1] = t;
 			++m_nCls;
+			m_nSub += t >= SUBLAYER_CLASS;
 		}
 	m_Rng[m_nCls] = 0;
 }
@@ -201,9 +204,9 @@ CObjDef::Save() const
 
   if( kd[0] != 0 || kd[1] != 1 || kd[2] != 2 )
     return 0;
-
-  int n, t;
-  for( n = 0, t = 1 ; t < FULL_RANGE ; ++t )
+  
+  int n = 0;
+  for( int t = 1 ; t < FULL_RANGE ; ++t )
   {
     CString const& name = m_Oda[t].Name;
     if( name.IsEmpty())
@@ -228,7 +231,7 @@ CObjDef::Save() const
         for( int i = 0 ; i < nk ; ++i )
         {
           char tmp[16];
-          sprintf( tmp, "%d ", par[kd[i]] );
+          sprintf_s( tmp, "%d ", par[kd[i]] );
           buf += tmp;
         }
       }
@@ -314,7 +317,7 @@ LPCTSTR
 CObjDef::GetName( UINT t ) const
 {
   static char b[32];
-  sprintf( b, "#%d", t );
+  sprintf_s( b, "#%d", t );
   return 
     t == 0 ? "Все объекты" :
     IsClassValid( t ) && m_Oda[t].Name[0] ? m_Oda[t].Name : b;
@@ -457,8 +460,8 @@ CObjDef::GetBottom( UINT t, int* dst ) const
 int 
 CObjDef::GetClass( LPCSTR name ) const
 {
-  int t;
-  for(t = FULL_RANGE ; --t > 0 && strcmp( m_Oda[t].Name, name ) ; );
+  int t = FULL_RANGE;
+  while( --t > 0 && strcmp( m_Oda[t].Name, name ));
   return t;  
 }
 //=====================================================================

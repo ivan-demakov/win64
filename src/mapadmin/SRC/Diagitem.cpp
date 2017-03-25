@@ -48,8 +48,8 @@ CLegend::operator==( CLegend const& rLegend ) const
      m_Legend.GetSize() != rLegend.m_Legend.GetSize())
     return 0;
 
-  int i;
-  for( i = m_Legend.GetSize() ; --i >= 0 && m_Legend[i] == rLegend.m_Legend[i] ; );
+  int i = m_Legend.GetSize();
+  while( --i >= 0 && m_Legend[i] == rLegend.m_Legend[i] );
   return i < 0;
 }
 //=====================================================================
@@ -92,8 +92,7 @@ CLegend::Draw( CDC* pDC, CPoint cp, DiagItem* pItem ) const
 	double pcf = pDC->IsPrinting() ? pDC->GetDeviceCaps( LOGPIXELSX ) / pView->GetDC()->GetDeviceCaps( LOGPIXELSX ) : 1;
 	double ppv = m_PixelValue * pcf;
   
-	int n;
-	for( n = GetSize() ; --n >= 1 ; S0 += pItem[n].m_Value );
+	for( int n = GetSize() ; --n >= 1 ; S0 += pItem[n].m_Value );
 
   CSize t( CSize( m_Width * ppv, S0 * ppv ));
 	pDC->DPtoLP( &t );
@@ -126,7 +125,7 @@ CLegend::Draw( CDC* pDC, CPoint cp, DiagItem* pItem ) const
 
     int a0, a1 = 900;
     CPoint p0, sp( cp.x, r0.top ), p1( sp );
-    for( n = GetSize() ; --n >= 0 ; )
+    for( int n = GetSize() ; --n >= 0 ; )
     {
       DiagItem* pI = &pItem[n];
       if( pI->m_Value <= 0 )
@@ -213,7 +212,7 @@ CLegend::Draw( CDC* pDC, CPoint cp, DiagItem* pItem ) const
     CPoint p5( r + h1, t - h1 );
     CPoint p6( l + h1, t - h1 );
 
-    for( n = 0 ; n < GetSize() ; ++n )
+    for( int n = 0 ; n < GetSize() ; ++n )
     {
       DiagItem* pI = &pItem[n];
       if( pI->m_Value <= 0 )
@@ -260,10 +259,11 @@ CString const*
 CLegend::Detect( CSpot const& spot, DiagItem* pItem ) const
 {
   static CString s;
-  int i, bTop = 1;
+  int bTop = 1;
   DiagItem* pI;
 
-  for( i = GetSize() ; --i >= 0 ; )
+  int i = GetSize();
+  while( --i >= 0 )
   {
     pI = &pItem[i];
     if( !pI->m_Value )
@@ -282,7 +282,7 @@ CLegend::Detect( CSpot const& spot, DiagItem* pItem ) const
   if( i < 0 )
     return 0;
 
-  const LegendItem* pL = &m_Legend[i];
+  LegendItem const* pL = &m_Legend[i];
   s = pL->m_Prefix.IsEmpty() ? pI->m_Text : pL->m_Prefix + " " + pI->m_Text;
   if( !pL->m_Postfix.IsEmpty())
     s += " ", s += pL->m_Postfix;
@@ -318,17 +318,24 @@ CLegend::CalcBox( CPoint cp, DiagItem* pItem ) const
 //=====================================================================
 int
 CLegendCollection::AddLegend( CLegend* pLegend )
-{  
-  int i;
-  for(i = m_Content.GetSize() ; --i >= 0 && m_Content[i] != *pLegend ; );
-  return i < 0 ? m_Content.Add( *pLegend ) : i;
+{
+	if( m_Size == MAX_LEGEND_SIZE )
+		return -1;
+
+  int i = m_Size;
+  while( --i >= 0 && m_Content[i] != *pLegend );
+  if( i >= 0 )
+ 	  return i;
+
+	m_Content[m_Size++] = *pLegend;
+ 	return m_Size - 1;
 }
 //=====================================================================
 //=====================================================================
 CLegend*
 CLegendCollection::GetLegend( int ndx )
 {
-  return ndx < 0 || ndx >= m_Content.GetSize() ? 0 : &m_Content.ElementAt( ndx );
+	return ndx < m_Size ? &m_Content[ndx] : 0;
 }
 //=====================================================================
 int

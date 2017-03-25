@@ -50,6 +50,8 @@ public:
   void SetSize( CSize s );
   int SetModified( int m );
   int GetModified(){ return ModifiedFlag; }
+	static CPoint UpdatePoint( double x, double y, double cf[2][3] );
+	static CPoint UpdatePoint( CPoint pt, double cf0[2][3], double utm[5], double cf1[2][3], int bAbs );
 
   ResultCode GPL2GPL( CConvDlg* pDlg,
                       char const* txtPath, char const* logPath,
@@ -60,8 +62,10 @@ public:
                       CTime time1, CTime time2,
                       int nNode,
                       char* pClassMap,
-                      double pcf[2][3],
-                      Point* Rgn, Rect const* pBox );
+                      double pcf0[2][3],
+											double utm[4],
+                      double pcf1[2][3],
+                      CPoint* Rgn, CRect const* pBox );
 
   ResultCode MIF2GPL( CConvDlg* pDlg,
                       char const* txtPath, char const* logPath,
@@ -82,7 +86,7 @@ public:
                       CTime time1, CTime time2,
                       char* pClassMap,
                       double pcf[2][3],
- 										  Point* Rgn, Rect const* pBox );
+ 										  CPoint* Rgn, CRect const* pBox );
 
   ResultCode GPL2MIF( CConvDlg* pDlg,
                       char const* txtPath, 
@@ -93,21 +97,19 @@ public:
                       CTime time1, CTime time2,
                       char* pClassMap,
                       double pcf[2][3],
- 										  Point* Rgn, Rect const* pBox );
+ 										  CPoint* Rgn, CRect const* pBox );
 
   ResultCode TXT2GPL( CConvDlg* pDlg,
                       char const* txtPath, char const* logPath,
                       ksi_obj ksi_ParamList,
                       int nMode, int nNode,
                       char* pClassMap,
-                      double pcf[2][3],
-											double utm[4]	);
+                      double pcf[2][3]);
 private:
   int TestInclude( char* pClassMap, ClassType t );
-  int UpdateObjectCoord( void** ppSrc, double pcf[2][3], double utm[4], Point* Rgn = 0 );
+  int UpdateObjectCoord( void** ppSrc, double pcf0[2][3], double utm[4], double pcf1[2][3], CPoint* Rgn = 0 );
   int ksi2gpl( int nMode, int nNode, ksi_obj ksi_val, CIdent Id,
-		           double pcf[2][3], double utm[4],
-               std::ofstream& log, int oldEntry );
+		           double pcf[2][3], ofstream& log, int oldEntry );
   int MoveObjectToProject( void* pSrc, CBox* pBox );
   int IsObjectInProject( CBox* pBox );
   int UpdateKsiObjDef( ksi_obj ksi_tmp, ksi_obj ksi_log,
@@ -118,14 +120,13 @@ private:
                        ksi_obj ksi_node_cnv_proc,
                        char* pClassMap,
 											 double pcf[2][3],
-											 double utm[4],
-                       std::ofstream& log );
-  ResultCode OutputLog( std::ofstream& out, int oldEntry, void* pSrc );
-  ResultCode CreateLog( char const* errPath, std::ofstream& out );
-  void OutputObject( std::ofstream& out, void* pData );
+                       ofstream& log );
+  ResultCode OutputLog( ofstream& out, int oldEntry, void* pSrc );
+  ResultCode CreateLog( char const* errPath, ofstream& out );
+  void OutputObject( ofstream& out, void* pData );
   int CreatePosTab( IdentDirectHashTab* pIdTab, int bDelMode, int bIdentMode );
-  static int BoxInRgn( Rect const& Box, Point* Rgn );
-  static int PntInRgn( Point const& Pt, Point* Rgn );
+  static int BoxInRgn( CRect const& Box, CPoint* Rgn );
+  static int PntInRgn( CPoint const& Pt, CPoint* Rgn );
 };
 //====================================================================
 #endif

@@ -110,9 +110,8 @@ CSublDlg::OnInitDialog()
 {
   CDialog::OnInitDialog();
   EnableToolTips( 1 );
-  
-  int i;
-  for(i = CELEM( bb ) ; --i >= 0 ; )
+
+  for( int i = CELEM( bb ) ; --i >= 0 ; )
   {
     HBITMAP hBmp = (HBITMAP)LoadImage( App.m_hInstance, LPCTSTR( bb[i][1] ), IMAGE_BITMAP, 0, 0, LR_LOADMAP3DCOLORS );
     if( hBmp )
@@ -120,7 +119,7 @@ CSublDlg::OnInitDialog()
   }
 
   CIntEdit* pe[] = { m_Edit, m_Edit+1, m_Edit+2, m_Edit+3, m_Edit+4, m_FEdit, m_FEdit+1 };
-  for( i = CELEM( S ) ; --i >= 0 ; pe[i]->Initialize( S[i], this ));
+  for( int i = CELEM( S ) ; --i >= 0 ; pe[i]->Initialize( S[i], this ));
 
   ((CButton*)GetDlgItem( IDC_SUD_MOVE_ON_STEP_RADIO ))->SetCheck( 1 );
   ((CButton*)GetDlgItem( IDC_SUD_MOVE_BMP_RADIO ))->SetCheck( 1 );
@@ -128,7 +127,7 @@ CSublDlg::OnInitDialog()
   CComboBox* pLayerCombo = (CComboBox*)GetDlgItem( IDC_SUD_LAYER_COMBO );
 
   CObjDef* pObjDef = pView->GetDocument()->GetObjDef();
-  for( i = 0 ; i < SUBLR_RANGE ; ++i )
+  for( int i = 0 ; i < SUBLR_RANGE ; ++i )
     pLayerCombo->AddString( pObjDef->GetName( SUBLAYER_CLASS + i + 1 ));
 
   pLayerCombo->SetCurSel( m_nLayerNum == -1 ? 0 : m_nLayerNum );
@@ -138,7 +137,7 @@ CSublDlg::OnInitDialog()
   char* tps[] = { "BMP", "EMF", "JPG", "GIF", "PNG", "TIF", "WMF", 0 };
   m_FullArray.RemoveAll();
 
-  for( i = 2 ; --i >= 0 ; )
+  for( int i = 2 ; --i >= 0 ; )
   {
     CString tmp( App.GetSubbmpPath( i ));
     m_BmpPath[i] = tmp;
@@ -158,7 +157,7 @@ CSublDlg::OnInitDialog()
   }
 
   CComboBox* pScaleCombo = (CComboBox*)GetDlgItem( IDC_SUD_SCALE_COMBO );
-  for( i = 18 ; --i >= 7 ; )
+  for( int i = 18 ; --i >= 7 ; )
   {
     CString s;
     s.Format( "%d", i );
@@ -170,33 +169,21 @@ CSublDlg::OnInitDialog()
   {
     CWaitCursor wc;
     ReportHint( "Обзор подложки..." );
-    Rect r( 0, 0, 0, 0 );
 
-    for( ResultCode rc = R_REPEAT ; rc == R_REPEAT ; )
-    {
-      TGstream buf;
-      int cnt = 0;
-      rc = pView->m_MapStore.SelectByRect( r, SUBLAYER_CLASS, buf, &cnt );
-      if( rc <= R_REPEAT )
-        for( char* pSrc = buf.str() ; --cnt >= 0 ; )
-        {
-          CDrawObject* pObj = pView->TranslateObjectFromMap( &pSrc );
-          if( pObj )
-            m_UsedList.AddHead( pObj );
-/*
-          if( !pObj )
-            continue;
-          CText* pSourceText = (CText*)pObj->GetHead()->GetNext();
-          int bf = 0;
-          for( int i = 2 ; --i >= 0 && !bf ; )
-            bf = FileExist( m_BmpPath[i] + *pSourceText );
-          if( bf )
-            m_UsedList.AddHead( pObj );
-          else
-            delete pObj;
-*/
-        }
-    }
+    CSize sz( pView->GetDocument()->GetSize());
+    RECT r = { 0, 0, sz.cx, sz.cy };
+    long t[SUBLR_RANGE];
+    for( int i = SUBLR_RANGE ; --i >= 0 ; t[i] = SUBLAYER_CLASS + i + 1 );
+    TGstream buf;
+    int cnt = 0;
+    if( pView->m_MapStore.SelectByClass( r, t, CELEM( t ), buf, &cnt ) == R_OK )
+      for( char* pSrc = buf.str() ; --cnt >= 0 ; )
+      {
+        CDrawObject* pObj = pView->TranslateObjectFromMap( &pSrc );
+        if( pObj )
+          m_UsedList.AddHead( pObj );
+      }
+
     m_bUsedListInited = 1;
     ClearHint();
   }
@@ -1113,37 +1100,37 @@ CSublDlg::OnNeedText0( UINT nID, NMHDR* pNotifyStruct, LRESULT* lResult )
   int bMoveSub = IsDlgButtonChecked( IDC_SUD_MOVE_BMP_RADIO );
   int bOnStep  = IsDlgButtonChecked( IDC_SUD_MOVE_ON_STEP_RADIO );
   int bToLevel = IsDlgButtonChecked( IDC_SUD_ALIGN_RADIO );
-  sprintf(((LPTOOLTIPTEXT)pNotifyStruct)->szText,
-           "%s %s %s %s",
-           bToLevel ? "Выравнять" : "Подвинуть",
-           bMoveSub ? "подложку"  : "границу",
-           bToLevel ? "" : bOnStep ? "на шаг" : "до упора",
-           s[nID-IDC_SUD_MOVE_LEFT_BUTTON] );
+  sprintf_s(((LPTOOLTIPTEXT)pNotifyStruct)->szText,
+             "%s %s %s %s",
+             bToLevel ? "Выравнять" : "Подвинуть",
+             bMoveSub ? "подложку"  : "границу",
+             bToLevel ? "" : bOnStep ? "на шаг" : "до упора",
+             s[nID-IDC_SUD_MOVE_LEFT_BUTTON] );
 }
 //=====================================================================
 void
 CSublDlg::OnNeedText1( UINT nID, NMHDR* pNotifyStruct, LRESULT* lResult )
 {
-  sprintf(((LPTOOLTIPTEXT)pNotifyStruct)->szText,
-           "Переместить выделенные в %s слой",
-           nID == IDC_SUD_RANGE_UP_BUTTON ? "предыдующий" : "следующий" );
+  sprintf_s(((LPTOOLTIPTEXT)pNotifyStruct)->szText,
+             "Переместить выделенные в %s слой",
+             nID == IDC_SUD_RANGE_UP_BUTTON ? "предыдующий" : "следующий" );
 }
 //=====================================================================
 void
 CSublDlg::OnNeedText2( UINT nID, NMHDR* pNotifyStruct, LRESULT* lResult )
 {
-  sprintf(((LPTOOLTIPTEXT)pNotifyStruct)->szText,
-           "Выравнять размер по %s %s",
-           nID == IDC_SUD_VERT_ALIGN_BUTTON ? "вертикали" : "горизонтали",
-           nID  > IDC_SUD_HORZ_ALIGN_BUTTON ? "и вертикали" : "" );
+  sprintf_s(((LPTOOLTIPTEXT)pNotifyStruct)->szText,
+             "Выравнять размер по %s %s",
+             nID == IDC_SUD_VERT_ALIGN_BUTTON ? "вертикали" : "горизонтали",
+             nID  > IDC_SUD_HORZ_ALIGN_BUTTON ? "и вертикали" : "" );
 }
 //=====================================================================
 void
 CSublDlg::OnNeedText3( UINT nID, NMHDR* pNotifyStruct, LRESULT* lResult )
 {
-  sprintf(((LPTOOLTIPTEXT)pNotifyStruct)->szText,
-           "Повернуть %s",
-           nID == IDC_SUD_ROTATE_LEFT_BUTTON ? "против часовой стрелки" : "по часовой стрелке" );
+  sprintf_s(((LPTOOLTIPTEXT)pNotifyStruct)->szText,
+             "Повернуть %s",
+             nID == IDC_SUD_ROTATE_LEFT_BUTTON ? "против часовой стрелки" : "по часовой стрелке" );
 }
 //=====================================================================
 int
@@ -1169,9 +1156,8 @@ CSublDlg::OnNotify( WPARAM wParam, LPARAM lParam, LRESULT* pResult )
   notify.pResult = pResult;
   notify.pNMHDR = pNMHDR;
 
-  int bFnd = 0;
-  int i;
-  for(i = CELEM( bb ) ; !bFnd && --i >= 0 ; )
+  int bFnd = 0, i = CELEM( bb );
+  while( !bFnd && --i >= 0 )
   {
     CButton* pBtn = (CButton*)GetDlgItem( bb[i][0] );
     bFnd = pBtn && (UINT)pBtn->m_hWnd == wParam;
@@ -1204,7 +1190,7 @@ CSublDlg::GetScaleRatio( CString path, Polar c, double ls, int Z, double* pkx, d
   Gdiplus::Rect rect( 0, 0, 450, 450 );
   Bitmap* pbmp = 0;
   CStdioFile* IF = 0;
-  std::ofstream OF;
+  ofstream OF;
   if( !OF.good())
           goto Fail;
 
@@ -1221,7 +1207,7 @@ CSublDlg::GetScaleRatio( CString path, Polar c, double ls, int Z, double* pkx, d
           goto Fail;
 
   char buf[4096];
-  OF.open( path, std::ios::out|std::ios::trunc|std::ios::binary );
+  OF.open( path, ios::out|ios::trunc|ios::binary );
   for(;;)
   {
     int n = IF->Read( buf, sizeof buf );
@@ -1253,10 +1239,9 @@ CSublDlg::GetScaleRatio( CString path, Polar c, double ls, int Z, double* pkx, d
     static int my[] = { 0, 0, -1, 1 };
 
     int i = 224, j = 224;
-    int s = 0;
+    int n, s = 0;
     UINT fv = pp[i][j];
-	int n;
-    for(n = 0 ; n < 225 && !s ; ++n, i += mx[k], j += my[k] )
+    for( n = 0 ; n < 225 && !s ; ++n, i += mx[k], j += my[k] )
       s = pp[i][j] != fv;
 
     if( !s )
@@ -1416,14 +1401,14 @@ CSublDlg::OnStartButtonClicked()
       bAutoSet = 0;
       for( int i = CELEM( ext ) ; !bAutoSet && --i >= 0 ; )
       {
-        strncpy( lnkFile, bmpFile, sizeof lnkFile );
+        strncpy_s( lnkFile, bmpFile, sizeof lnkFile );
         char* pExt = strrchr( lnkFile, '.' );
         if( !pExt )
           pExt = lnkFile + strlen( lnkFile );
 
         if( !ext[i][1] || !strcmp( pExt, ext[i][1] ))
         {
-          strcpy( pExt, ext[i][0] );
+          strcpy_s( pExt, sizeof lnkFile - ( pExt - lnkFile ), ext[i][0] );
           for( int k = 2 ; !bAutoSet && --k >= 0 ; )
           {
             wldPath = m_BmpPath[k] + lnkFile;
@@ -1512,7 +1497,7 @@ CSublDlg::OnStartButtonClicked()
 
     if( bAutoSet )
     {
-			::Point tp( MerkatorData.GetOffset());
+      POINT tp = MerkatorData.GetOffset();
       P00 = CPoint( tp.x + c0, tp.y - c1 );
       P01.x = a0 * BS.cx;
       P01.y = b0 * BS.cy;
@@ -1589,6 +1574,8 @@ CSublDlg::OnStartButtonClicked()
   }
 }
 //=========================================================================
+using namespace Trig;
+
 int
 CSublDlg::OnInsertionEnd( CDrawObject* pObj )
 {
@@ -1607,36 +1594,37 @@ CSublDlg::OnInsertionEnd( CDrawObject* pObj )
   {
     CWaitCursor wc;
     ReportHint( "Обзор подложки..." );
-    ::Rect r( 0, 0, 0, 0 );
-
-    char const* psrc0 = ((CText*)pObj->GetActualCont()->GetHead()->GetNext())->GetStringPtr()->m_String;
-
-    for( ResultCode rc = R_REPEAT ; rc == R_REPEAT ; )
-    {
-      TGstream buf;
-      int cnt = 0;
-      rc = pView->m_MapStore.SelectByRect( r, SUBLAYER_CLASS, buf, &cnt );
-      if( rc <= R_REPEAT )
-        for( char* pSrc = buf.str() ; --cnt >= 0 ; )
+  
+    CSize sz( pView->GetDocument()->GetSize());
+    RECT r = { 0, 0, sz.cx, sz.cy };
+    long t[SUBLR_RANGE];
+    for( int i = SUBLR_RANGE ; --i >= 0 ; t[i] = SUBLAYER_CLASS + i + 1 );
+    TGstream buf;
+    int cnt = 0;
+  
+		if( pView->m_MapStore.SelectByClass( r, t, CELEM( t ), buf, &cnt ) == R_OK )
+		{
+      char const* psrc0 = ((CText*)pObj->GetActualCont()->GetHead()->GetNext())->GetStringPtr()->m_String;
+  		for( char* pSrc = buf.str() ; --cnt >= 0 ; )
+      {
+        CDrawObject* pObe = pView->TranslateObjectFromMap( &pSrc );
+        if( pObe )
         {
-          CDrawObject* pObe = pView->TranslateObjectFromMap( &pSrc );
-          if( pObe )
+          char const* psrc1 = ((CText*)pObe->GetActualCont()->GetHead()->GetNext())->GetStringPtr()->m_String;
+          if( !_stricmp( psrc0, psrc1 ))
           {
-            char const* psrc1 = ((CText*)pObe->GetActualCont()->GetHead()->GetNext())->GetStringPtr()->m_String;
-            if( !_stricmp( psrc0, psrc1 ))
-            {
-              AddItem( pObe );
-              RefreshPosSize( pObe );
-              if( AskBox( "Извините, такой фрагмент подложки уже введен!\n\nПоказать?" ) == IDYES )
-                pView->FindObject( pObe->TabIdent());
-              delete pObe;
-              return 0;
-            }
+            AddItem( pObe );
+            RefreshPosSize( pObe );
+            if( AskBox( "Извините, такой фрагмент подложки уже введен!\n\nПоказать?" ) == IDYES )
+              pView->FindObject( pObe->TabIdent());
             delete pObe;
+            return 0;
           }
+          delete pObe;
         }
+      }
     }
-
+		
     using namespace Gdiplus;
     GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR GdiplusToken;
@@ -1740,7 +1728,7 @@ CSublDlg::OnInsertionEnd( CDrawObject* pObj )
     CStdioFile* IF = IS.OpenURL( url, 1, INTERNET_FLAG_TRANSFER_BINARY );
     if( IF )
     {
-		std::ofstream OF( path, std::ios::out| std::ios::trunc| std::ios::binary );
+      ofstream OF( path, ios::out|ios::trunc|ios::binary );
       if( !OF.good())
       {
         ErrBox( "Не удается открыть файл\n для сохранения подложки!" );
@@ -1771,9 +1759,8 @@ CSublDlg::OnInsertionEnd( CDrawObject* pObj )
     R.NormalizeRect();
 
     CPoint t( pObj->GetBoundBox().CenterPoint());
-		::Point tp( t.x, t.y );
     Polar c;
-    if( !MerkatorData.Prj2Pol( tp, c ))
+    if( !MerkatorData.Prj2Pol( t, c ))
       c = Dec2Pol( t );
 
     if( c.lat == 0 && c.lon == 0 )
@@ -1785,13 +1772,13 @@ CSublDlg::OnInsertionEnd( CDrawObject* pObj )
     double const d = .0001;
     CPoint aln;
     Polar b( c.lat, c.lon + d );
-		::Point tp1;
+    CPoint tp1;
     if( MerkatorData.Pol2Prj( b, tp1 ) > 0 )
-		{
-			aln.x = tp1.x;
-			aln.y = tp1.y;
-		}
-		else
+    {
+      aln.x = tp1.x;
+      aln.y = tp1.y;
+    }
+    else
       aln = Pol2Dec( b );
 
     int a0 = pBar->GetAngle();
@@ -1827,7 +1814,7 @@ CSublDlg::OnInsertionEnd( CDrawObject* pObj )
 
     CBox RR( pObj->GetBoundBox(), t, -an );
 
-    double sf = MerkatorData.ScaleFactor( tp );
+    double sf = MerkatorData.ScaleFactor( t );
     double Rmj = MerkatorData.GetRmj();
     double Rmn = MerkatorData.GetRmj();
 
@@ -1925,7 +1912,7 @@ CSublDlg::OnInsertionEnd( CDrawObject* pObj )
         CStdioFile* IF = IS.OpenURL( url, 1, INTERNET_FLAG_TRANSFER_BINARY );
         if( IF )
         {
-			std::ofstream OF( path, std::ios::out| std::ios::trunc| std::ios::binary );
+          ofstream OF( path, ios::out|ios::trunc|ios::binary );
           if( !OF.good())
           {
             ErrBox( "Не удается открыть временный файл\n для сохранения подложки!" );

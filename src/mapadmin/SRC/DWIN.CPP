@@ -51,6 +51,8 @@ BEGIN_MESSAGE_MAP( CMainWin, CFrameWnd )
 
 END_MESSAGE_MAP()
 //=====================================================================
+#define _FLAT_BAR_
+//=====================================================================
 CMainWin::CMainWin()
 {
   memset( m_pToolBar, 0, sizeof m_pToolBar );
@@ -111,9 +113,17 @@ CMainWin::CreateToolBar( int i )
     if( !ptbd->pSect )
     {
       pCtrlBar = pBar = new CToolBar;
+#ifdef _FLAT_BAR_
+      if( !pBar->CreateEx( this,
+                           TBSTYLE_FLAT,
+                           WS_CHILD | WS_VISIBLE | CBRS_GRIPPER | CBRS_FLYBY | CBRS_SIZE_DYNAMIC,
+                           CRect( 0, 0, 0, 0 ),
+                           tbid ) ||
+#else
       if( !pBar->Create( this,
                          WS_CHILD | WS_VISIBLE | CBRS_GRIPPER | CBRS_FLYBY | CBRS_SIZE_DYNAMIC,
                          tbid ) ||
+#endif
           !pBar->LoadToolBar( ptbd->bitMapID ))
       {
         ASSERT( 0 );
@@ -189,8 +199,7 @@ CMainWin::CreateToolBar( int i )
 int
 CMainWin::CreateToolBars()
 {
-	int i;
-  for( i = CELEM( m_pToolBar ) ; --i >= 0 ; delete m_pToolBar[i] )
+  for( int i = CELEM( m_pToolBar ) ; --i >= 0 ; delete m_pToolBar[i] )
     m_pToolBar[i] && m_pToolBar[i]->DestroyWindow();
 
   ToolBarPos const* ptbd = TBS;
@@ -198,10 +207,10 @@ CMainWin::CreateToolBars()
 
   EnableDocking( CBRS_ALIGN_ANY );
 
-  for( i = 0 ; i < nBars ; ++i, ++ptbd )
+  for( int i = 0 ; i < nBars ; ++i, ++ptbd )
 		CreateToolBar( i );
 
-  for( i = nBars ; --i >= 0 ; )
+  for( int i = nBars ; --i >= 0 ; )
     if((--ptbd)->pSect )
     {
       CMyBar* pb = (CMyBar*)GetBarPtr( TBS[i].bitMapID );
@@ -326,7 +335,7 @@ CMainWin::OnUpdateSts( CCmdUI* pCmdUI )
       CScaleBase* psb = (CScaleBase*)pView->GetActiveMode( smId );
       int sc = psb ? psb->GetCurScale() : pView->GetAltScale();
 			CPoint t( psb ? psb->TopLeft() : pView->GetPosition());
-      sc = MerkatorData.TrueScale( sc, Point( t.x, t.y ));
+      sc = MerkatorData.TrueScale( sc, t );
       s.Format( " 1:%d ", sc );
     }
     else
@@ -336,7 +345,7 @@ CMainWin::OnUpdateSts( CCmdUI* pCmdUI )
       {
         Polar pc;
   			CPoint t( pView->GetPosition());
-        MerkatorData.Prj2Pol( Point( t.x, t.y ), pc );
+        MerkatorData.Prj2Pol( t, pc );
         s.Format( " %c=%1.5f\xb0 ", by ? 'Ø' : 'Ä', ( by ? pc.lat : pc.lon ) / Deg );
       }
       else
@@ -406,8 +415,8 @@ CMainWin::OnToolbarSelect( UINT nId )
 int
 CMainWin::GetBarNum( UINT bitMapID )
 {
-	int i;
-  for(i = CELEM( TBS ) ; --i >= 0 && TBS[i].bitMapID != bitMapID ; );
+  int i = CELEM( TBS );
+  while( --i >= 0 && TBS[i].bitMapID != bitMapID );
   return i;
 }
 //=====================================================================

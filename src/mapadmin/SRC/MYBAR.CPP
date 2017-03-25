@@ -27,8 +27,8 @@ END_MESSAGE_MAP()
 void
 CMyBar::OnNeedTextA( UINT nID, NMHDR* pNotifyStruct, LRESULT* lResult )
 {
-	int i;
-  for(  i = m_BarSize ; --i >= 0 && m_pBarInf[i].CommandID != nID ; );
+  int i = m_BarSize;
+  while( --i >= 0 && m_pBarInf[i].CommandID != nID );
   CString t( i < 0 ? "?" : m_pBarInf[i].ToolTipText );
 
   LPTOOLTIPTEXT lpTTT = (LPTOOLTIPTEXT)pNotifyStruct;
@@ -61,15 +61,24 @@ CMyBar::OnNotify( WPARAM wParam, LPARAM lParam, LRESULT* pResult )
   return OnCmdMsg( nID, MAKELONG( nCode, WM_NOTIFY ), &notify, 0 );
 }
 //=====================================================================
+#define _FLAT_BAR_
 CMyBar::CMyBar( CWnd* pWnd, LPCTSTR sectName, UINT baseID, UINT tbid ) :
   m_BaseId( baseID ),
   m_BarSize( 0 ),
   m_pBarInf( 0 )
 {
-  Create( pWnd, 
+#ifdef _FLAT_BAR_
+  CreateEx( pWnd,
+            TBSTYLE_FLAT,
+            WS_CHILD | WS_VISIBLE | CBRS_GRIPPER | CBRS_FLYBY | CBRS_SIZE_DYNAMIC,
+            CRect( 0, 0, 0, 0 ),
+            tbid );
+#else
+
+  Create( pWnd,
           WS_CHILD | WS_VISIBLE | CBRS_GRIPPER | CBRS_FLYBY | CBRS_SIZE_DYNAMIC, 
           tbid );
-  
+#endif
   char buf[16384];
   UINT i = 0, x = 0;
 
@@ -137,7 +146,7 @@ CMyBar::CMyBar( CMyBar* pBar ) :
 {
   CreateEx( pBar->GetParent(), 
             TBSTYLE_FLAT, 
-            WS_CHILD | WS_VISIBLE | CBRS_GRIPPER | CBRS_FLYBY | CBRS_SIZE_DYNAMIC, 
+            WS_CHILD | WS_VISIBLE | CBRS_GRIPPER | CBRS_FLYBY | CBRS_SIZE_DYNAMIC | TBSTYLE_FLAT,
             CRect( 0, 0, 0, 0 ), 
             0 );
   m_pBarInf = new BarBtnInf[m_BarSize];
@@ -192,8 +201,8 @@ CMyBar::IsSeparator( int i )
 int
 CMyBar::GetPosition( UINT id )
 {
-  int i;
-  for(i = m_BarSize ; --i >= 0 && m_pBarInf[i].CommandID != id ; );
+  int i = m_BarSize;
+  while( --i >= 0 && m_pBarInf[i].CommandID != id );
   return i;
 }
 //=====================================================================

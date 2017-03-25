@@ -392,11 +392,11 @@ CPolyItem::CPolyItem( ksi_obj init_list, int bBound ):
     m_PointNum = KSI_LIST_LEN( list );
     if( m_pPoints = m_PointNum ? new CPoint[m_PointNum+m_bBound] : 0 )
     {
-		CPoint *pp;
-       for(pp = m_pPoints ; list != ksi_nil ; list = KSI_CDR( list ))
+      CPoint *pp;
+      for( pp = m_pPoints ; list != ksi_nil ; list = KSI_CDR( list ))
         *pp++ = CppPoint( KSI_CAR( list ));
-       if( bBound )
-         *pp = *m_pPoints;
+      if( bBound )
+        *pp = *m_pPoints;
     }
   }
 }
@@ -407,7 +407,7 @@ CPolyItem::TranslateToMap( TGstream* pDst )
   PolyParam par;
   par.length = m_PointNum;
   int r = WriteData( &par.length, sizeof par.length, pDst );
-  return r == R_OK ? WriteData( m_pPoints, par.length * sizeof Point, pDst ) : r;
+  return r == R_OK ? WriteData( m_pPoints, par.length * sizeof POINT, pDst ) : r;
 }
 //=====================================================================
 void
@@ -486,6 +486,8 @@ CPolyItem::ScaleOn( double cf, CPoint c )
     }
 }
 //=====================================================================
+using namespace Trig;
+
 void
 CPolyItem::DrawVerts( CDC* pDC, WORD flag )
 {

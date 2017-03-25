@@ -101,8 +101,8 @@ void
 CFloatEdit::ChangeValue( int nDelta )
 {
   char buf[80];
-  sprintf( buf, m_Format,
-           float( CorrectValue( GetValue() + nDelta )) * m_mFactor / m_dFactor );
+  sprintf_s( buf, m_Format,
+             float( CorrectValue( GetValue() + nDelta )) * m_mFactor / m_dFactor );
   GetParent()->SetDlgItemText( m_EditId, buf );
 }
 //=====================================================================
@@ -179,7 +179,7 @@ CRealEdit::ChangeValue( double delta )
 {
   double v = CorrectValue( GetValue() + delta );
   char buf[80];
-  sprintf( buf, m_Format, v );
+  sprintf_s( buf, m_Format, v );
   GetParent()->SetDlgItemText( m_EditId, buf );
 }
 //=====================================================================

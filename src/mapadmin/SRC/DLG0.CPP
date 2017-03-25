@@ -114,7 +114,7 @@ CGotoDialog::OnInitDialog()
 {
   CDialog::OnInitDialog();
 
-  static sct[] = { MaxScale, MinScale, 500, 1500, 4000, 15000, 50000 };
+  static int sct[] = { MaxScale, MinScale, 500, 1500, 4000, 15000, 50000 };
 
   m_pSCTRL = (CSliderCtrl*)GetDlgItem( IDC_GTD_SCALE_SLIDER );
 
@@ -133,16 +133,15 @@ CGotoDialog::OnInitDialog()
 
   m_pSCTRL->SetPos( m_Scale );
   SetDlgItemInt( IDC_GTD_SCALE_EDIT, m_Scale );
-  
-	Point tp( m_Point.x, m_Point.y );
-  if( MerkatorData.Prj2Pol( tp, m_Polar ) != 1 )
+
+  if( MerkatorData.Prj2Pol(m_Point, m_Polar ) != 1 )
     m_Polar = Dec2Pol( m_Point );
- 	if( m_Polar.lat == 0 && m_Polar.lon == 0 )
-	{
-	  GetDlgItem( IDC_GTD_POLAR_RADIO )->EnableWindow( 0 ); 
-	  GetDlgItem( IDC_GTD_GMS_CHECK )->EnableWindow( 0 ); 
-	  m_bDecart = 1;
-	}
+  if( m_Polar.lat == 0 && m_Polar.lon == 0 )
+  {
+    GetDlgItem( IDC_GTD_POLAR_RADIO )->EnableWindow( 0 );
+    GetDlgItem( IDC_GTD_GMS_CHECK )->EnableWindow( 0 );
+    m_bDecart = 1;
+  }
 
   if( m_bDecart )
   {
@@ -159,6 +158,21 @@ CGotoDialog::OnInitDialog()
 }
 //=====================================================================
 void
+CGotoDialog::SetPointScale( CPoint c, int s )
+{ 
+	m_Point = c; 
+	
+  ShowDecart();
+  if( !m_bDecart )
+	{
+    DecPol();
+    ShowPolar();
+	}
+
+  SetDlgItemInt( IDC_GTD_SCALE_EDIT, m_Scale = s );
+}
+//=====================================================================
+void
 CGotoDialog::OnGMSButtonClicked()
 {
   if( !m_bDecart )
@@ -171,21 +185,21 @@ CGotoDialog::ShowDecart()
   GetDlgItem( IDC_GTD_STATIC0 )->SetWindowText( "X(м)" );
   GetDlgItem( IDC_GTD_STATIC1 )->SetWindowText( "Y(м)" );
   char b[32];
-	sprintf( b, "%1.2f", m_Point.x / 100. * SmInUnit );
+  sprintf_s( b, "%1.2f", m_Point.x / 100. * SmInUnit );
   SetDlgItemText( IDC_GTD_XS_EDIT, b );
-	sprintf( b, "%1.2f", m_Point.y / 100. * SmInUnit );
+  sprintf_s( b, "%1.2f", m_Point.y / 100. * SmInUnit );
   SetDlgItemText( IDC_GTD_YS_EDIT, b );
 }
 //=====================================================================
 static void
-G2GMS( double val, char* buf )
+G2GMS( double val, char buf[32] )
 {
   double const r = 60.;
   val /= Deg;
   int g = floor( val );
   int m = floor(( val - g ) * r );
   double s = ( val - g - m / r ) * r * r;
-  sprintf( buf, "%d\xb0%02d\'%02.4f\"", g, m, s );
+  sprintf_s( buf, sizeof buf, "%d\xb0%02d\'%02.4f\"", g, m, s );
 }
 //=====================================================================
 static double
@@ -217,9 +231,9 @@ CGotoDialog::ShowPolar()
   }
   else
   {
-    sprintf( t, "%1.6f", m_Polar.lon / Deg );
+    sprintf_s( t, "%1.6f", m_Polar.lon / Deg );
     SetDlgItemText( IDC_GTD_XS_EDIT, t );
-    sprintf( t, "%1.6f", m_Polar.lat / Deg );
+    sprintf_s( t, "%1.6f", m_Polar.lat / Deg );
     SetDlgItemText( IDC_GTD_YS_EDIT, t );
   }
 }
@@ -232,12 +246,12 @@ CGotoDialog::PolDec()
   GetDlgItemText( IDC_GTD_XS_EDIT, tx, sizeof tx - 1 );
   GetDlgItemText( IDC_GTD_YS_EDIT, ty, sizeof ty - 1 );
 
-	int bGMS = IsDlgButtonChecked( IDC_GTD_GMS_CHECK );
-	m_Polar.lon = ( bGMS ? GMS2G( tx ) : atof( tx )) * Deg;
+  int bGMS = IsDlgButtonChecked( IDC_GTD_GMS_CHECK );
+  m_Polar.lon = ( bGMS ? GMS2G( tx ) : atof( tx )) * Deg;
   m_Polar.lat = ( bGMS ? GMS2G( ty ) : atof( ty )) * Deg;
-  if( !MerkatorData.Pol2Prj( m_Polar, *((Point*)&m_Point )))
+  if( !MerkatorData.Pol2Prj( m_Polar, m_Point ))
     m_Point = Pol2Dec( m_Polar );
-	m_Point = CMapView::Project2Grid( m_Point );
+  m_Point = CMapView::Project2Grid( m_Point );
 }
 //=====================================================================
 void
@@ -248,11 +262,10 @@ CGotoDialog::DecPol()
   GetDlgItemText( IDC_GTD_XS_EDIT, tx, sizeof tx - 1 );
   GetDlgItemText( IDC_GTD_YS_EDIT, ty, sizeof ty - 1 );
 
-	m_Point.x = atof( tx ) * 1e2 / SmInUnit;
+  m_Point.x = atof( tx ) * 1e2 / SmInUnit;
   m_Point.y = atof( ty ) * 1e2 / SmInUnit;
-	CPoint t = CMapView::Grid2Project( m_Point );
-	Point tp( t.x, t.y );
-  if( !MerkatorData.Prj2Pol( tp, m_Polar ))
+  CPoint t = CMapView::Grid2Project( m_Point );
+  if( !MerkatorData.Prj2Pol( t, m_Polar ))
     m_Polar = Dec2Pol( t );
 }
 //=====================================================================
@@ -266,12 +279,12 @@ CGotoDialog::OnCoordButtonClicked()
 
   if( m_bDecart )
   {
-		PolDec();
+    PolDec();
     ShowDecart();
   }
   else
   {
-		DecPol();
+    DecPol();
     ShowPolar();
   }
 }
@@ -280,47 +293,47 @@ void
 CGotoDialog::UpdateCmd( int cmd )
 {
   if( m_bDecart )
-		DecPol();
-	else
-		PolDec();
+    DecPol();
+  else
+    PolDec();
 
   m_Scale = GetDlgItemInt( IDC_GTD_SCALE_EDIT );
   CSize s( pView->GetDocument()->GetSize());
-	CPoint p( CMapView::Grid2Project( m_Point ));
+  CPoint p( CMapView::Grid2Project( m_Point ));
 
   if( p.x < 0 || p.y < 0 || p.x >= s.cx && p.y >= s.cy )
     ErrBox( "Попытка выхода за габарит проекта" );
-	else
-		switch( cmd )
-		{
-			case 0: pView->GoTo( p, m_Scale ); break;
-			case 1: pView->OnFixMouse( p, 0 ); break;
-			case 2: pView->OnFixMouse( p, 1 ); break;
-	}
+  else
+    switch( cmd )
+    {
+      case 0: pView->GoTo( p, m_Scale ); break;
+      case 1: pView->OnFixMouse( p, 0 ); break;
+      case 2: pView->OnFixMouse( p, 1 ); break;
+    }
 }
 //=====================================================================
 void
 CGotoDialog::OnOK()
 {
-	UpdateCmd( 0 );
+  UpdateCmd( 0 );
 }
 //=====================================================================
 void
 CGotoDialog::OnLBClicked()
 {
-	UpdateCmd( 1 );
+  UpdateCmd( 1 );
 }
 //=====================================================================
 void
 CGotoDialog::OnRBClicked()
 {
-	UpdateCmd( 2 );
+  UpdateCmd( 2 );
 }
 //=====================================================================
 void
 CGotoDialog::OnCancel()
 {
-	ShowWindow( SW_HIDE );
+  ShowWindow( SW_HIDE );
 }
 //=====================================================================
 IMPLEMENT_DYNCREATE( COverviewDialog, CDialog )
@@ -358,20 +371,18 @@ COverviewDialog::CreateBmp( CRect* pRect )
   }
 
   int scale = pView->WindowSize2Scale( r1.Size());
-	CPoint t( r1.CenterPoint());
-	Point tp( t.x, t.y );
-  scale /= MerkatorData.ScaleFactor( tp );
+  CPoint t( r1.CenterPoint());
+  scale /= MerkatorData.ScaleFactor( t );
 
   CGraphData gd;
   pView->GetDocument()->CreateLayers( &gd );
   pView->m_ScaleOnLoading = 0;
   pView->LoadFromStore( &gd, r1, r2, scale, r2, scale );
 
-  for( int i = FULL_RANGE ; --i >= CLASS_RANGE ; gd.GetLayerByClass( i )->RemoveAll( 0 ));
+  for( int i = SUBSTAT_CLASS ; --i >= CLASS_RANGE ; gd.GetLayerByClass( i )->RemoveAll( 0 ));
 
   pView->m_ScaleOnLoading = 1;
 
-//  m_Box = pRect ? *pRect : gd.CalcBoundBox();
   m_Box = pRect ? *pRect : CRect( CPoint( 0, 0 ), pView->GetDocument()->GetSize());
 
   if( m_Box.IsRectNull())
@@ -412,8 +423,8 @@ COverviewDialog::CreateBmp( CRect* pRect )
     GetImageEncodersSize( &num, &size );
     ImageCodecInfo* pImageCodecInfo = (ImageCodecInfo*) new char[size];
     GetImageEncoders( num, size, pImageCodecInfo );
-	int i;
-    for( i = num ; --i >= 0 && wcscmp( pImageCodecInfo[i].MimeType, L"image/bmp" ) ; );
+    int i = num;
+    while( --i >= 0 && wcscmp( pImageCodecInfo[i].MimeType, L"image/bmp" ));
     if( i >= 0 )
       bmpClsid = pImageCodecInfo[i].Clsid;
     delete pImageCodecInfo;
@@ -426,7 +437,7 @@ COverviewDialog::CreateBmp( CRect* pRect )
     }
     else
     {
-		std::ofstream os( m_OverviewPath, std::ios::out | std::ios::app | std::ios::binary );
+      ofstream os( m_OverviewPath, ios::out | ios::app | ios::binary );
       os.write((char*)&m_Box, sizeof m_Box );
       os.close();
     }
@@ -721,7 +732,7 @@ CShapeDialog::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const
 {
   pTI->uFlags = TTF_IDISHWND;
   pTI->uId = (UINT)GetDlgItem( IDC_CTRL )->GetSafeHwnd();
-  strcpy( pTI->lpszText = new char[16], "Форма линии" );
+  strcpy_s( pTI->lpszText = new char[16], 16, "Форма линии" );
   return 1;
 }
 //=====================================================================
@@ -999,7 +1010,7 @@ CObjSelectDialog::OnInitDialog()
     if( s[i] )
     {
       char m[16];
-      sprintf( m, "%d", s[i] );
+      sprintf_s( m, "%d", s[i] );
       LVITEM i0 = { LVIF_TEXT|LVIF_PARAM, n, 0, 0, 0, LPSTR( m_pView->m_pObjDef->GetName( i )), 0, 0, i };
       pBox0->InsertItem( &i0 );
       pBox0->SetItemText( n++, 1, m );
@@ -1044,7 +1055,7 @@ CObjSelectDialog::UpdateClass( int n )
           }
         S = S.Left( S.GetLength() - 3 );
         char m[16];
-        sprintf( m, "%d", n + 1 );
+        sprintf_s( m, "%d", n + 1 );
         LVITEM i0 = { LVIF_TEXT|LVIF_PARAM, n, 0, 0, 0, m, 0, 0, i };
         pBox->InsertItem( &i0 );
         pBox->SetItemText( n, 1, S );
@@ -1062,7 +1073,7 @@ CObjSelectDialog::UpdateObject( int n )
 }
 //=====================================================================
 void
-CObjSelectDialog::OnObjListDblClick()
+CObjSelectDialog::OnObjListDblClick( NMHDR*, LRESULT* )
 {
   CListCtrl* pBox = (CListCtrl*)GetDlgItem( IDC_OSL_OBJECT_LIST );
   int n = pBox->GetSelectionMark();
@@ -1105,11 +1116,12 @@ CRepDialog::OnFilePathButton()
 //=====================================================================
 long CCloneParamDialog::m_Step = 50;
 long CCloneParamDialog::m_nRep = 1;
-int  CCloneParamDialog::m_nDir = 1;
 //=====================================================================
 BEGIN_MESSAGE_MAP( CCloneParamDialog, CDialog )
-  ON_BN_CLICKED( IDC_CPD_RADIO_0, OnDirBtn )
-  ON_BN_CLICKED( IDC_CPD_RADIO_1, OnDirBtn )
+END_MESSAGE_MAP()
+
+BEGIN_MESSAGE_MAP( CCloneExampleBox, CListBox )
+  ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 //=====================================================================
 int
@@ -1123,110 +1135,111 @@ CCloneParamDialog::OnInitDialog()
 
   CDialog::OnInitDialog();
 
-	int i;
+  int i;
   for( i = CELEM( S ) ; --i >= 0 ; )
-		i ? m_Edit1.Initialize( S[i], this ) : m_Edit0.Initialize( S[i], this );
+    i ? m_Edit1.Initialize( S[i], this ) : m_Edit0.Initialize( S[i], this );
 
-  static UINT bb[][2] =
-  {
-    IDC_CPD_RADIO_1, IDB_GREEN,
-    IDC_CPD_RADIO_0, IDB_BLUE
-  };
-
-  for( i = CELEM( bb ) ; --i >= 0 ; )
-  {
-    HBITMAP hBmp = (HBITMAP)LoadImage( App.m_hInstance, LPCTSTR( bb[i][1] ), IMAGE_BITMAP, 0, 0, LR_LOADMAP3DCOLORS );
-    if( hBmp )
-      ((CButton*) GetDlgItem( bb[i][0] ))->SetBitmap( hBmp );
-  }
-
-	m_ExampleBox.SubclassDlgItem( IDC_CPD_EXAMPLE_BOX, this );
-	m_ExampleBox.Init( m_Points, m_nPoint );
-	m_ExampleBox.AddString( "" );
+  m_ExampleBox.SubclassDlgItem( IDC_CPD_EXAMPLE_BOX, this );
+  m_ExampleBox.Init( m_Points, m_nPoint );
+  m_ExampleBox.AddString( "" );
   return 1;
 }
 //=====================================================================
-void
-CCloneParamDialog::OnDirBtn()
-{
-	m_nDir = IsDlgButtonChecked( IDC_CPD_RADIO_1 );
+int
+CCloneParamDialog::GetStep()
+{ 
+	return m_ExampleBox.m_nDir < 2 ? -m_Step : m_Step;
 }
 //=====================================================================
 void
 CCloneParamDialog::DoDataExchange( CDataExchange* pDX )
 {
-  DDX_Text( pDX, IDC_CPD_REP_EDIT,   m_nRep );
-  DDX_Radio( pDX, IDC_CPD_RADIO_0,   m_nDir  );
+  DDX_Text( pDX, IDC_CPD_REP_EDIT, m_nRep );
 
-	if( pDX->m_bSaveAndValidate )
-	  m_Edit1.SetValue();  
+  if( pDX->m_bSaveAndValidate )
+    m_Edit1.SetValue();
 }
 //=====================================================================
-CCloneParamDialog::CExampleBox::CExampleBox()
+CCloneExampleBox::CCloneExampleBox()
 {
-	for( int k = 3 ; --k >= 0 ; m_Points[k]  = 0 );
+  for( int k = 3 ; --k >= 0 ; m_Points[k]  = 0 );
 }
 //=====================================================================
-CCloneParamDialog::CExampleBox::~CExampleBox() 
-{ 
-	for( int k = 3 ; --k >= 0 ; delete m_Points[k] );
+CCloneExampleBox::~CCloneExampleBox()
+{
+  for( int k = 3 ; --k >= 0 ; delete m_Points[k] );
 }
 //=====================================================================
 void
-CCloneParamDialog::CExampleBox::Init( CPoint* pp, int np )
-{ 
+CCloneExampleBox::Init( CPoint* pp, int np )
+{
   CRect r;
   GetClientRect( &r );
   r.InflateRect( -4, -4 );
-	CPoint c0( r.CenterPoint());
+  CPoint c0( r.CenterPoint());
 
-	CBox b( pp, np );
-	CPoint c1( b.CenterPoint());
+  CBox b( pp, np );
+  CPoint c1( b.CenterPoint());
 
-	double kx = (double)r.Width() / (double)b.Width();
-	double ky = (double)r.Height() / (double)b.Height();
-	double kk = min( kx, ky ) * .8 ;
-  
-	m_Points[0] = new CPoint[m_nPoint[0]=np];
-	memcpy( m_Points[0], pp, np * sizeof( CPoint ));
-	int s = 10 / kk;
+  double kx = (double)r.Width() / (double)b.Width();
+  double ky = (double)r.Height() / (double)b.Height();
+  double kk = min( kx, ky ) * .8 ;
 
-	for( int i = 3 ; --i > 0 ; )
+  m_Points[0] = new CPoint[m_nPoint[0]=np];
+  memcpy( m_Points[0], pp, np * sizeof( CPoint ));
+  int s = 10 / kk;
+
+	int ds[] = { -s, s, 0 };
+
+  for( int i = 3 ; --i > 0 ; )
+  {
+    TGstream dst;
+    int nn = SmartCloneLine( dst, m_Points[0], m_nPoint[0], i < 2 ? -s : s );
+    if( nn )
+    {
+      m_Points[i] = new CPoint[m_nPoint[i]=nn];
+      memcpy( m_Points[i], dst.str(), nn * sizeof( CPoint ));
+    }
+  }
+
+  for( int k = 3 ; --k >= 0 ; )
+  {
+    CPoint* pt = m_Points[k];
+    for( int i = m_nPoint[k] ; --i >= 0 ; ++pt )
+    {
+      *pt -= c1;
+      pt->x *= kk;
+      pt->y *= kk;
+      *pt += c0;
+    }
+  }
+	m_nDir = 0;
+}
+//=====================================================================
+void
+CCloneExampleBox::DrawItem( LPDRAWITEMSTRUCT lpDIS )
+{
+  static COLORREF clr[] ={ RGB( 255, 0, 0 ), RGB( 0, 0, 255 ) };
+  CDC* pDC = CDC::FromHandle( lpDIS->hDC );
+  for( int k = 3 ; --k >= 0 ; )
 	{
-		TGstream dst;
-		int nn = SmartCloneLine( dst, m_Points[0], m_nPoint[0], i > 1 ? -s : s );
-		if( nn )
-		{
-			m_Points[i] = new CPoint[m_nPoint[i]=nn];
-			memcpy( m_Points[i], dst.str(), nn * sizeof( CPoint ));
-		}
-	}
-
-	for( int k = 3 ; --k >= 0 ; )
-	{
-	  CPoint* pt = m_Points[k];
-	  for( int i = m_nPoint[k] ; --i >= 0 ; ++pt )
-		{
-		  *pt -= c1;
-		  pt->x *= kk;
-		  pt->y *= kk;
-		  *pt += c0;
-		}
+    CPen pen( PS_SOLID, 3, k == 0 || m_nDir == k ? clr[0] : clr[1] );
+    pDC->SelectObject( &pen );
+    pDC->Polyline( m_Points[k], m_nPoint[k] );
 	}
 }
 //=====================================================================
 void
-CCloneParamDialog::CExampleBox::DrawItem( LPDRAWITEMSTRUCT lpDIS )
+CCloneExampleBox::OnLButtonDown( UINT nFlags, CPoint point )
 {
-	static COLORREF clr[] ={ RGB( 255, 0, 0 ), RGB( 0, 255, 0 ), RGB( 0, 0, 255 ) };
-
-  CDC* pDC = CDC::FromHandle( lpDIS->hDC );
-
-	for( int k = 3 ; --k >= 0 ; )
-	{
-  	CPen pen( PS_SOLID, 3, clr[k] );
-  	pDC->SelectObject( &pen );
-	  pDC->Polyline( m_Points[k], m_nPoint[k] );
-	}
+	CSpot spot( point, 3 );
+	int d = MAX_INT;
+	for( int i = 3 ; --i > 0 ; )
+		if( spot.DetectPolyline( m_Points[i], m_nPoint[i], 1, 1, &d ))
+		{
+			m_nDir = i;
+			Invalidate();
+			break;
+		}
 }
 //=====================================================================

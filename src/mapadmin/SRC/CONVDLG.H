@@ -77,15 +77,20 @@ class CConvDlg : public CDialog
   };
 
 public:
-  CConvDlg( CMapView* pView = 0, MapUpdater* pUpdtr = 0 ) : 
-    m_pView( pView ),
-    m_pUpdtr( pUpdtr ),
+  CConvDlg() : 
+    m_pView( 0 ),
+    m_pUpdtr( 0 ),
     m_Rgn( 0 ),
     pConwThread( 0 ),
     CDialog( IDD_CONVERTOR_DIALOG, 0 ) 
   {}
+  void Init( CMapView* pView, MapUpdater* pUpdtr )
+  {
+    m_pView = pView;
+    m_pUpdtr = pUpdtr;
+  }
   int  OnInitDialog();
-  int IsConversion() { return m_Conversion; }
+  int  IsConversion() { return m_Conversion; }
   void OnStopClicked();
   void OnConversionComplete();
   void OnSaveClicked();
@@ -96,13 +101,13 @@ public:
   void SetMsgWndVisible( int bVsbl );
   void SetReport( int total, int written, int errors, int bNow = 0 );
   void SetDecomp( int total, int written );
-  void Report( UINT = 0 , LONG = 0 );
+  LRESULT Report( WPARAM = 0 , LPARAM = 0 );
   int DoSetNode();
   int  GetNode();
   int  GetStop() { return m_Stop; }
 
 private:
-  void OnSelectByIdentButtonClicked();
+//  void OnSelectByIdentButtonClicked();
   void OnSelectDateButtonClicked();
   void OnDate1ButtonClicked();
   void OnDate2ButtonClicked();
@@ -137,13 +142,12 @@ private:
   CConwThread* pConwThread;
 
   CMapView*   m_pView;
-  MapUpdater* m_pUpdtr;
   TCHAR m_TxtPath[_MAX_PATH];
   TCHAR m_LogPath[_MAX_PATH];
   ksi_obj m_ksi_space;
   int m_RgnSize;
-  Point* m_Rgn;
-  Rect m_Box;
+  CPoint* m_Rgn;
+  CRect m_Box;
   int volatile m_Stop;
   int m_OpNum;
   int m_Mode;
@@ -172,7 +176,6 @@ private:
   CString m_SubsPar;
   CString m_KeyPar;
 
-  static double m_Cfs[3][3];
   static int    m_bNumerateFrom;
   static int    m_bOffsetX;
   static int    m_bOffsetY;
@@ -192,7 +195,10 @@ private:
   static DatRec DataConfigTab[];
   
 public:
+  MapUpdater* m_pUpdtr;
   static double m_UTMP[5];
+  static double m_Cfs0[3][3];
+  static double m_Cfs1[2][3];
   
 	DECLARE_MESSAGE_MAP()
 };
@@ -227,20 +233,22 @@ public:
     m_pCnvDlg( pCnvDlg )
   {}
   int  OnInitDialog();
+  void OnCalc();
   void OnOK();
+	void CopyData();
 
 private:
-  CConvDlg*  m_pCnvDlg;
+  CConvDlg* m_pCnvDlg;
+
+  DECLARE_MESSAGE_MAP()
 };
 //=====================================================================
 class CFindObjectDlg : public CDialog
 {
 public:
-  CFindObjectDlg( CMapView* pView ) : 
-    m_pView( pView ),
-    CDialog( IDD_FIND_OBJECT_DIALOG, 0 ) 
-  {}
+  CFindObjectDlg() : CDialog( IDD_FIND_OBJECT_DIALOG, 0 ) {}
   int  OnInitDialog();
+  void Init( CMapView* pView ) { m_pView = pView; }
   void DoDataExchange( CDataExchange* pDX );
   void OnOK();
 

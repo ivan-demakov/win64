@@ -32,7 +32,7 @@ CLineTmpl::CreateTemplates()
 {
   LPCSTR TmplPath( App.GetProjectFilePath( TmplFileName ));
 
-  std::ifstream ts( TmplPath, std::ios::in | std::ios::binary, std::filebuf::sh_none );
+  ifstream ts( TmplPath, ios::in | ios::binary, SH_DENYWR );
 
   if( ts.fail())
   {
@@ -83,9 +83,8 @@ CLineTmpl::CreateTemplates()
     double sz = scale * 2.54 * SmInUnit / resl;
 
     ibuf[0] = period * sz;
-
-	int i;
-    for( i = 1 ; i < CELEM( ibuf ) ; )
+    int i = 1;
+    while( i < CELEM( ibuf ))
     {
       int pllc;
       ts.read( LPTSTR( &pllc ), sizeof( int ));
@@ -150,8 +149,8 @@ CLineTmpl::~CLineTmpl()
 CLineTmpl*
 CLineTmpl::GetTemplate( int index )
 {
-	int i;
-  for(i = m_TmplArr.GetSize() ; --i >= 0 && m_TmplArr[i]->m_Index != index ; );
+  int i = m_TmplArr.GetSize();
+  while( --i >= 0 && m_TmplArr[i]->m_Index != index );
   return i >= 0 ? m_TmplArr[i] : 0;
 }
 //=====================================================================
@@ -175,8 +174,8 @@ LeftOf( CPoint const& p0, CPoint const& p1, CPoint const& p2 )
 static int
 MakeCase( int* pv, int n )
 {
-	int c;
-  for(int c = 0 ; --n >= 0 ; c = c << 1 | *pv++ );
+  int c;
+  for( c = 0 ; --n >= 0 ; c = c << 1 | *pv++ );
   return c;
 }
 //=====================================================================
@@ -214,8 +213,8 @@ CLineTmpl::DrawFull( CDC* pDC, int ntempl, CPoint* pPoints, int count,
     for( int cnt = count ; --cnt > 0 ; )
     {
       CPoint p3( p1 = p2 ), p4( p2 = org + Ratio( *pp++, num, den ));
-	  int bd, i;
-      for( bd = 1, i = 2 ; --i >= 0 ; )
+      int bd = 1;
+      for( int i = 2 ; --i >= 0 ; )
       {
         int v[] = { LeftOf( p3, ltop, lbtm ),
                      LeftOf( p4, ltop, lbtm ),
@@ -262,8 +261,8 @@ CLineTmpl::DrawPart( CDC* pDC, int ntempl, CPoint* pPoints, int count,
     for( int cnt = count ; --cnt > 0 ; )
     {
       CPoint p3( p1 = p2 ), p4( p2 = Ratio( *pp++, num, den )+ org );
-	  int bd, i;
-      for( bd = 1, i = 2 ; --i >= 0 ; )
+      int bd = 1;
+      for( int i = 2 ; --i >= 0 ; )
       {
         int v[] = { LeftOf( p3, top, btm ),
                     LeftOf( p4, top, btm ),
@@ -369,8 +368,7 @@ CLineTmpl::DrawTmpLine( CDC* pDC, COLORREF color, int num, int den,
       CPoint* pSg = segmen;
       CPoint* pp = (CPoint*)ptmpl, org( l2, 0 );
       int np = min( MaxSegmentLength, nPoints );
-	  int count;
-      for(count = np ; --count >= 0 ;
+      for( int count = np ; --count >= 0 ;
            *pSg++ = *pStart + TurnPoint( Ratio( *pp++, num, den ) + org, S.cx, -S.cy, L ));
 
       for( int n = mn, sh = 0 ; --n >= 0 ; sh += tmpLen )
@@ -379,7 +377,7 @@ CLineTmpl::DrawTmpLine( CDC* pDC, COLORREF color, int num, int den,
         pSg = segmen;
         m_p0 = step + *pSg++;
         pDC->MoveTo( m_p0 );
-        for( count = np ; --count > 0 ; m_p0 = m_p1 )
+        for( int count = np ; --count > 0 ; m_p0 = m_p1 )
         {
           m_p1 = step + *pSg++;
           if( !SaveImg())

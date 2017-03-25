@@ -470,6 +470,12 @@
 #define IDC_UTM_L0_EDIT                     (IDC_CTRL+2)
 #define IDC_UTM_K0_EDIT                     (IDC_CTRL+3)
 #define IDC_UTM_E0_EDIT                     (IDC_CTRL+4)
+#define IDC_UTM_DX_EDIT                     (IDC_CTRL+5)
+#define IDC_UTM_DY_EDIT                     (IDC_CTRL+6)
+#define IDC_UTM_TX_EDIT                     (IDC_CTRL+7)
+#define IDC_UTM_TY_EDIT                     (IDC_CTRL+8)
+#define IDC_UTM_XY_LIST                     (IDC_CTRL+9)
+#define IDC_UTM_CALC_BTN                    (IDC_CTRL+10)
 
 //CCloneParamDialog
 #define IDC_CPD_EXAMPLE_BOX                 (IDC_CTRL+0)

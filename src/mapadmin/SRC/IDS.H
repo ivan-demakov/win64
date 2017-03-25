@@ -148,10 +148,11 @@
 #define IDM_RESTORE_MODE         2024
 #define IDM_SHORTTRACE_MODE      2025 
 #define IDM_BACKUP_PROJECT       2026 
-#define IDM_MAGNIT_MODE          2027
-#define IDM_MAGNIT_MODE1         2028
-#define IDM_MAGNIT_MODE2         2029
-#define IDM_MAGNIT_MODE2         2029
+#define IDM_MAGNIT_MODE1         2027
+#define IDM_MAGNIT_MODE2         2028
+#define IDM_MAGNIT_MODE4         2029
+#define IDM_MAGNIT_MODE8         2030
+#define IDM_SELECT_POLYGON_MODE  2031
 //============================================
 // AppCommands servised in individual maner
 #define IDM_OVERVIEW_MODE        2200
@@ -239,6 +240,7 @@
 #define IDM_USER_RIGHTS_CANCEL   2274
 
 #define IDM_CLONE_LINES          2275
+#define IDM_TEXT_SHADOW          2276
 
 #define IDM_DOCCTL_BEGIN         2300
 #define IDM_DOCCTL_END           (IDM_DOCCTL_BEGIN+100)

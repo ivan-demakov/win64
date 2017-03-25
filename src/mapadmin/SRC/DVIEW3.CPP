@@ -40,12 +40,12 @@ CMapView::GetTrueScale()
 int
 CMapView::IsVisibleInScale( int nType, int nScale )
 {
-	if( !nScale )
-		return 1;
+  if( !nScale )
+    return 1;
 
   int maxLim = m_pObjDef->GetMaxLimit( nType );
-	int minLim = m_pObjDef->GetMinLimit( nType );
-	return ( !maxLim || nScale <= maxLim ) && ( !minLim || nScale >= minLim );
+        int minLim = m_pObjDef->GetMinLimit( nType );
+        return ( !maxLim || nScale <= maxLim ) && ( !minLim || nScale >= minLim );
 }
 //========================================================================
 CSpot
@@ -65,7 +65,7 @@ CMapView::ShowBox( CRect box )
   m_bRedraw = 1;
   InvalidateRect( &box, 0 );
   box = DP2LP( box );
-//  m_BoxList.AddHead( box );
+  m_BoxList.AddHead( box );
 }
 //========================================================================
 void
@@ -107,8 +107,8 @@ CMapView::SpinSelectOn( CSize center, int angle )
     CDrawObject* pObj = SpinList.GetNext( pos );
     if( !IsObjectInLegalRegion( pObj, "Поворот", 2 ))
     {
-                        while( !SpinList.IsEmpty())
-                                delete SpinList.RemoveHead();
+      while( !SpinList.IsEmpty())
+        delete SpinList.RemoveHead();
       return 0;
     }
 
@@ -119,16 +119,16 @@ CMapView::SpinSelectOn( CSize center, int angle )
   if( n )
   {
     char m[256];
-    sprintf( m, "%s выходит\nза габарит проекта",
-             n == 1 ? "Объект" : "Несколько объектов" );
+    sprintf_s( m, "%s выходит\nза габарит проекта",
+               n == 1 ? "Объект" : "Несколько объектов" );
     ErrBox( m );
-                while( !SpinList.IsEmpty())
-                        delete SpinList.RemoveHead();
+    while( !SpinList.IsEmpty())
+      delete SpinList.RemoveHead();
     return 0;
   }
 
-        m_SelectList.RemoveAll();
-        m_SelectList.AddHead( &SpinList );
+  m_SelectList.RemoveAll();
+  m_SelectList.AddHead( &SpinList );
   while( !SpinList.IsEmpty())
     delete m_ClipData.AddObject( SpinList.RemoveHead());
 
@@ -187,23 +187,25 @@ CMapView::ShowSelected( int bShow, int bSave, int bDclr )
   for( pos = m_SelectList.GetHeadPosition() ; pos ;
        ShowObjectBox( m_SelectList.GetNext( pos )));
   ShowSelectedNum();
+//  m_bDrawSel = 1;
 }
 //=====================================================================
 void
-CMapView::ResumeObject( CDrawObject* pObj, int bDeleted, char* pBuf )
+CMapView::ResumeObject( CDrawObject* pObj, int bDeleted )
 {
   CString t( "" );
   for( CVisiblePrim* p = pObj->GetActualCont()->GetHead() ; p ; p = p->GetNext())
     if( p->IsAnyVisible() && p->GetText())
-		{
-			t += t.IsEmpty() ? "(" : " ";
-			t += p->GetText();
-		}
-	t += t.IsEmpty() ? "" : ")";
-  int l = sprintf( pBuf, "%s%s: %d-%d-%d-%d, Узел %d",
-                   m_pObjDef->GetName( pObj->Class()), t,
-                   pObj->Class(), pObj->Status(),
-                   pObj->Table(), pObj->Entry(), pObj->Node());
+    {
+      t += t.IsEmpty() ? "(" : " ";
+      t += p->GetText();
+    }
+  t += t.IsEmpty() ? "" : ")";
+  char buf[1024];
+  int l = sprintf_s( buf, "%s%s: %d-%d-%d-%d, Узел %d",
+                     m_pObjDef->GetName( pObj->Class()), LPCSTR( t ),
+                     pObj->Class(), pObj->Status(),
+                     pObj->Table(), pObj->Entry(), pObj->Node());
 
   if( m_Version >= 103 )
   {
@@ -211,15 +213,16 @@ CMapView::ResumeObject( CDrawObject* pObj, int bDeleted, char* pBuf )
     CString st( t.Format( "%d.%m.%y %H:%M" ));
     if( st.IsEmpty())
       st = "?";
-    l += sprintf( pBuf + l, ", %s %s", bDeleted ? "Удален" : "Введен", LPCSTR( st ));
+    l += sprintf_s( buf + l, sizeof buf - l, ", %s %s", bDeleted ? "Удален" : "Введен", LPCSTR( st ));
     if( SublDlgIsActive())
       m_pSublDlg->RefreshPosSize( pObj );
   }
 #ifdef _DEBUG
   int np;
   if( pObj->GetAnyPoints( 0, &np ))
-    sprintf( pBuf + l, ", (%d)", np );
+    sprintf_s( buf + l, sizeof buf - l, ", (%d)", np );
 #endif
+  ReportHint( buf );
 }
 //========================================================================
 void
@@ -231,18 +234,19 @@ CMapView::ShowSelectedNum()
   char s[1024] = "";
 
   if( m_pSTM )
-    sprintf( s, "%s [%d]",
-             *m_pSTM->GetTraceName() ? m_pSTM->GetTraceName() : "Трасса кабеля (?) ",
-             m_pSTM->GetTraceSize());
+    sprintf_s( s, "%s [%d]",
+               *m_pSTM->GetTraceName() ? m_pSTM->GetTraceName() : "Трасса кабеля (?) ",
+               m_pSTM->GetTraceSize());
   else
   {
     int n = m_SelectList.GetCount();
     if( n == 1 )
-      ResumeObject( m_SelectList.GetHead(), 0, s );
+      ResumeObject( m_SelectList.GetHead(), 0 );
     else
-      sprintf( s, n ? "Выделено: %d" : "", n );
+      sprintf_s( s, n ? "Выделено: %d" : "", n );
   }
-  ReportHint( s );
+  if( s[0] )
+    ReportHint( s );
 }
 //========================================================================
 int
@@ -254,11 +258,11 @@ CMapView::MakeSelectList( CRect const& r, CObjList& list )
   sr.NormalizeRect();
 
   if( sr.IsRectEmpty())
-	{
-		CDrawObject* pObj = m_ClipData.SelectBySpot( GetSpot( sr.TopLeft()), 0 );
-		if( pObj )
-			list.AddHead( pObj );
-	}
+  {
+    CDrawObject* pObj = m_ClipData.SelectBySpot( GetSpot( sr.TopLeft()), 0 );
+    if( pObj )
+      list.AddHead( pObj );
+  }
   else
     m_ClipData.SelectByRect( sr, list );
 
@@ -271,10 +275,10 @@ CMapView::MakeSelectList( CRect const& r, CObjList& list )
     list.GetPrev( pos );
     CDrawObject* pObj = list.GetAt( tps );
     int t = pObj->Class();
-#ifndef _DEBUG
+//#ifndef _DEBUG
     if( bSa ? t != sc && t != REPER_CLASS : pObj->IsSublayer())
       list.RemoveAt( tps );
-#endif
+//#endif
   }
 
   if( sr.IsRectEmpty())
@@ -293,23 +297,23 @@ CMapView::MakeSelectList( CRect const& r, CObjList& list )
   {
     CObjList lst0, lst1;
     lst1.AddHead( list.GetHead());
-		while( !lst1.IsEmpty())
-		{
-			while( !lst1.IsEmpty())
-			{
-				CDrawObject* pObj = lst1.RemoveHead();
+    while( !lst1.IsEmpty())
+    {
+      while( !lst1.IsEmpty())
+      {
+        CDrawObject* pObj = lst1.RemoveHead();
         GetTargetsGlobal( pObj, &lst0 );
-	  		GetHostsGlobal( pObj, &lst0 );
-			}
-			while( !lst0.IsEmpty())
-			{
-				CDrawObject* pObj = lst0.RemoveHead();
-				if( list.Find( pObj ))
-					continue;
-				list.AddHead( pObj );
-				lst1.AddHead( pObj );
-			}
-		}
+        GetHostsGlobal( pObj, &lst0 );
+      }
+      while( !lst0.IsEmpty())
+      {
+        CDrawObject* pObj = lst0.RemoveHead();
+        if( list.Find( pObj ))
+          continue;
+        list.AddHead( pObj );
+        lst1.AddHead( pObj );
+      }
+    }
   }
   return !list.IsEmpty();
 }
@@ -319,20 +323,23 @@ CLegend const* CMapView::m_pLg = 0;
 CDrawObject*
 CMapView::StartBlinking( CDrawObject* pObj )
 {
-	CDrawObject* pOld;
+  if( m_pCurSelObj == pObj )
+    return 0;
+
+  CDrawObject* pOld;
   if( pOld = m_pCurSelObj )
   {
-  	if( m_pLg )
-	  	m_pLg = m_pCurSelObj->SetLegend( m_pLg );
+    if( m_pLg )
+      m_pLg = m_pCurSelObj->SetLegend( m_pLg );
     KillTimer( IDM_BLINKSELTIMER );
     m_pCurSelObj->SetSelectFlag( m_BlinkStat );
-		ShowObjectBox( m_pCurSelObj );
+    ShowObjectBox( m_pCurSelObj );
   }
 
   if( m_pCurSelObj = pObj )
   {
-		m_BlinkStat = m_pCurSelObj->SelectFlag();
-		pObj->SetSelectFlag( 1 );
+    m_BlinkStat = m_pCurSelObj->SelectFlag();
+    pObj->SetSelectFlag( 1 );
     SetTimer( IDM_BLINKSELTIMER, 500, 0 );
   }
   return pOld;
@@ -346,22 +353,22 @@ CMapView::MakeBlinking()
   GdiplusStartupInput gdiplusStartupInput;
   ULONG_PTR GdiplusToken;
   GdiplusStartup( &GdiplusToken, &gdiplusStartupInput, 0 );
-	
-	if( m_pCurSelObj->IsSpecSelected())
-	{
-		m_pLg = m_pCurSelObj->SetLegend( 0 );
-	  m_pCurSelObj->SetSelectFlag( 0 );
-	}
-	else
-	if( m_pLg )
-	{
-		m_pLg = m_pCurSelObj->SetLegend( m_pLg );
-	  m_pCurSelObj->SetSelectFlag( 1 );
-	}
-	else
-	  m_pCurSelObj->SetSelectFlag( m_pCurSelObj->SelectFlag() ^ SF_STATUS_MASK );
 
-	m_pCurSelObj->Draw( &scrDC );
+  if( m_pCurSelObj->IsSpecSelected())
+  {
+    m_pLg = m_pCurSelObj->SetLegend( 0 );
+    m_pCurSelObj->SetSelectFlag( 0 );
+  }
+  else
+  if( m_pLg )
+  {
+    m_pLg = m_pCurSelObj->SetLegend( m_pLg );
+    m_pCurSelObj->SetSelectFlag( 1 );
+  }
+  else
+    m_pCurSelObj->SetSelectFlag( m_pCurSelObj->SelectFlag() ^ SF_STATUS_MASK );
+
+  m_pCurSelObj->Draw( &scrDC );
 
   GdiplusShutdown( GdiplusToken );
 }
@@ -381,8 +388,7 @@ CMapView::UnselObj()
 void
 CMapView::ClearSelection( int bDelete, int bMakeUndo )
 {
-  if( GetActiveMode( IDM_SHORTTRACE_MODE ) || 
-		  GetActiveMode( IDM_CONNECT_MODE ))
+  if( GetActiveMode( IDM_SHORTTRACE_MODE ) || GetActiveMode( IDM_CONNECT_MODE ))
     return;
 
   StartBlinking( 0 );
@@ -399,7 +405,7 @@ CMapView::ClearSelection( int bDelete, int bMakeUndo )
   while( !m_SelectList.IsEmpty())
   {
     CDrawObject* pObj = m_SelectList.RemoveHead();
-		ShowObjectBox( pObj );
+    ShowObjectBox( pObj );
     pObj->UnselectSpecial();
     m_bSublayerChanged |= pObj->IsSublayer();
 
@@ -430,152 +436,152 @@ CMapView::SelectObject( CIdent const& id, int flags, int bShow )
 static void
 SortObjList( CObjList& Dst, CObjList& Src, int n )
 {
-	switch( n )
-	{
-		case 1 :
-			Dst.AddHead( Src.RemoveHead());
-			break;
-		case 2 :
-		{
-			Dst.AddHead( Src.RemoveHead());
-			if( *Dst.GetHead() < *Src.GetHead())
-  			Dst.AddTail( Src.RemoveHead());
-			else
-  			Dst.AddHead( Src.RemoveHead());
-			break;
-		}
-		default :
-		{
-			CObjList Tmp0, Tmp1;
-			SortObjList( Tmp0, Src, n / 2 );
-			SortObjList( Tmp1, Src, n - n / 2 );
+        switch( n )
+        {
+                case 1 :
+                        Dst.AddHead( Src.RemoveHead());
+                        break;
+                case 2 :
+                {
+                        Dst.AddHead( Src.RemoveHead());
+                        if( *Dst.GetHead() < *Src.GetHead())
+                        Dst.AddTail( Src.RemoveHead());
+                        else
+                        Dst.AddHead( Src.RemoveHead());
+                        break;
+                }
+                default :
+                {
+                        CObjList Tmp0, Tmp1;
+                        SortObjList( Tmp0, Src, n / 2 );
+                        SortObjList( Tmp1, Src, n - n / 2 );
       for(;;)
-			{
-				if( Tmp0.IsEmpty())
-				{
-					Dst.AddTail( &Tmp1 );
-					break;
-				}
-				if( Tmp1.IsEmpty())
-				{
-					Dst.AddTail( &Tmp0 );
-					break;
-				}
- 		    Dst.AddTail( *Tmp0.GetHead() < *Tmp1.GetHead() ? Tmp0.RemoveHead() : Tmp1.RemoveHead());	    
-			}
-		}
-	}
+                        {
+                                if( Tmp0.IsEmpty())
+                                {
+                                        Dst.AddTail( &Tmp1 );
+                                        break;
+                                }
+                                if( Tmp1.IsEmpty())
+                                {
+                                        Dst.AddTail( &Tmp0 );
+                                        break;
+                                }
+                    Dst.AddTail( *Tmp0.GetHead() < *Tmp1.GetHead() ? Tmp0.RemoveHead() : Tmp1.RemoveHead());
+                        }
+                }
+        }
 }
 //========================================================================
 #else
 struct OLI
 {
-	CDrawObject* pObj;
-	OLI* pNext;
-	void Create( CDrawObject* p, OLI* n )
-	{
-		pObj = p;
-		pNext = n;
-	}
+        CDrawObject* pObj;
+        OLI* pNext;
+        void Create( CDrawObject* p, OLI* n )
+        {
+                pObj = p;
+                pNext = n;
+        }
 };
 //========================================================================
 static OLI*
 SortOLI( OLI*& p, int n )
 {
-	switch( n )
-	{
-		case 0:
-		  return 0;
-		case 1:
-		{
-		  OLI* p0 = p;
-		  p = p0->pNext;
-		  p0->pNext = 0;
-		  return p0;
-		}
-		case 2:
-		{
-		  OLI* p0 = p;
-		  OLI* p1 = p0->pNext;
-		  p = p1->pNext;
+        switch( n )
+        {
+                case 0:
+                  return 0;
+                case 1:
+                {
+                  OLI* p0 = p;
+                  p = p0->pNext;
+                  p0->pNext = 0;
+                  return p0;
+                }
+                case 2:
+                {
+                  OLI* p0 = p;
+                  OLI* p1 = p0->pNext;
+                  p = p1->pNext;
       if( *p1->pObj < *p0->pObj )
-			{
-			  p1->pNext = p0;
-			  p0->pNext = 0;
-			  return p1;
-			}
-		  else
-			{
-  		  p1->pNext = 0;
-			  return p0;
-			}		
-		}
-		default:
-		{
-    	OLI* p0 = SortOLI( p, n / 2 );
-	    OLI* p1 = SortOLI( p, n - n / 2 );
-	    OLI hd;
-	    OLI* tl = &hd;
-	    for(;;)
-			{
-	      if( !p0 )
-				{
-			    tl->pNext = p1;
-			    break;
-				}
-	      if( !p1 )
-				{
-			    tl->pNext = p0;
-			    break;
-				}
-  	    if( *p0->pObj < *p1->pObj )
-				{
-			    tl = tl->pNext = p0;
-			    p0 = p0->pNext;
-				}
-		    else
-				{
-			    tl = tl->pNext = p1;
-			    p1 = p1->pNext;
-				}
-			}
-    	return hd.pNext;
-		}
-	}
+                        {
+                          p1->pNext = p0;
+                          p0->pNext = 0;
+                          return p1;
+                        }
+                  else
+                        {
+                  p1->pNext = 0;
+                          return p0;
+                        }
+                }
+                default:
+                {
+        OLI* p0 = SortOLI( p, n / 2 );
+            OLI* p1 = SortOLI( p, n - n / 2 );
+            OLI hd;
+            OLI* tl = &hd;
+            for(;;)
+                        {
+              if( !p0 )
+                                {
+                            tl->pNext = p1;
+                            break;
+                                }
+              if( !p1 )
+                                {
+                            tl->pNext = p0;
+                            break;
+                                }
+            if( *p0->pObj < *p1->pObj )
+                                {
+                            tl = tl->pNext = p0;
+                            p0 = p0->pNext;
+                                }
+                    else
+                                {
+                            tl = tl->pNext = p1;
+                            p1 = p1->pNext;
+                                }
+                        }
+        return hd.pNext;
+                }
+        }
 }
 #endif
 //========================================================================
 void
 CMapView::SortShowSelect()
 {
-	int n = m_SelectList.GetCount();
-	if( n == 0 )
-		return;
+        int n = m_SelectList.GetCount();
+        if( n == 0 )
+                return;
 
-	POSITION pos;
+        POSITION pos;
 
   CDrawObject* pObj = m_SelectList.GetTail();
 
 #ifdef SORT_IN_NATIVE_LIST
   CObjList Tmp;
-	SortObjList( Tmp, m_SelectList, n );
-	m_SelectList.AddTail( &Tmp );
+        SortObjList( Tmp, m_SelectList, n );
+        m_SelectList.AddTail( &Tmp );
 #else
   OLI* pHead = new OLI[n];
-	OLI* p = pHead + n;
-	OLI* x = 0;
- 	for( pos = m_SelectList.GetHeadPosition() ; pos ; )
-	{
-		(--p)->Create( m_SelectList.GetNext( pos ), x );
-		x = p;
-	}
+        OLI* p = pHead + n;
+        OLI* x = 0;
+        for( pos = m_SelectList.GetHeadPosition() ; pos ; )
+        {
+                (--p)->Create( m_SelectList.GetNext( pos ), x );
+                x = p;
+        }
   m_SelectList.RemoveAll();
-	for( p = SortOLI( p, n ) ; p ; p = p->pNext )
-		m_SelectList.AddTail( p->pObj );
-	delete pHead;
+        for( p = SortOLI( p, n ) ; p ; p = p->pNext )
+                m_SelectList.AddTail( p->pObj );
+        delete pHead;
 #endif
 
- 	for( pos = m_SelectList.GetHeadPosition() ; pos ; ShowObjectBox( m_SelectList.GetNext( pos )));
+        for( pos = m_SelectList.GetHeadPosition() ; pos ; ShowObjectBox( m_SelectList.GetNext( pos )));
   SetScale( m_AltScale, pObj->GetBoundBox().CenterPoint(), 1 );
 }
 //========================================================================
@@ -586,10 +592,10 @@ CMapView::SelectObject( CDrawObject* pObj, int flags, int bShow )
     StartBlinking( 0 );
   if( pObj )
   {
-		if( bShow )
+    if( bShow )
       ShowObjectBox( pObj );
-    
-		POSITION pos = m_SelectList.Find( pObj );
+
+    POSITION pos = m_SelectList.Find( pObj );
     if( pos )
     {
       if( !flags )
@@ -607,7 +613,7 @@ CMapView::SelectObject( CDrawObject* pObj, int flags, int bShow )
       m_SelectList.AddTail( pObj );
     }
     if( bShow )
-		  ShowObjectBox( pObj );
+      ShowObjectBox( pObj );
   }
 
   if( SublDlgIsActive() && pObj && pObj->IsSublayer())
@@ -698,18 +704,18 @@ CDrawObject*
 CMapView::GetDetectedObject( int bPreSel, int bStrict )
 {
   int dist = MAX_INT;
-	CDrawObject* pObj = 0;
-	CSpot spot = GetSpot();
-	if( bPreSel )
-		for( POSITION pos = m_SelectList.GetHeadPosition() ; pos ; )
-		{
-			CDrawObject* pObt = m_SelectList.GetNext( pos );
-			if( pObt->Detected( spot, bStrict, &dist ))
-				pObj = pObt;
-		}
+  CDrawObject* pObj = 0;
+  CSpot spot = GetSpot();
+  if( bPreSel )
+    for( POSITION pos = m_SelectList.GetHeadPosition() ; pos ; )
+    {
+      CDrawObject* pObt = m_SelectList.GetNext( pos );
+      if( pObt->Detected( spot, bStrict, &dist ))
+        pObj = pObt;
+    }
 
   if( !pObj )
-		pObj = m_ClipData.SelectBySpot( spot, bStrict );
+    pObj = m_ClipData.SelectBySpot( spot, bStrict );
 
   return pObj;
 }
@@ -722,7 +728,7 @@ CMapView::ShowAngle()
   if( a < 0 )
     a = -a, sg = '-';
   char s[40];
-  sprintf( s, " Поворот на %c%d.%1d град.", sg, a/10, a%10 );
+  sprintf_s( s, " Поворот на %c%d.%1d град.", sg, a/10, a%10 );
   ReportHint( s );
 }
 //=====================================================================
@@ -731,107 +737,107 @@ CMapView::DrawToPoint( int mode )
 {
   CPoint fp = m_Position;
   if( mode > 3 )
-	{
-    UINT f = 0;
-		CMagnitMode mm( mode == 4 ? IDM_MAGNIT_MODE1 : IDM_MAGNIT_MODE2 );
-		mm.Init( this );
-		mm.OnMouseMove( f, fp );
-	}
-	else
-	{
-
-  CSpot spot( GetSpot( m_Position, -1 ));
-
-  UINT fd0 = -1, fd1 = -1;
-  CPoint p0, tp[3], fp0[3], fp1[3];
-
-	CObjList lst;
-  m_ClipData.SelectBySpot( spot, lst );
-
-	while( !lst.IsEmpty())
-	{
-		CDrawObject* pObj = lst.RemoveHead();
-    int fd = pObj->DrawToPoint( spot, tp, mode );
-    if( fd < 0 )
-      continue;
-
-    if( fd < fd0 )
-    {
-      if( fd0 < fd1 )
-      {
-        fd1 = fd0;
-        memcpy( fp1, fp0, sizeof tp );
-      }
-      fd0 = fd;
-      memcpy( fp0, tp, sizeof tp );
-    }
-    else
-    if( fd < fd1 )
-    {
-      fd1 = fd;
-      memcpy( fp1, tp, sizeof tp );
-    }
-  }
-
-  if( fd0 == -1 || mode == 3 && fd1 == -1 )
-    return;
-
-  CPoint c( spot.CenterPoint());
-
-  switch( mode )
   {
-    case 0:
-      fp = fp0[0];
-      break;
-    case 1:
-    {
-      double dx = fp0[1].x - fp0[0].x;
-      double dy = fp0[1].y - fp0[0].y;
-      double dl = hipo( dx, dy );
-      CPoint p0( TurnPoint( c - fp0[0], dx, dy, dl ));
-      p0.y = p0.y > 0 ? m_Deviation : -m_Deviation;
-      fp = fp0[0] + TurnPoint( p0, dx, -dy, dl );
-      break;
-    }
-    case 2:
-      p0 = fp1[0] = fp0[1];
-      fp1[1] = fp0[2];
-    case 3:
-      if( mode != 2 && !CrossPoint( fp0, fp1, &p0 ) ||
-          dist( p0, m_Position ) > spot.GetRadius())
-        return;
-      if( m_Deviation )
-      {
-        double dx0 = fp0[1].x - fp0[0].x;
-        double dy0 = fp0[1].y - fp0[0].y;
-        double dl0 = hipo( dx0, dy0 );
-        double dx1 = fp1[1].x - fp1[0].x;
-        double dy1 = fp1[1].y - fp1[0].y;
-        double dl1 = hipo( dx1, dy1 );
-        int y0 = TurnPoint( c - fp0[0], dx0, dy0, dl0 ).y;
-        int y1 = TurnPoint( c - fp1[0], dx1, dy1, dl1 ).y;
-        if( mode == 2 && ( y0 > 0 ) != ( y1 > 0 ))
-        {
-           double a = arg( dcomplex( fp1[1].x - fp1[0].x, fp1[1].y - fp1[0].y ) /
-                           dcomplex( fp0[1].x - fp0[0].x, fp0[1].y - fp0[0].y ));
-           y0 = y1 = a <= 0 ? 1 : -1;
-        }
-
-        y0 = y0 > 0 ? m_Deviation : -m_Deviation;
-        y1 = y1 > 0 ? m_Deviation : -m_Deviation;
-        CSize s0( -y0 * dy0 / dl0, y0 * dx0 / dl0 );
-        CSize s1( -y1 * dy1 / dl1, y1 * dx1 / dl1 );
-        fp0[0] += s0;
-        fp0[1] += s0;
-        fp1[0] += s1;
-        fp1[1] += s1;
-      }
-      if( !CrossPoint( fp0, fp1, &fp, 0 ))
-        return;
-
-      break;
+    UINT f = 0;
+    CMagnitMode mm;
+		mm.SetSelMode( mode - 4 );
+    mm.Init( this );
+    mm.OnMouseMove( f, fp );
   }
-	}
+  else
+  {
+    CSpot spot( GetSpot( m_Position, -1 ));
+
+    UINT fd0 = -1, fd1 = -1;
+    CPoint p0, tp[3], fp0[3], fp1[3];
+
+    CObjList lst;
+    m_ClipData.SelectBySpot( spot, lst );
+
+    while( !lst.IsEmpty())
+    {
+      CDrawObject* pObj = lst.RemoveHead();
+      int fd = pObj->DrawToPoint( spot, tp, mode );
+      if( fd < 0 )
+        continue;
+
+      if( fd < fd0 )
+      {
+        if( fd0 < fd1 )
+        {
+          fd1 = fd0;
+          memcpy( fp1, fp0, sizeof tp );
+        }
+        fd0 = fd;
+        memcpy( fp0, tp, sizeof tp );
+      }
+      else
+      if( fd < fd1 )
+      {
+        fd1 = fd;
+        memcpy( fp1, tp, sizeof tp );
+      }
+    }
+
+    if( fd0 == -1 || mode == 3 && fd1 == -1 )
+      return;
+
+    CPoint c( spot.CenterPoint());
+
+    switch( mode )
+    {
+      case 0:
+        fp = fp0[0];
+        break;
+      case 1:
+      {
+        double dx = fp0[1].x - fp0[0].x;
+        double dy = fp0[1].y - fp0[0].y;
+        double dl = hipo( dx, dy );
+        CPoint p0( TurnPoint( c - fp0[0], dx, dy, dl ));
+        p0.y = p0.y > 0 ? m_Deviation : -m_Deviation;
+        fp = fp0[0] + TurnPoint( p0, dx, -dy, dl );
+        break;
+      }
+      case 2:
+        p0 = fp1[0] = fp0[1];
+        fp1[1] = fp0[2];
+      case 3:
+        if( mode != 2 && !CrossPoint( fp0, fp1, &p0 ) ||
+            dist( p0, m_Position ) > spot.GetRadius())
+          return;
+        if( m_Deviation )
+        {
+          double dx0 = fp0[1].x - fp0[0].x;
+          double dy0 = fp0[1].y - fp0[0].y;
+          double dl0 = hipo( dx0, dy0 );
+          double dx1 = fp1[1].x - fp1[0].x;
+          double dy1 = fp1[1].y - fp1[0].y;
+          double dl1 = hipo( dx1, dy1 );
+          int y0 = TurnPoint( c - fp0[0], dx0, dy0, dl0 ).y;
+          int y1 = TurnPoint( c - fp1[0], dx1, dy1, dl1 ).y;
+          if( mode == 2 && ( y0 > 0 ) != ( y1 > 0 ))
+          {
+             double a = arg( dcomplex( fp1[1].x - fp1[0].x, fp1[1].y - fp1[0].y ) /
+                             dcomplex( fp0[1].x - fp0[0].x, fp0[1].y - fp0[0].y ));
+             y0 = y1 = a <= 0 ? 1 : -1;
+          }
+
+          y0 = y0 > 0 ? m_Deviation : -m_Deviation;
+          y1 = y1 > 0 ? m_Deviation : -m_Deviation;
+          CSize s0( -y0 * dy0 / dl0, y0 * dx0 / dl0 );
+          CSize s1( -y1 * dy1 / dl1, y1 * dx1 / dl1 );
+          fp0[0] += s0;
+          fp0[1] += s0;
+          fp1[0] += s1;
+          fp1[1] += s1;
+        }
+        if( !CrossPoint( fp0, fp1, &fp, 0 ))
+          return;
+
+        break;
+    }
+  }
 
   if( m_Clip.PtInRect( fp ))
   {

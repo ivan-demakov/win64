@@ -123,11 +123,9 @@ CRestoreMode::ShowObject( CDrawObject* pObj, int bDeleted )
   CDrawObject* pExc = m_pOwner->m_ClipData.AddObject( pObj );
   m_pOwner->ShowObjectBox( pExc );
   m_pOwner->ShowObjectBox( pObj );
-  char s[256];
-	m_pOwner->ResumeObject( pObj, bDeleted, s );
-  ReportHint( s );
+	m_pOwner->ResumeObject( pObj, bDeleted );
 
-	return 1;
+  return 1;
 }
 //=====================================================================
 int  

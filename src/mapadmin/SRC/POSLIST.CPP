@@ -38,65 +38,65 @@ PositionList::RemoveAll()
   }
 }
 //=====================================================================
-std::streampos*
-PositionList::FindPos( std::streampos pos )
+streampos*
+PositionList::FindPos( streampos pos )
 {
   int n1 = 0, n2 = m_nSize << 1, msk = m_nSize - 1;
   while( n2 > 1 )
   {
-    std::streampos* psn = m_pTab + (( pos + n1 ) & msk );
+    streampos* psn = m_pTab + (( pos + (streamoff)n1 ) & msk );
     if( *psn == pos || !*psn )
       return psn;
     if(( n1 += n2 ) >= m_nSize )
       n1 = ( n2 >>= 1 ) >> 1;
   }
 
-  std::cerr << "PositionList::FindPos() failed!" << std::endl;  
+  cerr << "PositionList::FindPos() failed!" << endl;  
   return 0; //it is impossible!!!
 }
 //=====================================================================
 int
-PositionList::Insert( std::streampos pos )
+PositionList::Insert( streampos pos )
 {
   if( !m_pTab || m_nUsed >= m_nLimit )
   {
     int newSize = m_nSize << 1;
-    std::streampos* pNew = new std::streampos[newSize];
+    streampos* pNew = new streampos[newSize];
     if( !pNew )
     {
-		std::cerr << " Mem alloc (" << newSize << ") for position list failed!" << std::endl;
+      cerr << " Mem alloc (" << newSize << ") for position list failed!" << endl;
       return -1;
     }
     m_nLimit = m_nSize;
     m_nSize = newSize;
-    memset( pNew, 0, m_nSize * sizeof std::streampos );
-    std::streampos* pOld = m_pTab;
+    memset( pNew, 0, m_nSize * sizeof streampos );
+    streampos* pOld = m_pTab;
     m_pTab = pNew;
     if( pOld )
     {
-      for( std::streampos* p = pOld + m_nLimit ; --p >= pOld ; )
+      for( streampos* p = pOld + m_nLimit ; --p >= pOld ; )
       {
-        int pos = *p;
+        streampos pos = *p;
         if( pos > 0 )
           *FindPos( pos ) = pos;
       }
       delete pOld;
     }
   }
-  std::streampos* p = FindPos( pos );
-  m_nUsed += *p == 0;
+  streampos* p = FindPos( pos );
+  m_nUsed += *p == (streampos)0;
   *p = pos;
 
   return 1;
 }
 //=====================================================================
 int
-PositionList::Remove( std::streampos pos )
+PositionList::Remove( streampos pos )
 {
   if( !m_nUsed )
     return 0;
 
-  std::streampos* p = FindPos( pos );
+  streampos* p = FindPos( pos );
   if( *p != pos )
     return 0;
 
@@ -107,7 +107,7 @@ PositionList::Remove( std::streampos pos )
 }
 //=====================================================================
 int
-PositionList::Find( std::streampos pos )
+PositionList::Find( streampos pos )
 {
   return m_nUsed && *FindPos( pos ) == pos;
 }
@@ -117,29 +117,29 @@ PositionList::SetFirst()
 {
   if( m_nUsed && m_nCurr < 0 )
   {
-    std::streampos* pSrc = m_pTab;
-    std::streampos* pDst = pSrc;
-    std::streampos* pEnd = pSrc + m_nSize;
+    streampos* pSrc = m_pTab;
+    streampos* pDst = pSrc;
+    streampos* pEnd = pSrc + m_nSize;
     while( pSrc < pEnd )
     {
-      int t = *pSrc++;
+      streampos t = *pSrc++;
       if( t > 0 )
         *pDst++ = t;
     }
     pSrc = m_pTab;
     for( int bs = 1 ; bs < m_nUsed ; bs <<= 1 )
     {
-      std::streampos* p0 = pSrc;
-      std::streampos* d0 = pDst;
+      streampos* p0 = pSrc;
+      streampos* d0 = pDst;
       pSrc = d0;
       pDst = p0;
       for( int ts, dn = m_nUsed ; dn > 0 ; )
       {
         dn -= ts = min( bs, dn );
-        std::streampos* e0 = p0 + ts;
-        std::streampos* p1 = e0;
+        streampos* e0 = p0 + ts;
+        streampos* p1 = e0;
         dn -= ts = min( bs, dn );
-        std::streampos* e1 = p1 + ts;
+        streampos* e1 = p1 + ts;
         while( p0 < e0 && p1 < e1 )
           *d0++ = *p0 < *p1 ? *p0++ : *p1++;
         while( p0 < e0 )
@@ -161,16 +161,16 @@ PositionList::SetNext()
     ++m_nCurr;
 }
 //=====================================================================
-std::streampos
+streampos
 PositionList::GetCurr()
 {
   return m_nCurr >= 0 && m_nCurr < m_nUsed ? m_pSrt[m_nCurr] : 0;
 }
 //=====================================================================
-std::streampos
+streampos
 PositionList::GetNext()
 {
-  std::streampos pos = GetCurr();
+  streampos pos = GetCurr();
   if( pos )
     ++m_nCurr;
   return pos;

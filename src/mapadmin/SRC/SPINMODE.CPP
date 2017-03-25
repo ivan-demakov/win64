@@ -50,6 +50,8 @@ CSpinMode::SaveSpec()
        Sl.AddHead( m_TmpList.GetPrev( pos )));
 }
 //=====================================================================
+using namespace Trig;
+
 int
 CSpinMode::Open()
 {
@@ -80,7 +82,7 @@ CSpinMode::ShowAngle()
 {
   int a = abs( m_Angle );
   char s[40];
-  sprintf( s, " Поворот на %c%d.%1d град.", m_Angle >= 0 ? ' ' : '-', a/10, a%10 );
+  sprintf_s( s, " Поворот на %c%d.%1d град.", m_Angle >= 0 ? ' ' : '-', a/10, a%10 );
   ReportHint( s );
 }
 //=====================================================================
@@ -134,6 +136,8 @@ CSpinMode::OnRButtonUp( UINT& flags, CPoint& loc )
   return AM_RREMOVE | AM_RDONE;
 }
 //=====================================================================
+using namespace Trig;
+
 int
 CSpinMode::OnMouseMove( UINT& flags, CPoint& loc )
 {
