@@ -67,7 +67,7 @@ typedef
 
 
 #ifndef BZ_IMPORT
-//#define BZ_EXPORT
+#define BZ_EXPORT
 #endif
 
 #ifndef BZ_NO_STDIO
@@ -82,12 +82,12 @@ typedef
 #      undef small
 #   endif
 #   ifdef BZ_EXPORT
+#   define BZ_EXTERN __declspec(dllimport)
 #   define BZ_API(func) WINAPI func
-#   define BZ_EXTERN __declspec(dllexport)
 #   else
    /* import windows dll dynamically */
 #   define BZ_API(func) WINAPI func
-#   define BZ_EXTERN __declspec(dllimport)
+#   define BZ_EXTERN __declspec(dllexport)
 #   endif
 #else
 #   define BZ_API(func) func
