@@ -5,3 +5,7 @@
 /src/mapadmin/.vs/MapAdmin/v14/.suo
 /src/mapadmin/mole/Debug/mole.res
 /src/mapadmin/MapAdmin.VC.VC.opendb
+/src/ml/.vs/ml/v14/.suo
+*.iobj
+*.ipdb
+/src/ml/ml.VC.VC.opendb
