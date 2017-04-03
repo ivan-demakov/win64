@@ -1,0 +1,3 @@
+[submodule "src/xz"]
+	path = src/xz
+	url = http://git.tukaani.org/xz.git

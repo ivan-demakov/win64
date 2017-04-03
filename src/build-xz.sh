@@ -1,4 +1,4 @@
-cd xz-5.2.2
+cd xz
 
 PATH=/home/win64/bin:$PATH
 export PATH
