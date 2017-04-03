@@ -1,4 +1,4 @@
-cd zlib-1.2.11
+cd ml/zlib-1.2.11
 
 PATH=/home/win64/bin:$PATH
 export PATH

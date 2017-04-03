@@ -1,4 +1,4 @@
-cd xz
+cd ml/xz
 
 PATH=/home/win64/bin:$PATH
 export PATH

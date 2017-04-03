@@ -15,25 +15,25 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bzip2-1.0.6\blocksort.c">
+    <ClCompile Include="..\bzip2-1.0.6\blocksort.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\bzip2-1.0.6\huffman.c">
+    <ClCompile Include="..\bzip2-1.0.6\huffman.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\bzip2-1.0.6\crctable.c">
+    <ClCompile Include="..\bzip2-1.0.6\crctable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\bzip2-1.0.6\randtable.c">
+    <ClCompile Include="..\bzip2-1.0.6\randtable.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\bzip2-1.0.6\compress.c">
+    <ClCompile Include="..\bzip2-1.0.6\compress.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\bzip2-1.0.6\decompress.c">
+    <ClCompile Include="..\bzip2-1.0.6\decompress.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\bzip2-1.0.6\bzlib.c">
+    <ClCompile Include="..\bzip2-1.0.6\bzlib.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -88,7 +88,7 @@
       <PreprocessorDefinitions>_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;BZ_IMPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>..\..\bzip2-1.0.6\libbz2.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>..\bzip2-1.0.6\libbz2.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -99,7 +99,7 @@
       <PreprocessorDefinitions>_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;BZ_IMPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <ModuleDefinitionFile>..\..\bzip2-1.0.6\libbz2.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>..\bzip2-1.0.6\libbz2.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,7 +114,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>..\..\bzip2-1.0.6\libbz2.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>..\bzip2-1.0.6\libbz2.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -129,17 +129,17 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <ModuleDefinitionFile>..\..\bzip2-1.0.6\libbz2.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>..\bzip2-1.0.6\libbz2.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\bzip2-1.0.6\blocksort.c" />
-    <ClCompile Include="..\..\bzip2-1.0.6\bzlib.c" />
-    <ClCompile Include="..\..\bzip2-1.0.6\compress.c" />
-    <ClCompile Include="..\..\bzip2-1.0.6\crctable.c" />
-    <ClCompile Include="..\..\bzip2-1.0.6\decompress.c" />
-    <ClCompile Include="..\..\bzip2-1.0.6\huffman.c" />
-    <ClCompile Include="..\..\bzip2-1.0.6\randtable.c" />
+    <ClCompile Include="..\bzip2-1.0.6\blocksort.c" />
+    <ClCompile Include="..\bzip2-1.0.6\bzlib.c" />
+    <ClCompile Include="..\bzip2-1.0.6\compress.c" />
+    <ClCompile Include="..\bzip2-1.0.6\crctable.c" />
+    <ClCompile Include="..\bzip2-1.0.6\decompress.c" />
+    <ClCompile Include="..\bzip2-1.0.6\huffman.c" />
+    <ClCompile Include="..\bzip2-1.0.6\randtable.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
