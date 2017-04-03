@@ -23,3 +23,5 @@
 *.so.*
 *.Po
 *.Plo
+*.lst
+*.cod
