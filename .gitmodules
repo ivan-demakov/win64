@@ -1,3 +1,6 @@
 [submodule "src/xz"]
 	path = src/ml/xz
 	url = http://git.tukaani.org/xz.git
+[submodule "src/ml/libarchive"]
+	path = src/ml/libarchive
+	url = http://github.com/libarchive/libarchive.git
