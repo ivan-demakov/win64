@@ -7,3 +7,6 @@
 [submodule "src/ml/bdwgc"]
 	path = src/ml/bdwgc
 	url = https://github.com/ivmai/bdwgc.git
+[submodule "src/ml/libatomic_ops"]
+	path = src/ml/libatomic_ops
+	url = https://github.com/ivmai/libatomic_ops.git
