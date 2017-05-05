@@ -25,3 +25,4 @@
 *.Plo
 *.lst
 *.cod
+/src/ml/UpgradeLog.htm
