@@ -19,6 +19,14 @@
 /* We separate it only to make gc.h more suitable as documentation.       */
 #if defined(GC_H)
 
+/* Convenient internal macro to test version of GCC.    */
+#if defined(__GNUC__) && defined(__GNUC_MINOR__)
+# define GC_GNUC_PREREQ(major, minor) \
+            ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((major) << 16) + (minor))
+#else
+# define GC_GNUC_PREREQ(major, minor) 0 /* FALSE */
+#endif
+
 /* Some tests for old macros.  These violate our namespace rules and    */
 /* will disappear shortly.  Use the GC_ names.                          */
 #if defined(SOLARIS_THREADS) || defined(_SOLARIS_THREADS) \
@@ -58,7 +66,7 @@
 #endif
 
 #if defined(GC_WIN32_PTHREADS) && !defined(GC_WIN32_THREADS)
-  /* Using pthreads-win32 library.  */
+  /* Using pthreads-win32 library (or other Win32 implementation).  */
 # define GC_WIN32_THREADS
 #endif
 
@@ -88,8 +96,9 @@
 #   define GC_IRIX_THREADS
 # endif
 # if defined(__sparc) && !defined(__linux__) \
-     || defined(sun) && (defined(i386) || defined(__i386__) \
-                         || defined(__amd64__))
+     || ((defined(sun) || defined(__sun)) \
+         && (defined(i386) || defined(__i386__) \
+             || defined(__amd64) || defined(__amd64__)))
 #   define GC_SOLARIS_THREADS
 # elif defined(__APPLE__) && defined(__MACH__)
 #   define GC_DARWIN_THREADS
@@ -172,7 +181,7 @@
 #if defined(GC_DLL) && !defined(GC_API)
 
 # if defined(__MINGW32__) || defined(__CEGCC__)
-#   ifdef GC_BUILD
+#   if defined(GC_BUILD) || defined(__MINGW32_DELAY_LOAD__)
 #     define GC_API __declspec(dllexport)
 #   else
 #     define GC_API __declspec(dllimport)
@@ -203,7 +212,7 @@
 # elif defined(__GNUC__)
     /* Only matters if used in conjunction with -fvisibility=hidden option. */
 #   if defined(GC_BUILD) && !defined(GC_NO_VISIBILITY) \
-            && (__GNUC__ >= 4 || defined(GC_VISIBILITY_HIDDEN_SET))
+            && (GC_GNUC_PREREQ(4, 0) || defined(GC_VISIBILITY_HIDDEN_SET))
 #     define GC_API extern __attribute__((__visibility__("default")))
 #   endif
 # endif
@@ -229,10 +238,9 @@
   /* by using custom GC_oom_func then define GC_OOM_FUNC_RETURNS_ALIAS. */
 # ifdef GC_OOM_FUNC_RETURNS_ALIAS
 #   define GC_ATTR_MALLOC /* empty */
-# elif defined(__GNUC__) && (__GNUC__ > 3 \
-                             || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+# elif GC_GNUC_PREREQ(3, 1)
 #   define GC_ATTR_MALLOC __attribute__((__malloc__))
-# elif defined(_MSC_VER) && _MSC_VER >= 14
+# elif defined(_MSC_VER) && _MSC_VER >= 1400
 #   define GC_ATTR_MALLOC __declspec(noalias) __declspec(restrict)
 # else
 #   define GC_ATTR_MALLOC
@@ -248,8 +256,7 @@
 #   else
 #     define GC_ATTR_ALLOC_SIZE(argnum) /* empty */
 #   endif
-# elif __GNUC__ > 4 \
-       || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3 && !defined(__ICC))
+# elif GC_GNUC_PREREQ(4, 3) && !defined(__ICC)
 #   define GC_ATTR_ALLOC_SIZE(argnum) __attribute__((__alloc_size__(argnum)))
 # else
 #   define GC_ATTR_ALLOC_SIZE(argnum) /* empty */
@@ -257,7 +264,7 @@
 #endif
 
 #ifndef GC_ATTR_NONNULL
-# if defined(__GNUC__) && __GNUC__ >= 4
+# if GC_GNUC_PREREQ(4, 0)
 #   define GC_ATTR_NONNULL(argnum) __attribute__((__nonnull__(argnum)))
 # else
 #   define GC_ATTR_NONNULL(argnum) /* empty */
@@ -268,9 +275,9 @@
 # ifdef GC_BUILD
 #   undef GC_ATTR_DEPRECATED
 #   define GC_ATTR_DEPRECATED /* empty */
-# elif defined(__GNUC__) && __GNUC__ >= 4
+# elif GC_GNUC_PREREQ(4, 0)
 #   define GC_ATTR_DEPRECATED __attribute__((__deprecated__))
-# elif defined(_MSC_VER) && _MSC_VER >= 12
+# elif defined(_MSC_VER) && _MSC_VER >= 1200
 #   define GC_ATTR_DEPRECATED __declspec(deprecated)
 # else
 #   define GC_ATTR_DEPRECATED /* empty */
@@ -287,7 +294,8 @@
 #   include <features.h>
 # endif
 # if (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 1 || __GLIBC__ > 2) \
-        && !defined(__ia64__) && !defined(__UCLIBC__) \
+        && !defined(__ia64__) \
+        && !defined(GC_MISSING_EXECINFO_H) \
         && !defined(GC_HAVE_BUILTIN_BACKTRACE)
 #   define GC_HAVE_BUILTIN_BACKTRACE
 # endif
@@ -323,12 +331,13 @@
      || defined(PLATFORM_ANDROID) || defined(__ANDROID__)) \
     && !defined(GC_CAN_SAVE_CALL_STACKS)
 # define GC_ADD_CALLER
-# if __GNUC__ >= 3 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
+# if GC_GNUC_PREREQ(2, 95)
     /* gcc knows how to retrieve return address, but we don't know      */
     /* how to generate call stacks.                                     */
 #   define GC_RETURN_ADDR (GC_word)__builtin_return_address(0)
-#   if (__GNUC__ >= 4) && (defined(__i386__) || defined(__amd64__) \
-        || defined(__x86_64__) /* and probably others... */)
+#   if GC_GNUC_PREREQ(4, 0) && (defined(__i386__) || defined(__amd64__) \
+                        || defined(__x86_64__) /* and probably others... */)
+#     define GC_HAVE_RETURN_ADDR_PARENT
 #     define GC_RETURN_ADDR_PARENT \
         (GC_word)__builtin_extract_return_addr(__builtin_return_address(1))
 #   endif
@@ -361,16 +370,18 @@
 #   ifndef GC_PTHREAD_CREATE_CONST
 #     define GC_PTHREAD_CREATE_CONST /* empty */
 #   endif
-#   ifndef GC_PTHREAD_EXIT_ATTRIBUTE
+#   ifndef GC_HAVE_PTHREAD_EXIT
+#     define GC_HAVE_PTHREAD_EXIT
 #     define GC_PTHREAD_EXIT_ATTRIBUTE /* empty */
 #   endif
 # endif
 
-# if !defined(GC_PTHREAD_EXIT_ATTRIBUTE) \
+# if !defined(GC_HAVE_PTHREAD_EXIT) \
      && !defined(PLATFORM_ANDROID) && !defined(__ANDROID__) \
      && (defined(GC_LINUX_THREADS) || defined(GC_SOLARIS_THREADS))
+#   define GC_HAVE_PTHREAD_EXIT
     /* Intercept pthread_exit on Linux and Solaris.     */
-#   if defined(__GNUC__) /* since GCC v2.7 */
+#   if GC_GNUC_PREREQ(2, 7)
 #     define GC_PTHREAD_EXIT_ATTRIBUTE __attribute__((__noreturn__))
 #   elif defined(__NORETURN) /* used in Solaris */
 #     define GC_PTHREAD_EXIT_ATTRIBUTE __NORETURN
@@ -379,7 +390,7 @@
 #   endif
 # endif
 
-# if (!defined(GC_PTHREAD_EXIT_ATTRIBUTE) || defined(__native_client__)) \
+# if (!defined(GC_HAVE_PTHREAD_EXIT) || defined(__native_client__)) \
      && !defined(GC_NO_PTHREAD_CANCEL)
     /* Either there is no pthread_cancel() or no need to intercept it.  */
 #   define GC_NO_PTHREAD_CANCEL
