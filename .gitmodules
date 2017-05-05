@@ -10,3 +10,6 @@
 [submodule "src/ml/libatomic_ops"]
 	path = src/ml/libatomic_ops
 	url = https://github.com/ivmai/libatomic_ops.git
+[submodule "src/ml/mpir"]
+	path = src/ml/mpir
+	url = https://github.com/wbhart/mpir.git
